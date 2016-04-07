@@ -57,6 +57,9 @@ public class Messages extends NLS {
 	public static String TEGdbAbstractLaunchDelegate_gdbserverFailedToStartErrorWithDetails;
 	public static String TEGdbAbstractLaunchDelegate_error_addressInUse;
 	public static String TEGdbAbstractLaunchDelegate_error_nosuchfileordirectory;
+	public static String TEGdbAbstractLaunchDelegate_prerunScriptCreationFailed;
+	public static String TEGdbAbstractLaunchDelegate_prerunScriptTransferFailed;
+	public static String TEGdbAbstractLaunchDelegate_error_prerunScriptTemplate;
 
 	public static String GdbPreferencePage_label;
 	public static String GdbPreferencePage_portList_label;

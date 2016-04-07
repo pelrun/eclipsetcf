@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2015 MontaVista Software, LLC. and others. All rights reserved.
+ * Copyright (c) 2013, 2016 MontaVista Software, LLC. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -9,10 +9,15 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.launch.cdt.launching;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.MessageFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 import java.util.Map;
 
 import org.eclipse.cdt.core.model.ICProject;
@@ -22,13 +27,13 @@ import org.eclipse.cdt.launch.AbstractCLaunchDelegate2;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.tcf.protocol.IPeer;
-import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.tcf.launch.cdt.activator.Activator;
 import org.eclipse.tcf.te.tcf.launch.cdt.interfaces.IRemoteTEConfigurationConstants;
 import org.eclipse.tcf.te.tcf.launch.cdt.nls.Messages;
@@ -50,8 +55,49 @@ public class TERunLaunchDelegate extends AbstractCLaunchDelegate2 {
 			Activator.getDefault().initializeTE();
 			// 0. Get the peer from the launch configuration
 			IPeer peer = TEHelper.getCurrentConnection(config).getPeer();
-			// 1.Download binary if needed
+			// 1.1. If there are commands to run before, create a script for them
 			String remoteExePath = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_REMOTE_PATH, ""); //$NON-NLS-1$
+			IPath remotePrerunScriptPath = null;
+			String prerunCommands = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_PRERUN_COMMANDS, (String)null);
+			if (prerunCommands != null && prerunCommands.trim().length() > 0) {
+				SimpleDateFormat formatter = new SimpleDateFormat ("HH-mm-ss-S", Locale.US); //$NON-NLS-1$
+		        String prerunScriptNamePreffix = formatter.format( Long.valueOf(Calendar.getInstance().getTime().getTime()) );
+				String prerunScriptName = prerunScriptNamePreffix + "_" + exePath.toFile().getName() + ".sh"; //$NON-NLS-1$ //$NON-NLS-2$
+
+				IPath localTempLocation = Activator.getDefault().getStateLocation().append("prerun_commands_scripts"); //$NON-NLS-1$
+				if (!localTempLocation.toFile().exists()) localTempLocation.toFile().mkdirs();
+				IPath prerunScriptLocation = localTempLocation.append(prerunScriptName);
+				if (prerunScriptLocation.toFile().exists()) prerunScriptLocation.toFile().delete();
+
+				BufferedWriter writer = null;
+				try {
+					writer = new BufferedWriter(new FileWriter(prerunScriptLocation.toFile()));
+					writer.write(NLS.bind(TEHelper.getPrerunTemplateContent(peer), prerunCommands.replaceAll("\\r", ""), remoteExePath.replaceAll("\\r", ""))); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+				} catch (Exception e) {
+					abort(NLS.bind(Messages.TEGdbAbstractLaunchDelegate_prerunScriptCreationFailed, prerunScriptLocation.toString(), e.getLocalizedMessage()), e, ICDTLaunchConfigurationConstants.ERR_PROGRAM_NOT_EXIST);
+				} finally {
+					if (writer != null) {
+						try {
+							writer.close();
+						} catch (IOException e) { /* Ignored on purpose. */ }
+					}
+				}
+				// Grant execution permission
+				prerunScriptLocation.toFile().setExecutable(true, false);
+
+				// Download the script to the target
+				remotePrerunScriptPath = new Path("/tmp").append(prerunScriptName); //$NON-NLS-1$
+				try {
+					TEHelper.remoteFileTransfer(peer, prerunScriptLocation.toString(), remotePrerunScriptPath.toString(), new SubProgressMonitor(monitor, 80));
+				} catch (IOException e) {
+					abort(NLS.bind(Messages.TEGdbAbstractLaunchDelegate_prerunScriptTransferFailed, remotePrerunScriptPath.toString(), e.getLocalizedMessage()), e, ICDTLaunchConfigurationConstants.ERR_PROGRAM_NOT_EXIST);
+				} finally {
+					// Remove local temporal script
+					prerunScriptLocation.toFile().delete();
+				}
+			}
+
+			// 1.2. Download binary if needed
 			monitor.setTaskName(Messages.TEGdbAbstractLaunchDelegate_downloading);
 			boolean skipDownload = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_SKIP_DOWNLOAD_TO_TARGET, false);
 
@@ -66,11 +112,11 @@ public class TERunLaunchDelegate extends AbstractCLaunchDelegate2 {
 			// 2. Run the binary
 			monitor.setTaskName(Messages.TEGdbAbstractLaunchDelegate_starting_debugger);
 			String arguments = getProgramArguments(config);
-			String prelaunchCmd = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_PRERUN_COMMANDS, ""); //$NON-NLS-1$
 			Map<String,String> env = config.getAttribute(ILaunchManager.ATTR_ENVIRONMENT_VARIABLES, (Map<String,String>)null);
-
-			TEHelper.launchCmd(peer, null, prelaunchCmd, null, new SubProgressMonitor(monitor, 2), new Callback());
-			new TERunProcess(launch, remoteExePath, arguments, env, renderProcessLabel(exePath.toOSString()), peer, new SubProgressMonitor(monitor, 20));
+			if (remotePrerunScriptPath != null) {
+				remoteExePath = remotePrerunScriptPath.toString();
+			}
+			new TERunProcess(launch, remoteExePath, arguments, env, renderProcessLabel(exePath.toString()), peer, new SubProgressMonitor(monitor, 20));
 		}
 	}
 

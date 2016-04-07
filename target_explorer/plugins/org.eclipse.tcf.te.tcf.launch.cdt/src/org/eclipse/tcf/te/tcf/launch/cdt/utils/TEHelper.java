@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2015 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2012, 2016 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -11,9 +11,11 @@
 
 package org.eclipse.tcf.te.tcf.launch.cdt.utils;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -25,6 +27,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.eclipse.cdt.debug.core.ICDTLaunchConfigurationConstants;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
@@ -42,7 +45,10 @@ import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
+import org.eclipse.tcf.te.runtime.services.ServiceManager;
 import org.eclipse.tcf.te.runtime.services.filetransfer.FileTransferItem;
+import org.eclipse.tcf.te.runtime.services.interfaces.IDelegateService;
+import org.eclipse.tcf.te.runtime.services.interfaces.IService;
 import org.eclipse.tcf.te.runtime.services.interfaces.filetransfer.IFileTransferItem;
 import org.eclipse.tcf.te.runtime.utils.Host;
 import org.eclipse.tcf.te.runtime.utils.net.IPAddressUtil;
@@ -51,6 +57,7 @@ import org.eclipse.tcf.te.tcf.core.streams.StreamsDataReceiver;
 import org.eclipse.tcf.te.tcf.core.streams.StreamsDataReceiver.Listener;
 import org.eclipse.tcf.te.tcf.filesystem.core.services.FileTransferService;
 import org.eclipse.tcf.te.tcf.launch.cdt.activator.Activator;
+import org.eclipse.tcf.te.tcf.launch.cdt.interfaces.IRemoteLaunchDelegate;
 import org.eclipse.tcf.te.tcf.launch.cdt.interfaces.IRemoteTEConfigurationConstants;
 import org.eclipse.tcf.te.tcf.launch.cdt.nls.Messages;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
@@ -62,6 +69,9 @@ import org.eclipse.tm.terminal.view.core.interfaces.constants.ILineSeparatorCons
 import org.eclipse.tm.terminal.view.core.interfaces.constants.ITerminalsConnectorConstants;
 
 public class TEHelper {
+
+	private static final String LOCAL_TEMPLATE_ROOT = "templates"; //$NON-NLS-1$
+	private static final String PRERUN_TEMPLATE_NAME = "prerun_template.sh"; //$NON-NLS-1$
 
 	public static void remoteFileTransfer(IPeer peer, String localFilePath, String remoteFilePath, SubProgressMonitor monitor) throws IOException {
 		// Copy the host side file to a temporary location first before copying to the target,
@@ -359,4 +369,51 @@ public class TEHelper {
 		return list;
 	}
 
+	/**
+	 * @param peer
+	 * @return the content of the script template used to run
+	 * commands before the launch.
+	 * @throws Exception
+	 */
+	public static String getPrerunTemplateContent(IPeer peer) throws Exception {
+		File templateFile = null;
+		BufferedReader reader = null;
+		StringBuilder sb = new StringBuilder();
+		try {
+			IPath templateRoot = null;
+			IRemoteLaunchDelegate launchDelegate = null;
+			IPeerNode peerNode = getPeerNode(peer.getID());
+			IService[] services = ServiceManager.getInstance().getServices(peerNode, IDelegateService.class, false);
+			for (IService service : services) {
+		        if (service instanceof IDelegateService) {
+		        	launchDelegate = ((IDelegateService)service).getDelegate(peerNode, IRemoteLaunchDelegate.class);
+		        	if (launchDelegate != null) { break; }
+		        }
+	        }
+			if (launchDelegate != null) {
+				templateRoot = launchDelegate.getPrerunTemplateRoot();
+			}
+			if (templateRoot != null) {
+				templateFile = new File(templateRoot.append(PRERUN_TEMPLATE_NAME).toOSString());
+			}
+			// Fallback - Use built-in template
+			if (templateFile == null || !templateFile.exists()) {
+				templateFile = new File(FileLocator.resolve(Activator.getDefault().getBundle().getEntry(LOCAL_TEMPLATE_ROOT + File.separator + PRERUN_TEMPLATE_NAME)).toURI());
+			}
+
+			reader = new BufferedReader(new FileReader(templateFile));
+			String line;
+			while ((line = reader.readLine()) != null) {
+				sb.append(line);
+				sb.append('\n');
+			}
+		} catch (Exception e) {
+			throw new Exception(NLS.bind(Messages.TEGdbAbstractLaunchDelegate_error_prerunScriptTemplate, templateFile), e);
+		} finally {
+			if (reader != null) {
+				try { reader.close(); }	catch (IOException e) { /* Ignored on purpose. */ }
+			}
+		}
+		return sb.toString();
+	}
 }

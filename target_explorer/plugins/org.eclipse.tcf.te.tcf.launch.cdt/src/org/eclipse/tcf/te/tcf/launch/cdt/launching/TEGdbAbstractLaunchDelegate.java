@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2015, 2016 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -9,9 +9,14 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.launch.cdt.launching;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -47,6 +52,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.core.variables.VariablesPlugin;
@@ -152,12 +158,6 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 					abort(NLS.bind(Messages.TEGdbAbstractLaunchDelegate_filetransferFailed, e.getLocalizedMessage()), e, ICDTLaunchConfigurationConstants.ERR_PROGRAM_NOT_EXIST);
 				}
 			}
-		}
-
-		// Perform prelaunch command
-		if (!isAttachLaunch) {
-			String prelaunchCmd = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_PRERUN_COMMANDS, ""); //$NON-NLS-1$
-			TEHelper.launchCmd(peer, null, prelaunchCmd, null, new SubProgressMonitor(monitor, 2), new Callback());
 		}
 
 		// Launch gdbserver on target
@@ -276,8 +276,54 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 				peerName = peer.getName() + ", PID " + remotePID; //$NON-NLS-1$
 			}
 
-			String[] argv = StringUtil.tokenize(gdbserverCommand + ' ' + commandArguments, 0, false);
-			launcher = TEHelper.launchCmdWithEnv(peer, peerName, argv[0], argv, commandEnv, listener, new SubProgressMonitor(monitor, 3), callback);
+
+			// If there are commands to run before launching, create a script for them
+			String gdbserverLaunchCommand = gdbserverCommand + ' ' + commandArguments;
+			String prelaunchCmd = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_PRERUN_COMMANDS, ""); //$NON-NLS-1$
+			if (!isAttachLaunch && prelaunchCmd != null && prelaunchCmd.trim().length() > 0) {
+				SimpleDateFormat formatter = new SimpleDateFormat ("HH-mm-ss-S", Locale.US); //$NON-NLS-1$
+		        String prerunScriptNamePreffix = formatter.format( Long.valueOf(Calendar.getInstance().getTime().getTime()) );
+				String prerunScriptName = prerunScriptNamePreffix + "_" + exePath.toFile().getName() + ".sh"; //$NON-NLS-1$ //$NON-NLS-2$
+
+				IPath rootLocation = Activator.getDefault().getStateLocation().append("prerun_temp_scripts"); //$NON-NLS-1$
+				if (!rootLocation.toFile().exists()) rootLocation.toFile().mkdirs();
+				IPath prerunScriptLocation = rootLocation.append(prerunScriptName);
+				if (prerunScriptLocation.toFile().exists()) prerunScriptLocation.toFile().delete();
+
+				// Create the script
+				BufferedWriter writer = null;
+				try {
+					writer = new BufferedWriter(new FileWriter(prerunScriptLocation.toFile()));
+					writer.write(NLS.bind(TEHelper.getPrerunTemplateContent(peer), prelaunchCmd.replaceAll("\\r", ""), gdbserverLaunchCommand.replaceAll("\\r", ""))); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+				} catch (Exception e) {
+					abort(NLS.bind(Messages.TEGdbAbstractLaunchDelegate_prerunScriptCreationFailed, prerunScriptLocation, e.getLocalizedMessage()), e, ICDTLaunchConfigurationConstants.ERR_PROGRAM_NOT_EXIST);
+				} finally {
+					if (writer != null) {
+						try {
+							writer.close();
+						} catch (IOException e) { /* Ignored on purpose. */ }
+					}
+				}
+				// Grant execution permission
+				prerunScriptLocation.toFile().setExecutable(true, false);
+
+				// Download the script to the target
+				IPath remotePrerunScriptPath = new Path("/tmp").append(prerunScriptName); //$NON-NLS-1$
+				try {
+					TEHelper.remoteFileTransfer(peer, prerunScriptLocation.toString(), remotePrerunScriptPath.toString(), new SubProgressMonitor(monitor, 80));
+				} catch (IOException e) {
+					abort(NLS.bind(Messages.TEGdbAbstractLaunchDelegate_prerunScriptTransferFailed, remotePrerunScriptPath.toString(), e.getLocalizedMessage()), e, ICDTLaunchConfigurationConstants.ERR_PROGRAM_NOT_EXIST);
+				} finally {
+					// Remove local temporal script
+					prerunScriptLocation.toFile().delete();
+				}
+
+				launcher = TEHelper.launchCmdWithEnv(peer, peerName, remotePrerunScriptPath.toString(), (String)null, commandEnv, listener, new SubProgressMonitor(monitor, 3), callback);
+			}
+			else {
+				String[] argv = StringUtil.tokenize(gdbserverLaunchCommand, 0, false);
+				launcher = TEHelper.launchCmdWithEnv(peer, peerName, argv[0], argv, commandEnv, listener, new SubProgressMonitor(monitor, 3), callback);
+			}
 
 			// Now wait until gdbserver is up and running on the remote host
 			while (!gdbServerReady.get() && !gdbServerExited.get()) {
