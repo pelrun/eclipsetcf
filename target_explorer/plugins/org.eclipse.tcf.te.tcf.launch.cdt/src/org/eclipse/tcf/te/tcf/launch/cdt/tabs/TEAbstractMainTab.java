@@ -23,9 +23,11 @@ import org.eclipse.core.runtime.URIUtil;
 import org.eclipse.core.variables.VariablesPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
+import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -34,6 +36,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
@@ -73,8 +76,9 @@ public abstract class TEAbstractMainTab extends CMainTab {
 	protected boolean remoteProgTextFireNotification;
 	protected boolean remoteProgValidation = true;
 
-	private Text preRunText;
+	protected Text preRunText;
 	private Label preRunLabel;
+	private Button preRunEditButton;
 	private boolean preRunVisible = true;
 
 	private Label pidLabel;
@@ -270,7 +274,8 @@ public abstract class TEAbstractMainTab extends CMainTab {
 
 			preRunText = new Text(mainComp, SWT.MULTI | SWT.BORDER);
 			gd = new GridData(GridData.FILL_HORIZONTAL);
-			gd.horizontalSpan = 2;
+			gd.horizontalSpan = 1;
+			gd.heightHint = preRunText.getLineHeight();
 			preRunText.setLayoutData(gd);
 			preRunText.addModifyListener(new ModifyListener() {
 
@@ -278,6 +283,14 @@ public abstract class TEAbstractMainTab extends CMainTab {
 				@Override
 				public void modifyText(ModifyEvent evt) {
 					updateLaunchConfigurationDialog();
+				}
+			});
+
+			preRunEditButton = createPushButton(mainComp, Messages.RemoteCMainTab_Prerun_Edit_Button, null);
+			preRunEditButton.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent evt) {
+					showCommandsEditor();
 				}
 			});
 		}
@@ -507,4 +520,37 @@ public abstract class TEAbstractMainTab extends CMainTab {
 		config.setAttribute(IRemoteTEConfigurationConstants.ATTR_PRERUN_COMMANDS, (String)null);
 	}
 
+	protected void showCommandsEditor() {
+		Dialog dialog = new Dialog(getShell()) {
+			private StyledText textArea = null;
+
+			@Override
+			protected Control createDialogArea(Composite parent) {
+				Composite baseComposite = (Composite) super.createDialogArea(parent);
+				baseComposite.getShell().setText(Messages.RemoteCMainTab_Prerun_Edit_Dialog_Title);
+				textArea = new StyledText(baseComposite, SWT.MULTI | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
+				textArea.setAlwaysShowScrollBars(false);
+				GridData textAreaGD = new GridData(GridData.FILL_BOTH);
+				textAreaGD.heightHint = 180;
+				textAreaGD.widthHint = 300;
+				textArea.setLayoutData(textAreaGD);
+				textArea.setText(preRunText.getText());
+				return baseComposite;
+			}
+
+			@Override
+			protected void okPressed() {
+				if (preRunText != null && textArea != null) {
+					preRunText.setText(textArea.getText());
+				}
+				super.okPressed();
+			}
+
+			@Override
+			protected boolean isResizable() {
+				return true;
+			}
+		};
+		dialog.open();
+	}
 }
