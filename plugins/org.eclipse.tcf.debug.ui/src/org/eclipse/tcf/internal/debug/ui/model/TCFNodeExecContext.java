@@ -1605,6 +1605,14 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
     void onContextException(String msg) {
     }
 
+    void onOtherContextSuspended() {
+        // Other context suspended in same memory space
+        // Expressions with global variables should be invalidated
+        children_exps.onMemoryChanged();
+        children_hover_exps.onMemoryChanged();
+        children_log_exps.onMemoryChanged();
+    }
+
     void onMemoryChanged(Number[] addr, long[] size) {
         assert !isDisposed();
         children_stack.onMemoryChanged();

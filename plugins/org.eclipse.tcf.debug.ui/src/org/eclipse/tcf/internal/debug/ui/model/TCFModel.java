@@ -414,7 +414,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
                 if (!id.equals(context) && node instanceof TCFNodeExecContext) {
                     ((TCFNodeExecContext)node).onContainerSuspended(func_call);
                 }
-                onMemoryChanged(id, false, true, false);
+                onMemoryChanged(id, true, true, false);
             }
             TCFNode node = getNode(context);
             if (node instanceof TCFNodeExecContext) {
@@ -498,7 +498,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
                 updateAnnotations(null);
                 TCFNodePropertySource.refresh(node);
             }
-            onMemoryChanged(id, false, true, false);
+            onMemoryChanged(id, true, true, false);
         }
 
         public void contextStateChanged(String id) {
@@ -1024,18 +1024,22 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
     void onMemoryChanged(String id, boolean notify_references, boolean context_suspended, boolean mem_map) {
         if (channel == null) return;
         if (notify_references) {
+            String prs_id = id;
+            Object ctx_obj = context_map.get(id);
+            if (ctx_obj instanceof IRunControl.RunControlContext) {
+                String ctx_prs_id = ((IRunControl.RunControlContext)ctx_obj).getProcessID();
+                if (ctx_prs_id != null) prs_id = ctx_prs_id;
+            }
             for (Object obj : context_map.values()) {
                 if (obj instanceof IRunControl.RunControlContext) {
                     IRunControl.RunControlContext subctx = (IRunControl.RunControlContext)obj;
-                    if (id.equals(subctx.getProcessID()) && !id.equals(subctx.getID())) {
+                    if (prs_id.equals(subctx.getProcessID()) && !id.equals(subctx.getID())) {
                         TCFNode subnode = getNode(subctx.getID());
                         if (subnode instanceof TCFNodeExecContext) {
-                            if (mem_map) {
-                                ((TCFNodeExecContext)subnode).onMemoryMapChanged();
-                            }
-                            else {
-                                ((TCFNodeExecContext)subnode).onMemoryChanged(null, null);
-                            }
+                            TCFNodeExecContext exe = (TCFNodeExecContext)subnode;
+                            if (context_suspended) exe.onOtherContextSuspended();
+                            else if (mem_map) exe.onMemoryMapChanged();
+                            else exe.onMemoryChanged(null, null);
                         }
                     }
                 }
