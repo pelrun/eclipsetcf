@@ -209,6 +209,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
     private final TCFAnnotationManager annotation_manager;
 
     private InitialSelection initial_selection;
+    private InitialSuspendTrigger initial_suspend_trigger;
 
     private final List<ISuspendTriggerListener> suspend_trigger_listeners =
         new LinkedList<ISuspendTriggerListener>();
@@ -668,7 +669,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
         }
     };
 
-    private class InitialSelection implements Runnable {
+    private class InitialSelection extends InitialRunnable {
         final TCFModelProxy proxy;
         boolean launch_selected;
         boolean done;
@@ -709,7 +710,21 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
             initial_selection = null;
             done = true;
         }
-        private boolean searchSuspendedThreads(TCFChildren c, ArrayList<TCFNodeExecContext> nodes) {
+    };
+    private class InitialSuspendTrigger extends InitialRunnable {
+        public InitialSuspendTrigger() {
+            initial_suspend_trigger = this;
+        }
+        @Override
+        public void run() {
+            if (launch_node == null || initial_suspend_trigger != this) return;
+            ArrayList<TCFNodeExecContext> nodes = new ArrayList<TCFNodeExecContext>();
+            if (!searchSuspendedThreads(launch_node.getFilteredChildren(), nodes)) return;
+            if (nodes.size() > 0) runSuspendTrigger(nodes.get(0));
+        }
+    };
+    private abstract class InitialRunnable implements Runnable {
+        protected boolean searchSuspendedThreads(TCFChildren c, ArrayList<TCFNodeExecContext> nodes) {
             if (!c.validate(this)) return false;
             for (TCFNode n : c.toArray()) {
                 if (!searchSuspendedThreads((TCFNodeExecContext)n, nodes)) return false;
@@ -929,6 +944,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
         IProcesses prs = launch.getService(IProcesses.class);
         if (prs != null) prs.addListener(prs_listener);
         launchChanged();
+        Protocol.invokeLater(new InitialSuspendTrigger());
         for (TCFModelProxy p : model_proxies) {
             String id = p.getPresentationContext().getId();
             if (IDebugUIConstants.ID_DEBUG_VIEW.equals(id)) {
@@ -2287,6 +2303,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
      * @param node - suspended context.
      */
     private synchronized void runSuspendTrigger(final TCFNode node) {
+        initial_suspend_trigger = null;
         if (suspend_trigger_listeners.size() == 0) return;
         final ISuspendTriggerListener[] listeners = suspend_trigger_listeners.toArray(
                 new ISuspendTriggerListener[suspend_trigger_listeners.size()]);
