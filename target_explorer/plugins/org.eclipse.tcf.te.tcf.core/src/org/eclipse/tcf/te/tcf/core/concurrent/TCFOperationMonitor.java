@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Wind River Systems, Inc.
+ * Copyright (c) 2016 Wind River Systems, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -160,6 +160,13 @@ public class TCFOperationMonitor<T> {
 	 */
 	public IStatus setError(String msg, Throwable th) {
 		return setDone(createStatus(msg, th), null);
+	}
+
+	/**
+	 * Method for reporting the completion of the operation with an error.
+	 */
+	public IStatus setError(IStatus status) {
+		return setDone(status, null);
 	}
 
 	private IStatus createStatus(String msg, Throwable th) {

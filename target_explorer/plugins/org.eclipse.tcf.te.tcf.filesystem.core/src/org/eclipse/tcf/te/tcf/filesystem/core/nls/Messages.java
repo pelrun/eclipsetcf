@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2016 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -9,6 +9,8 @@
  * William Chen (Wind River) - [345384] Provide property pages for remote file system nodes
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.filesystem.core.nls;
+
+import java.lang.reflect.Field;
 
 import org.eclipse.osgi.util.NLS;
 
@@ -26,6 +28,42 @@ public class Messages extends NLS {
 	static {
 		// Load message values from bundle file
 		NLS.initializeMessages(BUNDLE_NAME, Messages.class);
+	}
+
+	/**
+	 * Returns if or if not this NLS manager contains a constant for
+	 * the given externalized strings key.
+	 *
+	 * @param key The externalized strings key or <code>null</code>.
+	 * @return <code>True</code> if a constant for the given key exists, <code>false</code> otherwise.
+	 */
+	public static boolean hasString(String key) {
+		if (key != null) {
+			try {
+				Field field = Messages.class.getDeclaredField(key);
+				return field != null;
+			} catch (NoSuchFieldException e) { /* ignored on purpose */ }
+		}
+
+		return false;
+	}
+
+	/**
+	 * Returns the corresponding string for the given externalized strings
+	 * key or <code>null</code> if the key does not exist.
+	 *
+	 * @param key The externalized strings key or <code>null</code>.
+	 * @return The corresponding string or <code>null</code>.
+	 */
+	public static String getString(String key) {
+		if (key != null) {
+			try {
+				Field field = Messages.class.getDeclaredField(key);
+				return (String)field.get(null);
+			} catch (Exception e) { /* ignored on purpose */ }
+		}
+
+		return null;
 	}
 
 	// **** Declare externalized string id's down here *****
@@ -136,4 +174,8 @@ public class Messages extends NLS {
 	public static String BlockingFileSystemProxy_TimeoutGettingUser;
 	public static String ModelManager_errorNoUserAccount;
 	public static String ModelManager_errorOpenChannel;
+
+	public static String FileSystem_ErrorMessage_Errno_Base;
+	public static String FileSystem_ErrorMessage_Errno_65563;
+	public static String FileSystem_ErrorMessage_Errno_65565;
 }

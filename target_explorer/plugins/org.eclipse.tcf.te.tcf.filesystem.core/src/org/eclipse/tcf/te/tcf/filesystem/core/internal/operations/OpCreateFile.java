@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2016 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -23,6 +23,7 @@ import org.eclipse.tcf.services.IFileSystem.FileSystemException;
 import org.eclipse.tcf.services.IFileSystem.IFileHandle;
 import org.eclipse.tcf.te.tcf.core.concurrent.TCFOperationMonitor;
 import org.eclipse.tcf.te.tcf.filesystem.core.internal.FSTreeNode;
+import org.eclipse.tcf.te.tcf.filesystem.core.internal.utils.StatusHelper;
 import org.eclipse.tcf.te.tcf.filesystem.core.nls.Messages;
 
 /**
@@ -51,19 +52,19 @@ public class OpCreateFile extends OpCreate {
 			@Override
 			public void doneOpen(IToken token, FileSystemException error, IFileHandle hdl) {
 				if (error != null) {
-					result.setError(format(Messages.OpCreateFile_error_create, path), error);
+					result.setError(StatusHelper.createStatus(format(Messages.OpCreateFile_error_create, path), error));
 				} else if (!result.checkCancelled()) {
 					fileSystem.close(hdl, new DoneClose() {
 						@Override
 						public void doneClose(IToken token, FileSystemException error) {
 							if (error != null) {
-								result.setError(format(Messages.OpCreateFile_error_create, path), error);
+								result.setError(StatusHelper.createStatus(format(Messages.OpCreateFile_error_create, path), error));
 							} else if (!result.checkCancelled()) {
 								fileSystem.stat(path, new DoneStat() {
 									@Override
 									public void doneStat(IToken token, FileSystemException error, FileAttrs attrs) {
 										if (error != null) {
-											result.setError(format(Messages.OpCreateFile_error_create, path), error);
+											result.setError(StatusHelper.createStatus(format(Messages.OpCreateFile_error_create, path), error));
 										} else if (!result.checkCancelled()) {
 											FSTreeNode node = new FSTreeNode(destination, name, false, attrs);
 											destination.addNode(node, true);

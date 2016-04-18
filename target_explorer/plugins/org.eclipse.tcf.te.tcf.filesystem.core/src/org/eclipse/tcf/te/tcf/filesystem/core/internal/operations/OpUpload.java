@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2016 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -219,7 +219,7 @@ public class OpUpload extends AbstractOperation {
 				@Override
 				public void doneOpen(IToken token, FileSystemException error, IFileHandle handle) {
 					if (error != null) {
-						result.setError(format(Messages.OpUpload_error_openFile, path), error);
+						result.setError(StatusHelper.createStatus(format(Messages.OpUpload_error_openFile, path), error));
 					} else {
 						result.setDone(new TCFFileOutputStream(handle));
 					}
