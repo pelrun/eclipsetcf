@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2015 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2016 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -145,14 +145,19 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
                 }
                 if (!context.validate(this)) return false;
                 IRegisters.RegistersContext ctx = context.getData();
+                if (ctx == null) {
+                    set(null, context.getError(), null);
+                    return true;
+                }
                 int[] bits = ctx.getBitNumbers();
                 if (bits != null) {
                     // handle bit fields
                     TCFNodeRegister p = (TCFNodeRegister)parent;
                     if (!p.value.validate(this)) return false;
                     byte[] parent_value = p.value.getData();
-                    byte[] bitfield_value = new byte[(bits.length + 7) / 8];
+                    byte[] bitfield_value = null;
                     if (parent_value != null) {
+                        bitfield_value = new byte[(bits.length + 7) / 8];
                         for (int pos = 0; pos < bits.length; pos++) {
                             int bit = bits[pos];
                             if (bit / 8 >= parent_value.length) continue;
@@ -164,8 +169,8 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
                     return true;
                 }
                 else {
-                    if (ctx == null || ctx.getSize() <= 0) {
-                        set(null, null, null);
+                    if (ctx.getSize() <= 0) {
+                        set(null, context.getError(), null);
                         return true;
                     }
                     final TCFDataCache<?> cache = this;
@@ -314,9 +319,22 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
                     if (l < bf.length()) bf.append(", ");
                     bf.append("Bits: ", SWT.BOLD);
                     bf.append("[");
-                    for (int i = bits.length; i > 0; i--) {
+                    int i = bits.length;
+                    while (i > 0) {
                         if (i != bits.length) bf.append(",");
-                        bf.append(bits[i - 1]);
+                        i--;
+                        if (i > 2) {
+                            int j = i;
+                            while (j > 0 && bits[j - 1] == bits[j] - 1) j--;
+                            if (i - j >= 3) {
+                                bf.append(bits[i]);
+                                bf.append("..");
+                                bf.append(bits[j]);
+                                i = j;
+                                continue;
+                            }
+                        }
+                        bf.append(bits[i]);
                     }
                     bf.append("]");
                 }
@@ -672,7 +690,7 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
                         if (!node.context.validate(this)) return;
                         IRegisters.RegistersContext ctx = node.context.getData();
                         if (ctx != null && ctx.isWriteable()) {
-                            if (!ctx.isReadable()) {
+                            if (!ctx.isReadable() || ctx.isReadOnce()) {
                                 done(Boolean.TRUE);
                                 return;
                             }
@@ -705,7 +723,7 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
                     public void run() {
                         if (!node.context.validate(this)) return;
                         IRegisters.RegistersContext ctx = node.context.getData();
-                        if (!ctx.isReadable()) {
+                        if (!ctx.isReadable() || ctx.isReadOnce()) {
                             done("");
                             return;
                         }
