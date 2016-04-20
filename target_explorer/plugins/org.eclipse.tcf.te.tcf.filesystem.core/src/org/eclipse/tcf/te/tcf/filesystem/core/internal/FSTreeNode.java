@@ -21,7 +21,6 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -245,10 +244,10 @@ public final class FSTreeNode extends FSTreeNodeBase implements IFilterable, org
     }
 
     public String getLocation(boolean forceSlashes) {
-    	return getLocation(isWindowsNode() && !forceSlashes ? '\\' : '/', false);
+    	return getLocation(isWindowsNode() && !forceSlashes ? '\\' : '/');
     }
 
-    private String getLocation(char separator, boolean encodeName) {
+    private String getLocation(char separator) {
 		String name = getName();
     	if (fType == Type.ROOT) {
     		if (isWindowsNode() && name.charAt(name.length()-1) != separator) {
@@ -260,17 +259,10 @@ public final class FSTreeNode extends FSTreeNodeBase implements IFilterable, org
     		return name;
 
 
-    	String pLoc = fParent.getLocation(separator, encodeName);
+    	String pLoc = fParent.getLocation(separator);
     	if (pLoc.length() == 0)
     		return name;
 
-    	if (encodeName) {
-    		try {
-				name = URLEncoder.encode(getName(), "UTF-8"); //$NON-NLS-1$
-			} catch (Exception e) {
-				// Ignore
-			}
-    	}
     	char lastChar = pLoc.charAt(pLoc.length()-1);
     	if (lastChar != separator)
     		return pLoc + separator + name;
@@ -289,22 +281,8 @@ public final class FSTreeNode extends FSTreeNodeBase implements IFilterable, org
      */
     @Override
 	public URL getLocationURL() {
-    	return getLocationURL(true);
-    }
-
-    /**
-     * Get the URL of the file or folder. The URL's format is created in the
-     * following way: tcf:/<peerName>/remote/path/to/the/resource... See
-     * {@link TcfURLConnection#TcfURLConnection(URL)}
-     * @param encodeName whether or not the URL has to be encoded.
-     *
-     * @see TcfURLStreamHandlerService#parseURL(URL, String, int, int)
-     * @see #getLocationURI()
-     * @return The URL of the file/folder.
-     */
-	public URL getLocationURL(boolean encodeName) {
     	try {
-    		URI uri = getLocationURI(encodeName);
+    		URI uri = getLocationURI();
 			return uri == null ? null : uri.toURL();
         } catch (MalformedURLException e) {
         	CorePlugin.logError("Cannot create tcf url", e); //$NON-NLS-1$
@@ -320,22 +298,11 @@ public final class FSTreeNode extends FSTreeNodeBase implements IFilterable, org
      *
      * @return The URI of the file/folder.
      */
-    @Override
+	@Override
 	public URI getLocationURI() {
-        return getLocationURI(true);
-    }
-
-    /**
-     * Get the URI of the file or folder. The URI's format is created in the
-     * following way: tcf:/<peerName>/remote/path/to/the/resource...
-     * @param encodeName whether or not the URL has to be encoded.
-     *
-     * @return The URI of the file/folder.
-     */
-	public URI getLocationURI(boolean encodeName) {
         try {
             String name = getPeerNode().getName();
-            String path = getLocation('/', encodeName);
+            String path = getLocation('/');
             return new URI(TcfURLConnection.PROTOCOL_SCHEMA, name, addNoSlashMarker(path), null, null);
         } catch (URISyntaxException e) {
         	CorePlugin.logError("Cannot create tcf uri", e); //$NON-NLS-1$
