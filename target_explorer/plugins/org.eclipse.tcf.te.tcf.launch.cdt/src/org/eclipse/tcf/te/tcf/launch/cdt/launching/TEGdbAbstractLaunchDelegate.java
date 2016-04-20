@@ -279,8 +279,13 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 
 			// If there are commands to run before launching, create a script for them
 			String gdbserverLaunchCommand = gdbserverCommand + ' ' + commandArguments;
+			boolean launchAsRemoteUser = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_LAUNCH_REMOTE_USER, false);
+			String userId = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_REMOTE_USER_ID, (String)null);
 			String prelaunchCmd = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_PRERUN_COMMANDS, ""); //$NON-NLS-1$
-			if (!isAttachLaunch && prelaunchCmd != null && prelaunchCmd.trim().length() > 0) {
+			if (!isAttachLaunch &&
+							((prelaunchCmd != null && prelaunchCmd.trim().length() > 0) ||
+											(launchAsRemoteUser && userId != null && userId.trim().length() > 0))) {
+				if (prelaunchCmd == null) { prelaunchCmd = ""; } //$NON-NLS-1$
 				SimpleDateFormat formatter = new SimpleDateFormat ("HH-mm-ss-S", Locale.US); //$NON-NLS-1$
 		        String prerunScriptNamePreffix = formatter.format( Long.valueOf(Calendar.getInstance().getTime().getTime()) );
 				String prerunScriptName = prerunScriptNamePreffix + "_" + exePath.toFile().getName() + ".sh"; //$NON-NLS-1$ //$NON-NLS-2$
@@ -318,7 +323,13 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 					prerunScriptLocation.toFile().delete();
 				}
 
-				launcher = TEHelper.launchCmdWithEnv(peer, peerName, remotePrerunScriptPath.toString(), (String)null, commandEnv, listener, new SubProgressMonitor(monitor, 3), callback);
+				// Pass the user id as an argument to the script
+				String arguments = null;
+				if (launchAsRemoteUser && userId != null && userId.trim().length() > 0) {
+					arguments = "-u__ " + userId; //$NON-NLS-1$
+				}
+
+				launcher = TEHelper.launchCmdWithEnv(peer, peerName, remotePrerunScriptPath.toString(), arguments, commandEnv, listener, new SubProgressMonitor(monitor, 3), callback);
 			}
 			else {
 				String[] argv = StringUtil.tokenize(gdbserverLaunchCommand, 0, false);

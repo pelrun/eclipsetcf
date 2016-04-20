@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2006, 2015 PalmSource, Inc. and others.
+ * Copyright (c) 2006, 2016 PalmSource, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -42,6 +42,10 @@ public interface IRemoteTEConfigurationConstants {
 	public static final String ATTR_PRERUN_COMMANDS = DebugPlugin.getUniqueIdentifier() + ".ATTR_PRERUN_CMDS"; //$NON-NLS-1$
 
 	public static final boolean ATTR_SKIP_DOWNLOAD_TO_TARGET_DEFAULT = false;
+
+	public static final String ATTR_REMOTE_USER_ID = DebugPlugin.getUniqueIdentifier() + ".ATTR_REMOTE_USER_ID"; //$NON-NLS-1$
+	public static final String ATTR_LAUNCH_REMOTE_USER = DebugPlugin.getUniqueIdentifier() + ".ATTR_LAUNCH_REMOTE_USER"; //$NON-NLS-1$
+	public static final boolean ATTR_LAUNCH_REMOTE_USER_DEFAULT = false;
 
 
 }

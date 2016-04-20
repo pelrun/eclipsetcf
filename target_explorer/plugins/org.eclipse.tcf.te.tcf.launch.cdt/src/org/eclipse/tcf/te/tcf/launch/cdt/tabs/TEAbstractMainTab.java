@@ -37,6 +37,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
@@ -63,6 +64,8 @@ public abstract class TEAbstractMainTab extends CMainTab {
 	private static final String PRE_RUN_LABEL_TEXT = Messages.RemoteCMainTab_Prerun;
 	private static final String PID_LABEL_TEXT = Messages.RemoteCMainTab_Pid;
 	private static final String REMOTE_PROG_SYMBOLIC_TEXT_ERROR = Messages.RemoteCMainTab_ErrorSymbolicLink;
+	private static final String REMOTE_USER_ID_LABEL_TEXT = Messages.RemoteCMainTab_RemoteUser_Label;
+	private static final String ADVANCED_OPTIONS_GROUP_LABEL_TEXT = Messages.RemoteCMainTab_AdvancedOptions_Group_Label;
 
 	protected TCFPeerSelector peerSelector;
 	protected Label remoteProgLabel;
@@ -80,6 +83,9 @@ public abstract class TEAbstractMainTab extends CMainTab {
 	private Label preRunLabel;
 	private Button preRunEditButton;
 	private boolean preRunVisible = true;
+
+	private Text userIdText;
+	private Button userIdButton;
 
 	private Label pidLabel;
 	private Text pidText;
@@ -131,7 +137,6 @@ public abstract class TEAbstractMainTab extends CMainTab {
 		/* The remote binary location and skip download option */
 		if (remoteProgVisible || preRunVisible || pidVisible) createVerticalSpacer(comp, 1);
 		createTargetExePathGroup(comp);
-		if (skipDownloadButtonVisible) createDownloadOption(comp);
 
 		/* If the local binary path changes, modify the remote binary location */
 		fProgText.addModifyListener(new ModifyListener() {
@@ -242,6 +247,8 @@ public abstract class TEAbstractMainTab extends CMainTab {
 			});
 		}
 
+		if (skipDownloadButtonVisible) createDownloadOption(mainComp);
+
 		if (pidVisible) {
 			pidLabel = new Label(mainComp, SWT.NONE);
 			pidLabel.setText(PID_LABEL_TEXT);
@@ -265,14 +272,25 @@ public abstract class TEAbstractMainTab extends CMainTab {
 		}
 
 		if (preRunVisible) {
+			createVerticalSpacer(mainComp, 2);
+
+			Group preRunGroup = new Group(mainComp, SWT.NONE);
+			GridLayout preRunGroupLayout = new GridLayout();
+			preRunGroupLayout.numColumns = 2;
+			preRunGroup.setLayout(preRunGroupLayout);
+			gd = new GridData(GridData.FILL_BOTH);
+			gd.horizontalSpan = 2;
+			preRunGroup.setLayoutData(gd);
+			preRunGroup.setText(ADVANCED_OPTIONS_GROUP_LABEL_TEXT);
+
 			// Commands to run before execution
-			preRunLabel = new Label(mainComp, SWT.NONE);
+			preRunLabel = new Label(preRunGroup, SWT.NONE);
 			preRunLabel.setText(PRE_RUN_LABEL_TEXT);
 			gd = new GridData();
 			gd.horizontalSpan = 2;
 			preRunLabel.setLayoutData(gd);
 
-			preRunText = new Text(mainComp, SWT.MULTI | SWT.BORDER);
+			preRunText = new Text(preRunGroup, SWT.MULTI | SWT.BORDER);
 			gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.horizontalSpan = 1;
 			gd.heightHint = preRunText.getLineHeight();
@@ -286,15 +304,51 @@ public abstract class TEAbstractMainTab extends CMainTab {
 				}
 			});
 
-			preRunEditButton = createPushButton(mainComp, Messages.RemoteCMainTab_Prerun_Edit_Button, null);
+			preRunEditButton = createPushButton(preRunGroup, Messages.RemoteCMainTab_Prerun_Edit_Button, null);
 			preRunEditButton.addSelectionListener(new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent evt) {
 					showCommandsEditor();
 				}
 			});
-		}
 
+			// Launch with remote user
+			Composite userIdComp = new Composite(preRunGroup, SWT.NONE);
+			GridLayout userIdCompLayout = new GridLayout();
+			userIdCompLayout.numColumns = 2;
+			userIdCompLayout.marginHeight = 0;
+			userIdCompLayout.marginWidth = 0;
+			userIdComp.setLayout(userIdCompLayout);
+			gd = new GridData(GridData.FILL_HORIZONTAL);
+			gd.horizontalSpan = 2;
+			userIdComp.setLayoutData(gd);
+
+			userIdButton = createCheckButton(userIdComp, REMOTE_USER_ID_LABEL_TEXT);
+			userIdButton.addSelectionListener(new SelectionAdapter() {
+
+				@SuppressWarnings("synthetic-access")
+				@Override
+				public void widgetSelected(SelectionEvent evt) {
+					updateLaunchRemoteUserControls();
+					updateLaunchConfigurationDialog();
+				}
+			});
+			userIdButton.setEnabled(true);
+
+			userIdText = new Text(userIdComp, SWT.SINGLE | SWT.BORDER);
+			gd = new GridData();
+			gd.grabExcessHorizontalSpace = true;
+			gd.horizontalAlignment = SWT.FILL;
+			userIdText.setLayoutData(gd);
+			userIdText.addModifyListener(new ModifyListener() {
+
+				@SuppressWarnings("synthetic-access")
+				@Override
+				public void modifyText(ModifyEvent evt) {
+					updateLaunchConfigurationDialog();
+				}
+			});
+		}
 	}
 
 	/*
@@ -371,6 +425,15 @@ public abstract class TEAbstractMainTab extends CMainTab {
 
 			preRunText.setText(prelaunchCmd);
 		}
+
+		if (userIdText != null) {
+			String user = ""; //$NON-NLS-1$
+			try {
+				user = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_REMOTE_USER_ID, ""); //$NON-NLS-1$
+			} catch (CoreException e) { /* ignored on purpose */ }
+
+			userIdText.setText(user);
+		}
 	}
 
 	protected void updateSkipDownloadFromConfig(ILaunchConfiguration config) {
@@ -382,6 +445,24 @@ public abstract class TEAbstractMainTab extends CMainTab {
 			catch (CoreException e) { /* ignored on purpose */ }
 
 			skipDownloadButton.setSelection(downloadToTarget);
+		}
+	}
+
+	protected void updateLaunchRemoteUserFromConfig(ILaunchConfiguration config) {
+		if (userIdButton != null) {
+			boolean launchRemoteUser = true;
+			try {
+				launchRemoteUser = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_LAUNCH_REMOTE_USER, IRemoteTEConfigurationConstants.ATTR_LAUNCH_REMOTE_USER_DEFAULT);
+			} catch (CoreException e) { /* ignored on purpose */ }
+
+			userIdButton.setSelection(launchRemoteUser);
+			updateLaunchRemoteUserControls();
+		}
+	}
+
+	private void updateLaunchRemoteUserControls() {
+		if (userIdText != null && userIdButton != null) {
+			userIdText.setEnabled(userIdButton.getSelection());
 		}
 	}
 
@@ -481,6 +562,7 @@ public abstract class TEAbstractMainTab extends CMainTab {
 
 		updateTargetProgFromConfig(config);
 		updateSkipDownloadFromConfig(config);
+		updateLaunchRemoteUserFromConfig(config);
 	}
 
 	/*
@@ -506,6 +588,13 @@ public abstract class TEAbstractMainTab extends CMainTab {
 		if (preRunText != null) {
 			String value = preRunText.getText();
 			config.setAttribute(IRemoteTEConfigurationConstants.ATTR_PRERUN_COMMANDS, !"".equals(value.trim()) ? value.trim() : (String)null); //$NON-NLS-1$
+		}
+		if (userIdText != null) {
+			String value = userIdText.getText();
+			config.setAttribute(IRemoteTEConfigurationConstants.ATTR_REMOTE_USER_ID, !"".equals(value.trim()) ? value.trim() : (String)null); //$NON-NLS-1$
+		}
+		if (userIdButton != null) {
+			config.setAttribute(IRemoteTEConfigurationConstants.ATTR_LAUNCH_REMOTE_USER, userIdButton.getSelection());
 		}
 		super.performApply(config);
 	}

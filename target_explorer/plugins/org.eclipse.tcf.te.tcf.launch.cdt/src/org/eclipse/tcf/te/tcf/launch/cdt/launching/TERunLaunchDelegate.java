@@ -58,8 +58,12 @@ public class TERunLaunchDelegate extends AbstractCLaunchDelegate2 {
 			// 1.1. If there are commands to run before, create a script for them
 			String remoteExePath = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_REMOTE_PATH, ""); //$NON-NLS-1$
 			IPath remotePrerunScriptPath = null;
+			boolean launchAsRemoteUser = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_LAUNCH_REMOTE_USER, false);
+			String userId = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_REMOTE_USER_ID, (String)null);
 			String prerunCommands = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_PRERUN_COMMANDS, (String)null);
-			if (prerunCommands != null && prerunCommands.trim().length() > 0) {
+			if ( (prerunCommands != null && prerunCommands.trim().length() > 0) ||
+							(launchAsRemoteUser && userId != null && userId.trim().length() > 0) ) {
+				if (prerunCommands == null) { prerunCommands = ""; } //$NON-NLS-1$
 				SimpleDateFormat formatter = new SimpleDateFormat ("HH-mm-ss-S", Locale.US); //$NON-NLS-1$
 		        String prerunScriptNamePreffix = formatter.format( Long.valueOf(Calendar.getInstance().getTime().getTime()) );
 				String prerunScriptName = prerunScriptNamePreffix + "_" + exePath.toFile().getName() + ".sh"; //$NON-NLS-1$ //$NON-NLS-2$
@@ -112,6 +116,10 @@ public class TERunLaunchDelegate extends AbstractCLaunchDelegate2 {
 			// 2. Run the binary
 			monitor.setTaskName(Messages.TEGdbAbstractLaunchDelegate_starting_debugger);
 			String arguments = getProgramArguments(config);
+			// Pass the user id as an argument to the script
+			if (launchAsRemoteUser && userId != null && userId.trim().length() > 0) {
+				arguments = "-u__ " + userId + " " + (arguments != null ? arguments : "");  //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
+			}
 			Map<String,String> env = config.getAttribute(ILaunchManager.ATTR_ENVIRONMENT_VARIABLES, (Map<String,String>)null);
 			if (remotePrerunScriptPath != null) {
 				remoteExePath = remotePrerunScriptPath.toString();
