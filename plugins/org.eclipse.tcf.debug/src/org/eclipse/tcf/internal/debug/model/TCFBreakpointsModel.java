@@ -80,6 +80,7 @@ public class TCFBreakpointsModel {
         ATTR_STOP_GROUP    = ITCFConstants.ID_TCF_DEBUG_MODEL + '.' + IBreakpoints.PROP_STOP_GROUP,
         ATTR_CONTEXT_QUERY = ITCFConstants.ID_TCF_DEBUG_MODEL + '.' + IBreakpoints.PROP_CONTEXT_QUERY,
         ATTR_LINE_OFFSET   = ITCFConstants.ID_TCF_DEBUG_MODEL + '.' + IBreakpoints.PROP_LINE_OFFSET,
+        ATTR_SKIP_PROLOGUE = ITCFConstants.ID_TCF_DEBUG_MODEL + '.' + IBreakpoints.PROP_SKIP_PROLOGUE,
         ATTR_EVENT_TYPE    = "org.eclipse.cdt.debug.core.eventbreakpoint_event_id",
         ATTR_EVENT_ARGS    = "org.eclipse.cdt.debug.core.eventbreakpoint_event_arg",
         ATTR_TYPE          = "org.eclipse.cdt.debug.core.breakpointType",
@@ -732,10 +733,10 @@ public class TCFBreakpointsModel {
                     expr = expr.substring(0, paren);
                 m.put(IBreakpoints.PROP_LOCATION, expr);
             }
-            if (capabilities != null) {
+            if (!m.containsKey(IBreakpoints.PROP_SKIP_PROLOGUE) && capabilities != null) {
                 Object obj = capabilities.get(IBreakpoints.CAPABILITY_SKIP_PROLOGUE);
                 if (obj instanceof Boolean && ((Boolean)obj).booleanValue()) {
-                    m.put(IBreakpoints.PROP_SKIP_PROLOGUE, Boolean.TRUE);
+                    m.put(IBreakpoints.PROP_SKIP_PROLOGUE, true);
                 }
             }
         }
