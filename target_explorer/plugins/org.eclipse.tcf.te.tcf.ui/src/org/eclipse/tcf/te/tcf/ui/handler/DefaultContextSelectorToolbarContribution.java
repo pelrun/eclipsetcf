@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014-2015 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2014, 2016 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -120,6 +120,8 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener, IProperty
 	/* default */ Color warningBackgroundColor = null;
 
 	/* default */ Boolean signatureValid;
+
+	protected volatile boolean updatePending;
 
 	/**
 	 * Constructor.
@@ -553,30 +555,35 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener, IProperty
     										IPeerNodeProperties.PROPERTY_IS_VALID.equals(changeEvent.getEventId()) ||
     										IPeerNodeProperties.PROPERTY_WARNINGS.equals(changeEvent.getEventId()) ||
     										"properties".equals(changeEvent.getEventId())))) { //$NON-NLS-1$
-    			if (menuMgr != null) menuMgr.markDirty();
-    			ExecutorsUtil.executeInUI(new Runnable() {
-    				@Override
-    				public void run() {
-    					update();
-    				}
-    			});
+    			scheduleUpdate();
     		}
     	}
     }
 
+	private void scheduleUpdate() {
+		if (updatePending) return;
+		updatePending = true;
+		ExecutorsUtil.executeInUI(new Runnable() {
+			private boolean scheduled;
+			@Override
+			public void run() {
+				if (!scheduled) {
+					Display.getCurrent().timerExec(200, this);
+					scheduled = true;
+					return;
+				}
+				updatePending = false;
+				update();
+			}
+		});
+	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.tcf.locator.interfaces.IPeerModelListener#modelChanged(org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerModel, org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode, boolean)
 	 */
     @Override
     public void modelChanged(IPeerModel model, IPeerNode peerNode, boolean added) {
-    	if (menuMgr != null) menuMgr.markDirty();
-		ExecutorsUtil.executeInUI(new Runnable() {
-			@Override
-			public void run() {
-				update();
-			}
-		});
+    	scheduleUpdate();
     }
 
 

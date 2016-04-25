@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2016 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -13,6 +13,7 @@ import java.util.EventObject;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.tcf.te.runtime.events.ChangeEvent;
 import org.eclipse.tcf.te.runtime.events.EventManager;
 import org.eclipse.tcf.te.runtime.interfaces.IDisposable;
@@ -34,9 +35,11 @@ import org.eclipse.ui.services.IEvaluationService;
  */
 public final class EditorEventListener extends AbstractEventListener implements IDisposable, IPropertyListener {
 	// Reference to the parent editor
-	private final Editor editor;
+	protected final Editor editor;
 	// Flag to remember the disposed action
-	private boolean disposed = false;
+	protected boolean disposed = false;
+	protected boolean changePending;
+	protected boolean fullRefresh;
 
 	/**
      * Constructor.
@@ -103,27 +106,42 @@ public final class EditorEventListener extends AbstractEventListener implements 
 			return;
 		}
 
-		// Refresh the page list. Changing editor input element properties
-		// may effect the page list -> Update in any case.
-		editor.updatePageList();
+		fullRefresh = fullRefresh || !"editor.refreshTab".equals(changeEvent.getEventId()); //$NON-NLS-1$
+		if (changePending) return;
 
-		// If the event is a "editor.refreshTab" event, skip the rest
-		if (!"editor.refreshTab".equals(changeEvent.getEventId())) { //$NON-NLS-1$
-			// Update the active page content by calling IFormPage#setActive(boolean)
-			Object page = editor.getSelectedPage();
-			if (page instanceof IFormPage) {
-				((IFormPage)page).setActive(((IFormPage)page).isActive());
+		changePending = true;
+		Display display = editor.getSite().getShell().getDisplay();
+		display.timerExec(200, new Runnable() {
+			@Override
+			public void run() {
+				if (disposed) return;
+				boolean doFullRefresh = fullRefresh;
+
+				// Refresh the page list. Changing editor input element properties
+				// may effect the page list -> Update in any case.
+				editor.updatePageList();
+
+				// If the event is a "editor.refreshTab" event, skip the rest
+				if (doFullRefresh) {
+					// Update the active page content by calling IFormPage#setActive(boolean)
+					Object page = editor.getSelectedPage();
+					if (page instanceof IFormPage) {
+						((IFormPage)page).setActive(((IFormPage)page).isActive());
+					}
+
+					// Update the editor part name
+					editor.updatePartName();
+
+					// Request a re-evaluation if all expressions referring the "activeEditorInput" source.
+					IEvaluationService service = (IEvaluationService)editor.getSite().getService(IEvaluationService.class);
+					if (service != null) {
+						service.requestEvaluation(ISources.ACTIVE_EDITOR_INPUT_NAME);
+					}
+				}
+				fullRefresh = false;
+				changePending = false;
 			}
-
-			// Update the editor part name
-			editor.updatePartName();
-
-			// Request a re-evaluation if all expressions referring the "activeEditorInput" source.
-			IEvaluationService service = (IEvaluationService)editor.getSite().getService(IEvaluationService.class);
-			if (service != null) {
-				service.requestEvaluation(ISources.ACTIVE_EDITOR_INPUT_NAME);
-			}
-		}
+		});
 	}
 
 	/* (non-Javadoc)
@@ -131,7 +149,7 @@ public final class EditorEventListener extends AbstractEventListener implements 
 	 */
     @Override
     public void propertyChanged(Object source, int propId) {
-    	if (source == this.editor) {
+    	if (source == this.editor && (!changePending || !fullRefresh)) {
     		if (IEditorPart.PROP_DIRTY == propId) {
     			// Request a re-evaluation if all expressions referring the "activeEditorInput" source.
     			IEvaluationService service = (IEvaluationService)editor.getSite().getService(IEvaluationService.class);

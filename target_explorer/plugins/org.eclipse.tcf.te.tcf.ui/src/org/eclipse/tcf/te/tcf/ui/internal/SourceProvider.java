@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2012, 2016 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -37,20 +37,24 @@ public class SourceProvider extends AbstractSourceProvider implements IEventList
 	 */
 	public static final String defaultContextSelectionName = "defaultContextSelection"; //$NON-NLS-1$
 
+	// see org.eclipse.ui.internal.services.EvaluationService
+	private static final String RE_EVAL = "org.eclipse.ui.internal.services.EvaluationService.evaluate"; //$NON-NLS-1$
+
 	// The internal list of provided source names
 	private final static String[] PROVIDED_SOURCE_NAMES = {defaultContextSelectionName};
 
 	// The reference to the expression evaluation service
 	private IEvaluationService service = null;
 
-	private IPeerNode defaultContext = null;
+	private IPeerNode defaultContext;
+	private IPeerNode prevContext;
+	private volatile boolean changePending;
 
 	/**
      * Constructor.
      */
     public SourceProvider() {
     	super();
-	    EventManager.getInstance().addEventListener(this, ChangeEvent.class);
     }
 
 	/* (non-Javadoc)
@@ -61,6 +65,7 @@ public class SourceProvider extends AbstractSourceProvider implements IEventList
 	    super.initialize(locator);
 
 	    defaultContext = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
+	    EventManager.getInstance().addEventListener(this, ChangeEvent.class);
 
 	    // Register the source provider with the expression evaluation service
 	    if (locator.hasService(IEvaluationService.class)) {
@@ -109,19 +114,32 @@ public class SourceProvider extends AbstractSourceProvider implements IEventList
     		ChangeEvent changeEvent = (ChangeEvent)event;
     		if (changeEvent.getSource() instanceof IDefaultContextService || changeEvent.getSource() == defaultContext) {
     			defaultContext = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
+    			if (changePending || !PlatformUI.isWorkbenchRunning() || PlatformUI.getWorkbench().isClosing())
+    				return;
+    			changePending = true;
     			// Fire the source changed notification within the UI thread
-    			if (Display.getCurrent() != null) {
-	    			fireSourceChanged(ISources.WORKBENCH, defaultContextSelectionName, defaultContext != null ? defaultContext : IEvaluationContext.UNDEFINED_VARIABLE);
-    			} else if (PlatformUI.isWorkbenchRunning() && PlatformUI.getWorkbench().getDisplay() != null && !PlatformUI.getWorkbench().getDisplay().isDisposed()) {
-    				PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
-						@SuppressWarnings("synthetic-access")
-                        @Override
-						public void run() {
-			    			fireSourceChanged(ISources.WORKBENCH, defaultContextSelectionName, IEvaluationContext.UNDEFINED_VARIABLE);
-			    			fireSourceChanged(ISources.WORKBENCH, defaultContextSelectionName, defaultContext != null ? defaultContext : IEvaluationContext.UNDEFINED_VARIABLE);
-						}
-					});
-    			}
+    			final Display display = PlatformUI.getWorkbench().getDisplay();
+    			display.asyncExec(new Runnable() {
+    				private boolean scheduled;
+    				@SuppressWarnings("synthetic-access")
+    				@Override
+    				public void run() {
+    					if (service == null) return;
+    					if (!scheduled) {
+    						scheduled = true;
+    						display.timerExec(100, this);
+    						return;
+    					}
+    					IPeerNode newContext = defaultContext;
+    	    			changePending = false;
+    					if (newContext == prevContext) {
+    						// force re-evaluation of enablement expressions
+    						service.getCurrentState().addVariable(RE_EVAL, new Object());
+    					} else
+    						fireSourceChanged(ISources.WORKBENCH, defaultContextSelectionName, newContext != null ? newContext : IEvaluationContext.UNDEFINED_VARIABLE);
+    					prevContext = newContext;
+    				}
+    			});
     		}
     	}
     }

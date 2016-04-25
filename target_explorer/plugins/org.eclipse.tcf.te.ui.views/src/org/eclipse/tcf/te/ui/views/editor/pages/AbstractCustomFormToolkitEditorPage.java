@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2016 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -42,6 +42,7 @@ import org.eclipse.tcf.te.ui.views.nls.Messages;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.forms.IManagedForm;
+import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.menus.IMenuService;
 
 /**
@@ -276,9 +277,11 @@ public abstract class AbstractCustomFormToolkitEditorPage extends AbstractEditor
 	 * @param image The image or <code>null</code>.
 	 */
 	public void setFormImage(Image image) {
-		getManagedForm().getForm().setImage(image);
+		ScrolledForm form = getManagedForm().getForm();
+		if (form.getImage() != image) form.setImage(image);
 		if (getEditor() instanceof Editor) {
-			((Editor)getEditor()).setTitleImage(image);
+			Editor editor = (Editor)getEditor();
+			if (editor.getTitleImage() != image) editor.setTitleImage(image);
 		}
 	}
 
