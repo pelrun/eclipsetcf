@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2014, 2016 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -52,6 +52,7 @@ import org.eclipse.tcf.te.runtime.model.interfaces.IContainerModelNode;
 import org.eclipse.tcf.te.runtime.model.interfaces.IModelNode;
 import org.eclipse.tcf.te.runtime.properties.PropertiesContainer;
 import org.eclipse.tcf.te.runtime.services.ServiceUtils;
+import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepAttributes;
 import org.eclipse.tcf.te.tcf.core.interfaces.IContextDataProperties;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.utils.PeerNodeDataHelper;
@@ -82,6 +83,7 @@ public class AttachContextSelectionDialog extends CustomTitleAreaDialog implemen
 	protected FilteredTree filteredTree;
 
 	private boolean initDone = false;
+	protected boolean hasAttachedContexts;
 
 	IPeerNode peerNode;
 	IPropertiesContainer data = null;
@@ -134,15 +136,6 @@ public class AttachContextSelectionDialog extends CustomTitleAreaDialog implemen
 		PatternFilter filter = new PatternFilter() {
 			@Override
 			public boolean isElementSelectable(final Object element) {
-				final AtomicBoolean canAttach = new AtomicBoolean();
-				if (element instanceof IProcessContextNode) {
-					Protocol.invokeAndWait(new Runnable() {
-						@Override
-						public void run() {
-							canAttach.set(canAttach(element));
-						}
-					});
-				}
 			    return element instanceof IProcessContextNode;
 			}
 			@Override
@@ -301,11 +294,10 @@ public class AttachContextSelectionDialog extends CustomTitleAreaDialog implemen
 			return;
 		}
 
-		final AtomicBoolean valid = new AtomicBoolean(false);
+		final AtomicBoolean valid = new AtomicBoolean(hasAttachedContexts);
 		final ISelection selection = viewer.getSelection();
 
-		if (selection instanceof IStructuredSelection &&
-						((IStructuredSelection)selection).size() > 0) {
+		if (selection instanceof IStructuredSelection && !selection.isEmpty()) {
 			valid.set(true);
 			Protocol.invokeAndWait(new Runnable() {
 				@Override
@@ -343,13 +335,15 @@ public class AttachContextSelectionDialog extends CustomTitleAreaDialog implemen
 	protected boolean isAttached(Object selection) {
 		if (selection instanceof IProcessContextNode) {
 			IProcessContextNode node = (IProcessContextNode)selection;
-			return node.getProcessContext() != null && node.getProcessContext().isAttached();
+			boolean isAttached = node.getProcessContext() != null && node.getProcessContext().isAttached();
+        	if (!hasAttachedContexts) hasAttachedContexts = isAttached;
+        	return isAttached;
 		}
 		return false;
 	}
 
 	protected boolean isValid(Object selection) {
-		return canAttach(selection) && !isAttached(selection);
+		return canAttach(selection) || isAttached(selection);
 	}
 
 	/*
@@ -496,21 +490,29 @@ public class AttachContextSelectionDialog extends CustomTitleAreaDialog implemen
 			data = new PropertiesContainer();
 		}
     	if (viewer != null) {
-	    	ISelection sel = viewer.getSelection();
+	    	final ISelection sel = viewer.getSelection();
 	    	final List<IProcessContextItem> items = new ArrayList<IProcessContextItem>();
 	    	if (sel instanceof IStructuredSelection) {
-	    		final Iterator<?> it = ((IStructuredSelection)sel).iterator();
-	    		while (it.hasNext()) {
-	    			Object obj = it.next();
-	    			if (obj instanceof IProcessContextNode) {
-	    				IProcessContextItem item = ProcessDataHelper.getProcessContextItem((IProcessContextNode)obj);
-	    				if (item != null && !items.contains(item)) {
-	    					items.add(item);
-	    				}
-	    			}
-	    		}
+	    		Protocol.invokeAndWait(new Runnable() {
+					@Override
+					public void run() {
+			    		final Iterator<?> it = ((IStructuredSelection)sel).iterator();
+			    		while (it.hasNext()) {
+			    			Object obj = it.next();
+			    			if (obj instanceof IProcessContextNode) {
+			    				IProcessContextItem item = ProcessDataHelper.getProcessContextItem((IProcessContextNode)obj);
+			    				if (item != null && !items.contains(item) && !isAttached(obj)) {
+			    					items.add(item);
+			    				}
+			    			}
+			    		}
+					}
+				});
 	    	}
 	    	data.setProperty(IProcessesDataProperties.PROPERTY_CONTEXT_LIST, ProcessDataHelper.encodeProcessContextItems(items.toArray(new IProcessContextItem[items.size()])));
+			if (items.size() == 0)
+				// No recent action history persistence
+				data.setProperty(IStepAttributes.PROP_SKIP_LAST_RUN_HISTORY, true);
     	}
 
 		super.okPressed();

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2014, 2016 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -15,8 +15,6 @@ import java.util.List;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.concurrent.util.ExecutorsUtil;
@@ -26,7 +24,6 @@ import org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId;
 import org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext;
 import org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode;
 import org.eclipse.tcf.te.tcf.locator.iterators.AbstractPeerNodeStepGroupIterator;
-import org.eclipse.tcf.te.tcf.processes.core.activator.CoreBundleActivator;
 import org.eclipse.tcf.te.tcf.processes.core.interfaces.IProcessContextItem;
 import org.eclipse.tcf.te.tcf.processes.core.interfaces.IProcessesDataProperties;
 import org.eclipse.tcf.te.tcf.processes.core.interfaces.steps.IProcessesStepAttributes;
@@ -73,10 +70,6 @@ public class AttachContextsIterator extends AbstractPeerNodeStepGroupIterator {
 			}
 		}
 		setIterations(items.size());
-
-		if (items.isEmpty()) {
-			throw new CoreException(new Status(IStatus.ERROR, CoreBundleActivator.getUniqueIdentifier(), "Cannot find contexts to attach.")); //$NON-NLS-1$
-		}
 	}
 
 	/* (non-Javadoc)
