@@ -5,6 +5,7 @@ INITIALDIR=`pwd`
 case x$1 in x-u__)
     USERID=$2
     shift 2
+    echo "Switching to user \"$USERID\" using \"sudo -u\"."
     sudo -H -u $USERID /bin/sh $0 $@
     exitcode=$?
     if [ $exitcode -ne 0 ]; then
