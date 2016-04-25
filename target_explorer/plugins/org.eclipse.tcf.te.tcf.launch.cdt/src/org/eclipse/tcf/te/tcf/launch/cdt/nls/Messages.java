@@ -41,7 +41,6 @@ public class Messages extends NLS {
 	public static String RemoteCMainTab_Prerun_Edit_Button;
 	public static String RemoteCMainTab_Prerun_Edit_Dialog_Title;
 	public static String RemoteCMainTab_RemoteUser_Label;
-	public static String RemoteCMainTab_AdvancedOptions_Group_Label;
 
 	public static String TEHelper_executing;
 	public static String TEHelper_connection_not_found;

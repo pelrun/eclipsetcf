@@ -37,7 +37,6 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.tcf.te.runtime.services.ServiceManager;
@@ -65,7 +64,6 @@ public abstract class TEAbstractMainTab extends CMainTab {
 	private static final String PID_LABEL_TEXT = Messages.RemoteCMainTab_Pid;
 	private static final String REMOTE_PROG_SYMBOLIC_TEXT_ERROR = Messages.RemoteCMainTab_ErrorSymbolicLink;
 	private static final String REMOTE_USER_ID_LABEL_TEXT = Messages.RemoteCMainTab_RemoteUser_Label;
-	private static final String ADVANCED_OPTIONS_GROUP_LABEL_TEXT = Messages.RemoteCMainTab_AdvancedOptions_Group_Label;
 
 	protected TCFPeerSelector peerSelector;
 	protected Label remoteProgLabel;
@@ -274,46 +272,8 @@ public abstract class TEAbstractMainTab extends CMainTab {
 		if (preRunVisible) {
 			createVerticalSpacer(mainComp, 2);
 
-			Group preRunGroup = new Group(mainComp, SWT.NONE);
-			GridLayout preRunGroupLayout = new GridLayout();
-			preRunGroupLayout.numColumns = 2;
-			preRunGroup.setLayout(preRunGroupLayout);
-			gd = new GridData(GridData.FILL_BOTH);
-			gd.horizontalSpan = 2;
-			preRunGroup.setLayoutData(gd);
-			preRunGroup.setText(ADVANCED_OPTIONS_GROUP_LABEL_TEXT);
-
-			// Commands to run before execution
-			preRunLabel = new Label(preRunGroup, SWT.NONE);
-			preRunLabel.setText(PRE_RUN_LABEL_TEXT);
-			gd = new GridData();
-			gd.horizontalSpan = 2;
-			preRunLabel.setLayoutData(gd);
-
-			preRunText = new Text(preRunGroup, SWT.MULTI | SWT.BORDER);
-			gd = new GridData(GridData.FILL_HORIZONTAL);
-			gd.horizontalSpan = 1;
-			gd.heightHint = preRunText.getLineHeight();
-			preRunText.setLayoutData(gd);
-			preRunText.addModifyListener(new ModifyListener() {
-
-				@SuppressWarnings("synthetic-access")
-				@Override
-				public void modifyText(ModifyEvent evt) {
-					updateLaunchConfigurationDialog();
-				}
-			});
-
-			preRunEditButton = createPushButton(preRunGroup, Messages.RemoteCMainTab_Prerun_Edit_Button, null);
-			preRunEditButton.addSelectionListener(new SelectionAdapter() {
-				@Override
-				public void widgetSelected(SelectionEvent evt) {
-					showCommandsEditor();
-				}
-			});
-
 			// Launch with remote user
-			Composite userIdComp = new Composite(preRunGroup, SWT.NONE);
+			Composite userIdComp = new Composite(mainComp, SWT.NONE);
 			GridLayout userIdCompLayout = new GridLayout();
 			userIdCompLayout.numColumns = 2;
 			userIdCompLayout.marginHeight = 0;
@@ -348,6 +308,39 @@ public abstract class TEAbstractMainTab extends CMainTab {
 					updateLaunchConfigurationDialog();
 				}
 			});
+
+			createVerticalSpacer(mainComp, 2);
+
+			// Commands to run before execution
+			preRunLabel = new Label(mainComp, SWT.NONE);
+			preRunLabel.setText(PRE_RUN_LABEL_TEXT);
+			gd = new GridData();
+			gd.horizontalSpan = 2;
+			preRunLabel.setLayoutData(gd);
+
+			preRunText = new Text(mainComp, SWT.MULTI | SWT.BORDER);
+			gd = new GridData(GridData.FILL_HORIZONTAL);
+			gd.horizontalSpan = 1;
+			gd.heightHint = 3 * preRunText.getLineHeight();
+			preRunText.setLayoutData(gd);
+			preRunText.addModifyListener(new ModifyListener() {
+
+				@SuppressWarnings("synthetic-access")
+				@Override
+				public void modifyText(ModifyEvent evt) {
+					updateLaunchConfigurationDialog();
+				}
+			});
+
+			preRunEditButton = createPushButton(mainComp, Messages.RemoteCMainTab_Prerun_Edit_Button, null);
+			gd = new GridData(SWT.FILL, SWT.BEGINNING, false, false);
+			preRunEditButton.setLayoutData(gd);
+			preRunEditButton.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent evt) {
+					showCommandsEditor();
+				}
+			});
 		}
 	}
 
@@ -361,6 +354,7 @@ public abstract class TEAbstractMainTab extends CMainTab {
 		mainLayout.marginWidth = 0;
 		mainComp.setLayout(mainLayout);
 		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
+		gd.horizontalSpan = 2;
 		mainComp.setLayoutData(gd);
 
 		skipDownloadButton = createCheckButton(mainComp, SKIP_DOWNLOAD_BUTTON_TEXT);
