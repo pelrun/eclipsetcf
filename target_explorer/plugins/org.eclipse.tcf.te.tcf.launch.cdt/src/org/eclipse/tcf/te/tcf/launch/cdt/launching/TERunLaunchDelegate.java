@@ -57,6 +57,8 @@ public class TERunLaunchDelegate extends AbstractCLaunchDelegate2 {
 			IPeer peer = TEHelper.getCurrentConnection(config).getPeer();
 			// 1.1. If there are commands to run before, create a script for them
 			String remoteExePath = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_REMOTE_PATH, ""); //$NON-NLS-1$
+			String arguments = getProgramArguments(config);
+			String remoteLaunchCommand = remoteExePath.replaceAll("\\r", "") + " " + arguments;  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 			IPath remotePrerunScriptPath = null;
 			boolean launchAsRemoteUser = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_LAUNCH_REMOTE_USER, false);
 			String userId = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_REMOTE_USER_ID, (String)null);
@@ -76,7 +78,7 @@ public class TERunLaunchDelegate extends AbstractCLaunchDelegate2 {
 				BufferedWriter writer = null;
 				try {
 					writer = new BufferedWriter(new FileWriter(prerunScriptLocation.toFile()));
-					writer.write(NLS.bind(TEHelper.getPrerunTemplateContent(peer), prerunCommands.replaceAll("\\r", ""), remoteExePath.replaceAll("\\r", ""))); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+					writer.write(NLS.bind(TEHelper.getPrerunTemplateContent(peer), prerunCommands.replaceAll("\\r", ""), remoteLaunchCommand)); //$NON-NLS-1$ //$NON-NLS-2$
 				} catch (Exception e) {
 					abort(NLS.bind(Messages.TEGdbAbstractLaunchDelegate_prerunScriptCreationFailed, prerunScriptLocation.toString(), e.getLocalizedMessage()), e, ICDTLaunchConfigurationConstants.ERR_PROGRAM_NOT_EXIST);
 				} finally {
@@ -115,16 +117,18 @@ public class TERunLaunchDelegate extends AbstractCLaunchDelegate2 {
 
 			// 2. Run the binary
 			monitor.setTaskName(Messages.TEGdbAbstractLaunchDelegate_starting_debugger);
-			String arguments = getProgramArguments(config);
-			// Pass the user id as an argument to the script
-			if (launchAsRemoteUser && userId != null && userId.trim().length() > 0) {
-				arguments = "-u__ " + userId + " " + (arguments != null ? arguments : "");  //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
-			}
+
 			Map<String,String> env = config.getAttribute(ILaunchManager.ATTR_ENVIRONMENT_VARIABLES, (Map<String,String>)null);
 			if (remotePrerunScriptPath != null) {
-				remoteExePath = remotePrerunScriptPath.toString();
+				// Pass the user id as an argument to the script
+				String launchArguments = ""; //$NON-NLS-1$
+				if (launchAsRemoteUser && userId != null && userId.trim().length() > 0) {
+					launchArguments = "-u__ " + userId;  //$NON-NLS-1$
+				}
+				new TERunProcess(launch, remotePrerunScriptPath.toString(), launchArguments, env, renderProcessLabel(exePath.toString()), peer, new SubProgressMonitor(monitor, 20));
+			} else {
+				new TERunProcess(launch, remoteExePath, arguments, env, renderProcessLabel(exePath.toString()), peer, new SubProgressMonitor(monitor, 20));
 			}
-			new TERunProcess(launch, remoteExePath, arguments, env, renderProcessLabel(exePath.toString()), peer, new SubProgressMonitor(monitor, 20));
 		}
 	}
 
