@@ -1506,10 +1506,9 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
     }
 
     private boolean appendArrayValueText(StyledStringBuffer bf, int level, ISymbols.Symbol type,
-            byte[] data, int offs, int size, boolean big_endian, Runnable done) {
+            byte[] data, int offs, int size, boolean big_endian, Number bit_stride, Runnable done) {
         assert offs + size <= data.length;
         int length = type.getLength();
-        Number stride = type.getBitStride();
         bf.append('[');
         if (length > 0) {
             for (int n = 0; n < length; n++) {
@@ -1518,8 +1517,8 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                     break;
                 }
                 if (n > 0) bf.append(", ");
-                if (stride != null) {
-                    int bits = stride.intValue();
+                if (bit_stride != null) {
+                    int bits = bit_stride.intValue();
                     String base_type_id = type.getBaseTypeID();
                     ISymbols.Symbol base_type_data = null;
                     if (base_type_id != null) {
@@ -1531,19 +1530,39 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                     if (base_type_data != null) base_type_size = base_type_data.getSize();
                     if (base_type_size * 8 < bits) base_type_size = (bits + 7) / 8;
                     byte[] buf = new byte[base_type_size];
-                    for (int i = 0; i < bits; i++) {
-                        int j = n * bits + i;
-                        int k = j / 8;
-                        if (k < size && offs + k < data.length && (data[offs + k] & (1 << (j % 8))) != 0) {
-                            buf[i / 8] |= 1 << (i % 8);
+                    if (big_endian) {
+                        for (int i = 0; i < bits; i++) {
+                            int j = n * bits + i;
+                            int k = j / 8;
+                            int l = base_type_size * 8 - bits + i;
+                            if (k < size && offs + k < data.length && (data[offs + k] & (1 << (7 - j % 8))) != 0) {
+                                buf[l / 8] |= 1 << (7 - l % 8);
+                            }
+                        }
+                        if (base_type_data != null && base_type_data.getTypeClass() == ISymbols.TypeClass.integer) {
+                            /* Sign extension */
+                            int sign_offs = base_type_size * 8 - bits;
+                            boolean sign = (buf[sign_offs / 8] & (1 << (7 - sign_offs % 8))) != 0;
+                            if (sign) {
+                                for (int i = 0; i < sign_offs; i++) buf[i / 8] |= 1 << (7 - i % 8);
+                            }
                         }
                     }
-                    if (base_type_data != null && base_type_data.getTypeClass() == ISymbols.TypeClass.integer) {
-                        /* Sign extension */
-                        int sign_offs = bits - 1;
-                        boolean sign = (buf[sign_offs / 8] & (1 << (sign_offs % 8))) != 0;
-                        if (sign) {
-                            for (int i = bits; i < base_type_size * 8; i++) buf[i / 8] |= 1 << (i % 8);
+                    else {
+                        for (int i = 0; i < bits; i++) {
+                            int j = n * bits + i;
+                            int k = j / 8;
+                            if (k < size && offs + k < data.length && (data[offs + k] & (1 << (j % 8))) != 0) {
+                                buf[i / 8] |= 1 << (i % 8);
+                            }
+                        }
+                        if (base_type_data != null && base_type_data.getTypeClass() == ISymbols.TypeClass.integer) {
+                            /* Sign extension */
+                            int sign_offs = bits - 1;
+                            boolean sign = (buf[sign_offs / 8] & (1 << (sign_offs % 8))) != 0;
+                            if (sign) {
+                                for (int i = bits; i < base_type_size * 8; i++) buf[i / 8] |= 1 << (i % 8);
+                            }
                         }
                     }
                     if (!appendValueText(bf, level + 1, base_type_id, null,
@@ -1729,11 +1748,17 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
             ISymbols.TypeClass type_class = type_data.getTypeClass();
             Number bin_scale = null;
             Number dec_scale = null;
+            Number bit_stride = null;
             ISymbols.Symbol base_type = type_data;
             for (int i = 0; i < max_type_chain_length; i++) {
                 if (base_type == null) break;
-                if ((bin_scale = (Number)base_type.getProperties().get(ISymbols.PROP_BINARY_SCALE)) != null) break;
-                if ((dec_scale = (Number)base_type.getProperties().get(ISymbols.PROP_DECIMAL_SCALE)) != null) break;
+                if (type_class == ISymbols.TypeClass.array) {
+                    if ((bit_stride = (Number)base_type.getProperties().get(ISymbols.PROP_BIT_STRIDE)) != null) break;
+                }
+                else {
+                    if ((bin_scale = (Number)base_type.getProperties().get(ISymbols.PROP_BINARY_SCALE)) != null) break;
+                    if ((dec_scale = (Number)base_type.getProperties().get(ISymbols.PROP_DECIMAL_SCALE)) != null) break;
+                }
                 String id = base_type.getTypeID();
                 if (id == null || id.equals(base_type.getID())) break;
                 TCFDataCache<ISymbols.Symbol> type_cache = model.getSymbolInfoCache(id);
@@ -1772,7 +1797,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                 break;
             case array:
                 if (level > 0) {
-                    if (!appendArrayValueText(bf, level, type_data, data, offs, size, big_endian, done)) return false;
+                    if (!appendArrayValueText(bf, level, type_data, data, offs, size, big_endian, bit_stride, done)) return false;
                 }
                 break;
             case composite:
@@ -1824,36 +1849,41 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                             data, 0, data.length, big_endian, done)) return false;
                     }
                 }
-                Number bin_scale = (Number)v.getProperties().get(IExpressions.VAL_BINARY_SCALE);
-                Number dec_scale = (Number)v.getProperties().get(IExpressions.VAL_DECIMAL_SCALE);
-                if (bin_scale != null) {
-                    bf.append("Binary Scale: ", SWT.BOLD);
-                    bf.append(bin_scale.toString(), StyledStringBuffer.MONOSPACED);
-                }
-                if (dec_scale != null) {
-                    if (bin_scale != null) bf.append(", ");
-                    bf.append("Decimal Scale: ", SWT.BOLD);
-                    bf.append(dec_scale.toString(), StyledStringBuffer.MONOSPACED);
-                }
                 ISymbols.Symbol type_data = null;
                 if (type_id != null) {
                     TCFDataCache<ISymbols.Symbol> type_cache = model.getSymbolInfoCache(type_id);
                     if (!type_cache.validate(done)) return false;
                     type_data = type_cache.getData();
                 }
+                Map<String,Object> value_props = v.getProperties();
+                Number bin_scale = (Number)value_props.get(IExpressions.VAL_BINARY_SCALE);
+                Number dec_scale = (Number)value_props.get(IExpressions.VAL_DECIMAL_SCALE);
+                Number bit_stride = (Number)value_props.get(IExpressions.VAL_BIT_STRIDE);
+                boolean fst = true;
+                if (bin_scale != null) {
+                    bf.append("Binary Scale: ", SWT.BOLD);
+                    bf.append(bin_scale.toString(), StyledStringBuffer.MONOSPACED);
+                    fst = false;
+                }
+                if (dec_scale != null) {
+                    if (!fst) bf.append(", ");
+                    bf.append("Decimal Scale: ", SWT.BOLD);
+                    bf.append(dec_scale.toString(), StyledStringBuffer.MONOSPACED);
+                    fst = false;
+                }
+                if (bit_stride != null) {
+                    if (!fst) bf.append(", ");
+                    bf.append("Stride: ", SWT.BOLD);
+                    bf.append(bit_stride.toString(), StyledStringBuffer.MONOSPACED);
+                    bf.append(bit_stride.longValue() == 1 ? " bit" : " bits");
+                    fst = false;
+                }
                 if (type_data != null) {
                     if (!type_name.validate(done)) return false;
-                    if (bin_scale != null || dec_scale != null) bf.append(", ");
+                    if (!fst) bf.append(", ");
                     bf.append("Size: ", SWT.BOLD);
                     bf.append(Integer.toString(type_data.getSize()), StyledStringBuffer.MONOSPACED);
                     bf.append(type_data.getSize() == 1 ? " byte" : " bytes");
-                    Number stride = type_data.getBitStride();
-                    if (stride != null) {
-                        bf.append(", ");
-                        bf.append("Stride: ", SWT.BOLD);
-                        bf.append(stride.toString(), StyledStringBuffer.MONOSPACED);
-                        bf.append(stride.longValue() == 1 ? " bit" : " bits");
-                    }
                     String nm = type_name.getData();
                     if (nm != null) {
                         bf.append(", ");
@@ -1866,7 +1896,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                     bf.append('\n');
                 }
                 @SuppressWarnings("unchecked")
-                List<Map<String,Object>> pieces = (List<Map<String,Object>>)v.getProperties().get(IExpressions.VAL_PIECES);
+                List<Map<String,Object>> pieces = (List<Map<String,Object>>)value_props.get(IExpressions.VAL_PIECES);
                 if (pieces != null) {
                     bf.append("Pieces: ", SWT.BOLD);
                     int piece_cnt = 0;

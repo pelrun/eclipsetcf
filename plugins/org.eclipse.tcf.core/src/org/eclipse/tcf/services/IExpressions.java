@@ -215,6 +215,9 @@ public interface IExpressions extends IService {
         VAL_DECIMAL_SCALE = "DecimalScale",
         VAL_IMPLICIT_POINTER = "ImplicitPointer",
         VAL_PIECES = "Pieces";
+    /** @since 1.4 */
+    static final String
+        VAL_BIT_STRIDE = "BitStride";
 
     /**
      * Retrieve expression context info for given context ID.
