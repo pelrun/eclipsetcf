@@ -540,11 +540,8 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener, IProperty
     		ChangeEvent changeEvent = (ChangeEvent)event;
     		IPeerNode peerNode = ServiceManager.getInstance().getService(IDefaultContextService.class).getDefaultContext(null);
     		boolean openEditorOnChange = UIPlugin.getScopedPreferences().getBoolean(IPreferenceKeys.PREF_OPEN_EDITOR_ON_DEFAULT_CONTEXT_CHANGE);
-    		if (peerNode != null && changeEvent.getSource() instanceof IDefaultContextService) {
-    			ICommandService service = (ICommandService)PlatformUI.getWorkbench().getService(ICommandService.class);
-    			service.refreshElements("org.eclipse.tcf.te.ui.toolbar.command.connect", null); //$NON-NLS-1$
-    			service.refreshElements("org.eclipse.tcf.te.ui.toolbar.command.disconnect", null); //$NON-NLS-1$
-    			if (openEditorOnChange) {
+    		if (changeEvent.getSource() instanceof IDefaultContextService) {
+    			if (openEditorOnChange && peerNode != null) {
     				ViewsUtil.openEditor(new StructuredSelection(peerNode));
     			}
     		}
@@ -565,14 +562,19 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener, IProperty
 		updatePending = true;
 		ExecutorsUtil.executeInUI(new Runnable() {
 			private boolean scheduled;
+			@SuppressWarnings("synthetic-access")
 			@Override
 			public void run() {
+				if (text == null) return;
 				if (!scheduled) {
 					Display.getCurrent().timerExec(200, this);
 					scheduled = true;
 					return;
 				}
 				updatePending = false;
+    			ICommandService service = (ICommandService)PlatformUI.getWorkbench().getService(ICommandService.class);
+    			service.refreshElements("org.eclipse.tcf.te.ui.toolbar.command.connect", null); //$NON-NLS-1$
+    			service.refreshElements("org.eclipse.tcf.te.ui.toolbar.command.disconnect", null); //$NON-NLS-1$
 				update();
 			}
 		});

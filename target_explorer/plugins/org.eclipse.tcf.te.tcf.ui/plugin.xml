@@ -1073,11 +1073,6 @@
             <parameter name="action" value="connect"/>
             <parameter name="handleDirty" value="true"/>
          </class>
-         <activeWhen>
-            <with variable="defaultContextSelection">
-               <adapt type="org.eclipse.tcf.te.core.interfaces.IConnectable"/>
-            </with>
-         </activeWhen>
          <enabledWhen>
             <with variable="defaultContextSelection">
                <adapt type="org.eclipse.tcf.te.core.interfaces.IConnectable">
@@ -1093,11 +1088,6 @@
          <class class="org.eclipse.tcf.te.tcf.ui.handler.ConnectableToolbarCommandHandler">
             <parameter name="action" value="disconnect"/>
          </class>
-         <activeWhen>
-            <with variable="defaultContextSelection">
-               <adapt type="org.eclipse.tcf.te.core.interfaces.IConnectable"/>
-            </with>
-         </activeWhen> 
          <enabledWhen>
             <with variable="defaultContextSelection">
                <adapt type="org.eclipse.tcf.te.core.interfaces.IConnectable">
