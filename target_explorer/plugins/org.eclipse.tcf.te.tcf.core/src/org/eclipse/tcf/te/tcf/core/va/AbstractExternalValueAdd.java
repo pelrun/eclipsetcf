@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012 - 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2012 - 2016 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -106,6 +106,10 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 	 */
 	@Override
 	public void isAlive(final String id, final ICallback done) {
+		isAlive(id, done, true);
+	}
+
+	public void isAlive(final String id, final ICallback done, boolean testResponsive) {
 		Assert.isTrue(Protocol.isDispatchThread(), "Illegal Thread Access"); //$NON-NLS-1$
 		Assert.isNotNull(id);
 		Assert.isNotNull(done);
@@ -155,36 +159,41 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 
 			// If the process is still running, try to open a channel
 			if (!exited) {
-				final ValueAddEntry finEntry = entry;
-				final IChannel channel = entry.peer.openChannel();
-				channel.addChannelListener(new IChannel.IChannelListener() {
+				if (testResponsive) {
+					final ValueAddEntry finEntry = entry;
+					final IChannel channel = entry.peer.openChannel();
+					channel.addChannelListener(new IChannel.IChannelListener() {
 
-					@Override
-					public void onChannelOpened() {
-						// Remove ourself as channel listener
-						channel.removeChannelListener(this);
-						// Close the channel, it is not longer needed
-						channel.close();
-						// Invoke the callback
-						done.setResult(Boolean.TRUE);
-						done.done(AbstractExternalValueAdd.this, Status.OK_STATUS);
-					}
+						@Override
+						public void onChannelOpened() {
+							// Remove ourself as channel listener
+							channel.removeChannelListener(this);
+							// Close the channel, it is not longer needed
+							channel.close();
+							// Invoke the callback
+							done.setResult(Boolean.TRUE);
+							done.done(AbstractExternalValueAdd.this, Status.OK_STATUS);
+						}
 
-					@Override
-					public void onChannelClosed(Throwable error) {
-						// Remove ourself as channel listener
-						channel.removeChannelListener(this);
-						// External value-add is not longer alive, clean up
-						entries.remove(id);
-						finEntry.dispose();
-						// Invoke the callback
-						done.done(AbstractExternalValueAdd.this, Status.OK_STATUS);
-					}
+						@Override
+						public void onChannelClosed(Throwable error) {
+							// Remove ourself as channel listener
+							channel.removeChannelListener(this);
+							// External value-add is not longer alive, clean up
+							entries.remove(id);
+							finEntry.dispose();
+							// Invoke the callback
+							done.done(AbstractExternalValueAdd.this, Status.OK_STATUS);
+						}
 
-					@Override
-					public void congestionLevel(int level) {
-					}
-				});
+						@Override
+						public void congestionLevel(int level) {
+						}
+					});
+				} else {
+					done.setResult(Boolean.TRUE);
+					done.done(AbstractExternalValueAdd.this, Status.OK_STATUS);
+				}
 			} else {
 				done.done(AbstractExternalValueAdd.this, Status.OK_STATUS);
 			}
@@ -471,7 +480,7 @@ public abstract class AbstractExternalValueAdd extends AbstractValueAdd {
 					}
 					done.done(AbstractExternalValueAdd.this, Status.OK_STATUS);
 				}
-			});
+			}, false);
 		} else {
 			done.done(AbstractExternalValueAdd.this, Status.OK_STATUS);
 		}
