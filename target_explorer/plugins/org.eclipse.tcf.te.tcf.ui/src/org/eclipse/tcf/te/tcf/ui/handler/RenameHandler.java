@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2012, 2016 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -65,7 +65,7 @@ public class RenameHandler extends AbstractHandler {
 		// Get the shell
 		shell = HandlerUtil.getActiveShell(event);
 		// Get the current selection
-		ISelection selection = HandlerUtil.getCurrentSelection(event);
+		ISelection selection = getSelection(event);
 		// Delete the selection
 		if (selection != null) {
 			rename(selection, new Callback() {
@@ -80,6 +80,10 @@ public class RenameHandler extends AbstractHandler {
 		shell = null;
 
 		return null;
+	}
+
+	protected ISelection getSelection(ExecutionEvent event) {
+		return HandlerUtil.getCurrentSelection(event);
 	}
 
 	/**

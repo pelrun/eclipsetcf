@@ -483,6 +483,7 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener, IProperty
 			    }
 			    menuMgr.add(new Separator("group.open")); //$NON-NLS-1$
 			    menuMgr.add(new GroupMarker("group.delete")); //$NON-NLS-1$
+			    menuMgr.add(new GroupMarker("group.rename")); //$NON-NLS-1$
 			    menuMgr.add(new GroupMarker("group.new")); //$NON-NLS-1$
 				menuMgr.add(new Separator("group.additions")); //$NON-NLS-1$
 				final IMenuService service = (IMenuService)serviceLocator.getService(IMenuService.class);

@@ -364,6 +364,7 @@
 	         <separator name="group.history" visible="true"/>
 	         <separator name="group.open" visible="true"/>
 	         <separator name="group.delete" visible="false"/>
+	         <separator name="group.rename" visible="false"/>
 	         <separator name="group.new" visible="false"/>
 	         <separator name="group.additions" visible="true"/>
          </menu>
@@ -631,6 +632,11 @@
                commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.delete"
                mnemonic="%command.delete.mnemonic"/>
       </menuContribution>
+      <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.DefaultContextSelectorToolbarContribution?after=group.rename">
+         <command
+               commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.rename"
+               mnemonic="%command.rename.mnemonic"/>
+      </menuContribution>
       <menuContribution locationURI="menu:org.eclipse.tcf.te.tcf.ui.DefaultContextSelectorToolbarContribution?after=group.new">
          <command
                commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.new"
@@ -793,6 +799,13 @@
             description="%command.delete.toolbar.tooltip">
       </command>
       <command
+            id="org.eclipse.tcf.te.tcf.ui.toolbar.command.rename"
+            categoryId="org.eclipse.tcf.te.ui.commands.category"
+            helpContextId="org.eclipse.tcf.te.tcf.ui.command_Rename"
+            name="%command.rename.label"
+            description="%command.rename.toolbar.tooltip">
+      </command>
+      <command
             id="org.eclipse.tcf.te.tcf.ui.command.debug"
             categoryId="org.eclipse.tcf.te.ui.commands.category"
             helpContextId="org.eclipse.tcf.te.tcf.ui.command_Debug"
@@ -859,6 +872,10 @@
       <image
             commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.delete"
             icon="icons/etool16/delete.gif">
+      </image>
+      <image
+      		commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.rename"
+      		icon="icons/elcl16/rename.gif">
       </image>
       <image
             commandId="org.eclipse.tcf.te.tcf.ui.command.debug"
@@ -1049,6 +1066,21 @@
                </with>
             </enabledWhen>
       </handler>
+      
+      <handler
+            commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.rename"
+            class="org.eclipse.tcf.te.tcf.ui.handler.RenameToolbarCommandHandler">
+            <activeWhen>
+               <with variable="defaultContextSelection">
+                  <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
+               </with>
+            </activeWhen>
+            <enabledWhen>
+               <with variable="defaultContextSelection">
+                  <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
+               </with>
+            </enabledWhen>
+      </handler>   
 
       <handler
             commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.debug"
