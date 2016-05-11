@@ -119,6 +119,17 @@ public class RenameHandler extends AbstractHandler {
 						@Override
 						public void run() {
 							if (newName != null && !"".equals(newName) && !newName.equals(node.getPeer().getName())) { //$NON-NLS-1$
+								// To update the peer attributes, the peer needs to be recreated
+								IPeer oldPeer = node.getPeer();
+								// Create a write able copy of the peer attributes
+								Map<String, String> attributes = new HashMap<String, String>(oldPeer.getAttributes());
+								// Update the name
+								attributes.put(IPeer.ATTR_NAME, newName);
+								// Remove the persistence storage URI (if set)
+								attributes.remove(IPersistableNodeProperties.PROPERTY_URI);
+								// Create the new peer
+								IPeer newPeer = new Peer(attributes);
+
 								try {
 									// Get the persistence service
 									IURIPersistenceService uRIPersistenceService = ServiceManager.getInstance().getService(IURIPersistenceService.class);
@@ -126,16 +137,6 @@ public class RenameHandler extends AbstractHandler {
 										throw new IOException("Persistence service instance unavailable."); //$NON-NLS-1$
 									}
 
-									// To update the peer attributes, the peer needs to be recreated
-									IPeer oldPeer = node.getPeer();
-									// Create a write able copy of the peer attributes
-									Map<String, String> attributes = new HashMap<String, String>(oldPeer.getAttributes());
-									// Update the name
-									attributes.put(IPeer.ATTR_NAME, newName);
-									// Remove the persistence storage URI (if set)
-									attributes.remove(IPersistableNodeProperties.PROPERTY_URI);
-									// Create the new peer
-									IPeer newPeer = new Peer(attributes);
 									// Update the peer node instance (silently)
 									boolean changed = node.setChangeEventsEnabled(false);
 									node.setProperty(IPeerNodeProperties.PROPERTY_INSTANCE, newPeer);
@@ -157,6 +158,29 @@ public class RenameHandler extends AbstractHandler {
 									});
 
 								} catch (IOException e) {
+									// Remove new peer and restore the old one
+									IURIPersistenceService uRIPersistenceService = ServiceManager.getInstance().getService(IURIPersistenceService.class);
+									if (uRIPersistenceService != null) {
+										try {
+											uRIPersistenceService.delete(newPeer, null);
+										} catch (Exception ex) { /* Ignored on purpose */ }
+										try {
+											boolean changed = node.setChangeEventsEnabled(false);
+											node.setProperty(IPeerNodeProperties.PROPERTY_INSTANCE, oldPeer);
+											if (changed) {
+												node.setChangeEventsEnabled(true);
+											}
+											Protocol.invokeLater(new Runnable() {
+												@Override
+												public void run() {
+													// Trigger a change event for the node
+													node.fireChangeEvent("properties", null, node.getProperties()); //$NON-NLS-1$
+												}
+											});
+											uRIPersistenceService.write(oldPeer, null);
+										} catch (Exception ex) { /* Ignored on purpose */ }
+									}
+
 									String template = NLS.bind(Messages.RenameHandler_error_renameFailed, Messages.PossibleCause);
 									StatusHandlerUtil.handleStatus(StatusHelper.getStatus(e), selection, template,
 													Messages.RenameHandler_error_title, IContextHelpIds.MESSAGE_RENAME_FAILED, this, null);
