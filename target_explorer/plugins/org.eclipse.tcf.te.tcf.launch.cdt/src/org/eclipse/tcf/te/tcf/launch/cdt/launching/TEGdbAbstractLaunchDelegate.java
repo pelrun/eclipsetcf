@@ -200,7 +200,7 @@ public abstract class TEGdbAbstractLaunchDelegate extends GdbLaunchDelegate {
 				commandEnv = config.getAttribute(ILaunchManager.ATTR_ENVIRONMENT_VARIABLES, (Map<String,String>)null);
 
 				if (arguments != null && !arguments.equals("")) { //$NON-NLS-1$
-					commandArguments += " " + arguments; //$NON-NLS-1$
+					commandArguments += " " + arguments.replaceAll("\\r", " ").replaceAll("\\n", " "); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
 				}
 				monitor.setTaskName(Messages.TEGdbAbstractLaunchDelegate_starting_program);
 			}

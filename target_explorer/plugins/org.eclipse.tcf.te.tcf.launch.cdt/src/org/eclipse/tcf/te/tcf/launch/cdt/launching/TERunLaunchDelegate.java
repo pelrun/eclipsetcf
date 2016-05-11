@@ -58,7 +58,10 @@ public class TERunLaunchDelegate extends AbstractCLaunchDelegate2 {
 			// 1.1. If there are commands to run before, create a script for them
 			String remoteExePath = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_REMOTE_PATH, ""); //$NON-NLS-1$
 			String arguments = getProgramArguments(config);
-			String remoteLaunchCommand = remoteExePath.replaceAll("\\r", "") + " " + arguments;  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+			String remoteLaunchCommand = remoteExePath.replaceAll("\\r", "");  //$NON-NLS-1$ //$NON-NLS-2$
+			if (arguments != null && !arguments.equals("")) { //$NON-NLS-1$
+				remoteLaunchCommand += " " + arguments.replaceAll("\\r", " ").replaceAll("\\n", " "); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+			}
 			IPath remotePrerunScriptPath = null;
 			boolean launchAsRemoteUser = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_LAUNCH_REMOTE_USER, false);
 			String userId = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_REMOTE_USER_ID, (String)null);
