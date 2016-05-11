@@ -380,7 +380,7 @@ public class TEHelper {
 		BufferedReader reader = null;
 		StringBuilder sb = new StringBuilder();
 		try {
-			IPath templateRoot = null;
+			IPath templatePath = null;
 			IRemoteLaunchDelegate launchDelegate = null;
 			IPeerNode peerNode = getPeerNode(peer.getID());
 			IService[] services = ServiceManager.getInstance().getServices(peerNode, IDelegateService.class, false);
@@ -391,10 +391,10 @@ public class TEHelper {
 		        }
 	        }
 			if (launchDelegate != null) {
-				templateRoot = launchDelegate.getPrerunTemplateRoot();
+				templatePath = launchDelegate.getPrerunTemplatePath();
 			}
-			if (templateRoot != null) {
-				templateFile = new File(templateRoot.append(PRERUN_TEMPLATE_NAME).toOSString());
+			if (templatePath != null) {
+				templateFile = new File(templatePath.toOSString());
 			}
 			// Fallback - Use built-in template
 			if (templateFile == null || !templateFile.exists()) {

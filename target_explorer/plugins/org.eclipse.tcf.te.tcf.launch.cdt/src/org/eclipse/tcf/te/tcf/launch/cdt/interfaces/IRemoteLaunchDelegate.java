@@ -13,5 +13,5 @@ import org.eclipse.core.runtime.IPath;
 
 public interface IRemoteLaunchDelegate {
 
-	public IPath getPrerunTemplateRoot();
+	public IPath getPrerunTemplatePath();
 }
