@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2016 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -333,7 +333,7 @@ class LocatorService(locator.LocatorService):
         err[errors.ERROR_FORMAT] = msg
         return err
 
-    def __command(self, channel, token, name, data):
+    def _command(self, channel, token, name, data):
         try:
             if name == "redirect":
                 peer_id = fromJSONSequence(data)[0]
@@ -999,7 +999,7 @@ class LocatorServiceProvider(services.ServiceProvider):
     def getLocalService(self, _channel):
         class CommandServer(channel.CommandServer):
             def command(self, token, name, data):
-                LocatorService.locator.command(channel, token, name, data)
+                LocatorService.locator._command(_channel, token, name, data)
         _channel.addCommandServer(LocatorService.locator, CommandServer())
         return (LocatorService.locator,)
 
