@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2016 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -20,6 +20,7 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -29,6 +30,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.tcf.te.ui.swt.activator.UIPlugin;
@@ -49,11 +51,19 @@ public class OptionalMessageDialog extends MessageDialogWithToggle {
 
 	// section name for the dialog settings stored by this dialog
 	private static final String DIALOG_ID = "OptionalMessageDialog"; //$NON-NLS-1$
+	// size of the details text in lines
+	private static final int TEXT_LINE_COUNT = 15;
 
 	// context help id for the dialog
 	private String contextHelpId;
 	// the key where the result is stored within the dialog settings section
 	private String key;
+	// the content of the details text area
+	private String detailsTextString;
+	// details text area
+	private Text detailsTextArea = null;
+	// index of the details button
+	private int detailsButtonIndex = -1;
 
 	/**
 	 * Constructor. Message dialog with "do not show again" and optional help
@@ -84,6 +94,41 @@ public class OptionalMessageDialog extends MessageDialogWithToggle {
 	 *            button will be shown.
 	 */
 	public OptionalMessageDialog(Shell parentShell, String title, Image image, String message, int imageType, String[] buttonLabels, int defaultIndex, String key, String contextHelpId) {
+		this(parentShell, title, image, message, imageType, buttonLabels, defaultIndex, key, contextHelpId, null);
+	}
+
+	/**
+	 * Constructor. Message dialog with "do not show again" and optional help
+	 * button. The dialog automatically stores the pressed button when "do not
+	 * show again" was selected. The next time the dialogs <code>open()</code>
+	 * method is called it returns the stored value without opening the dialog.
+	 * When the cancel button was pressed, _NO_ value will be stored.
+	 *
+	 * @param parentShell
+	 *            The shell.
+	 * @param title
+	 *            The title for the message dialog.
+	 * @param image
+	 *            The window icon or <code>null</code> if default icon should
+	 *            be used.
+	 * @param message
+	 *            The dialog message text.
+	 * @param imageType
+	 *            The dialog image type (QUESTION, INFORMATION, WARNING, ERROR).
+	 * @param buttonLabels
+	 *            The labels for buttons.
+	 * @param defaultIndex
+	 *            The default button index.
+	 * @param key
+	 *            The unique key for the stored result value (e.g. "<PluginName>.<ActionOrDialogName>").
+	 * @param contextHelpId
+	 *            The optional help context id. If <code>null</code>, no help
+	 *            button will be shown.
+	 * @param detailsText
+	 * 			  The content of the Details TextArea. If <code>null</code>, no
+	 * 			  Details TextArea will be shown.
+	 */
+	public OptionalMessageDialog(Shell parentShell, String title, Image image, String message, int imageType, String[] buttonLabels, int defaultIndex, String key, String contextHelpId, String detailsText) {
 
 		super(parentShell,
 		      title,
@@ -97,6 +142,7 @@ public class OptionalMessageDialog extends MessageDialogWithToggle {
 
 		this.contextHelpId = contextHelpId;
 		this.key = key == null || key.trim().length() == 0 ? null : key.trim();
+		this.detailsTextString = detailsText;
 
 		if (contextHelpId != null) {
 			PlatformUI.getWorkbench().getHelpSystem().setHelp(parentShell, contextHelpId);
@@ -254,6 +300,59 @@ public class OptionalMessageDialog extends MessageDialogWithToggle {
 	}
 
 	/**
+	 * Creates the details text control.
+	 */
+	protected void createDropDownText(Composite parent) {
+		if (detailsTextString != null) {
+			detailsTextArea = new Text(parent, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL | SWT.READ_ONLY);
+			detailsTextArea.setFont(parent.getFont());
+			detailsTextArea.setText(detailsTextString);
+
+	        GridData data = new GridData(GridData.HORIZONTAL_ALIGN_FILL
+	                | GridData.GRAB_HORIZONTAL | GridData.VERTICAL_ALIGN_FILL
+	                | GridData.GRAB_VERTICAL);
+	        data.heightHint = detailsTextArea.getLineHeight() * TEXT_LINE_COUNT;
+	        data.horizontalSpan = 2;
+	        detailsTextArea.setLayoutData(data);
+		}
+    }
+
+	/**
+     * Toggles the unfolding of the details area. This is triggered by
+     * the user pressing the details button.
+     */
+    private void toggleDetailsArea() {
+        Point windowSize = getShell().getSize();
+        Point oldSize = getContents().computeSize(SWT.DEFAULT, SWT.DEFAULT);
+
+        if (getButton(detailsButtonIndex) != null) {
+	        if (detailsTextArea != null) {
+	        	detailsTextArea.dispose();
+	        	detailsTextArea = null;
+	            getButton(detailsButtonIndex).setText(IDialogConstants.SHOW_DETAILS_LABEL);
+	        } else {
+	            createDropDownText((Composite) getContents());
+	            getButton(detailsButtonIndex).setText(IDialogConstants.HIDE_DETAILS_LABEL);
+	        }
+
+	        Point newSize = getContents().computeSize(SWT.DEFAULT, SWT.DEFAULT);
+	        getShell().setSize(new Point(windowSize.x, windowSize.y + (newSize.y - oldSize.y)));
+        }
+    }
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.jface.dialogs.MessageDialogWithToggle#buttonPressed(int)
+	 */
+	@Override
+	protected void buttonPressed(int buttonId) {
+		if (IDialogConstants.DETAILS_ID == buttonId) {
+			toggleDetailsArea();
+		} else {
+			super.buttonPressed(buttonId);
+		}
+	}
+
+	/**
 	 * Opens the dialog only, if no dialog result is stored and this dialog
 	 * should be displayed. If a dialog result is stored, this state will be
 	 * returned without opening the dialog. When the dialog is closed and "do
@@ -340,7 +439,7 @@ public class OptionalMessageDialog extends MessageDialogWithToggle {
 	 */
 	public static int openOkCancelDialog(Shell parentShell, String title, String message, String[] buttonLabel, String key, String contextHelpId) {
 		if (buttonLabel == null) buttonLabel = new String[] { IDialogConstants.OK_LABEL, IDialogConstants.CANCEL_LABEL };
-		OptionalMessageDialog dialog = new OptionalMessageDialog(parentShell, title, null, message, QUESTION, buttonLabel, 0, key, contextHelpId);
+		OptionalMessageDialog dialog = new OptionalMessageDialog(parentShell, title, null, message, QUESTION, buttonLabel, 0, key, contextHelpId, null);
 		return dialog.open();
 	}
 
@@ -385,7 +484,7 @@ public class OptionalMessageDialog extends MessageDialogWithToggle {
 	 */
 	public static int openYesNoCancelDialog(Shell parentShell, String title, String message, String[] buttonLabel, String key, String contextHelpId) {
 		if (buttonLabel == null) buttonLabel = new String[] { IDialogConstants.YES_LABEL, IDialogConstants.NO_LABEL, IDialogConstants.CANCEL_LABEL };
-		OptionalMessageDialog dialog = new OptionalMessageDialog(parentShell, title, null, message, QUESTION, buttonLabel, 0, key, contextHelpId);
+		OptionalMessageDialog dialog = new OptionalMessageDialog(parentShell, title, null, message, QUESTION, buttonLabel, 0, key, contextHelpId, null);
 		return dialog.open();
 	}
 
@@ -430,7 +529,7 @@ public class OptionalMessageDialog extends MessageDialogWithToggle {
 	 */
 	public static int openYesNoDialog(Shell parentShell, String title, String message, String[] buttonLabel, String key, String contextHelpId) {
 		if (buttonLabel == null) buttonLabel = new String[] { IDialogConstants.YES_LABEL, IDialogConstants.NO_LABEL };
-		OptionalMessageDialog dialog = new OptionalMessageDialog(parentShell, title, null, message, QUESTION, buttonLabel, 0, key, contextHelpId);
+		OptionalMessageDialog dialog = new OptionalMessageDialog(parentShell, title, null, message, QUESTION, buttonLabel, 0, key, contextHelpId, null);
 		return dialog.open();
 	}
 
@@ -475,7 +574,7 @@ public class OptionalMessageDialog extends MessageDialogWithToggle {
 	 */
 	public static int openInformationDialog(Shell parentShell, String title, String message, String[] buttonLabel, String key, String contextHelpId) {
 		if (buttonLabel == null) buttonLabel = new String[] { IDialogConstants.OK_LABEL };
-		OptionalMessageDialog dialog = new OptionalMessageDialog(parentShell, title, null, message, INFORMATION, buttonLabel, 0, key, contextHelpId);
+		OptionalMessageDialog dialog = new OptionalMessageDialog(parentShell, title, null, message, INFORMATION, buttonLabel, 0, key, contextHelpId, null);
 		return dialog.open();
 	}
 
@@ -520,7 +619,7 @@ public class OptionalMessageDialog extends MessageDialogWithToggle {
 	 */
 	public static int openWarningDialog(Shell parentShell, String title, String message, String[] buttonLabel, String key, String contextHelpId) {
 		if (buttonLabel == null) buttonLabel = new String[] { IDialogConstants.OK_LABEL };
-		OptionalMessageDialog dialog = new OptionalMessageDialog(parentShell, title, null, message, WARNING, buttonLabel, 0, key, contextHelpId);
+		OptionalMessageDialog dialog = new OptionalMessageDialog(parentShell, title, null, message, WARNING, buttonLabel, 0, key, contextHelpId, null);
 		return dialog.open();
 	}
 
@@ -565,7 +664,47 @@ public class OptionalMessageDialog extends MessageDialogWithToggle {
 	 */
 	public static int openErrorDialog(Shell parentShell, String title, String message, String[] buttonLabel, String key, String contextHelpId) {
 		if (buttonLabel == null) buttonLabel = new String[] { IDialogConstants.OK_LABEL };
-		OptionalMessageDialog dialog = new OptionalMessageDialog(parentShell, title, null, message, ERROR, buttonLabel, 0, key, contextHelpId);
+		OptionalMessageDialog dialog = new OptionalMessageDialog(parentShell, title, null, message, ERROR, buttonLabel, 0, key, contextHelpId, null);
+		return dialog.open();
+	}
+
+	/**
+	 * Opens a error dialog with OK.
+	 *
+	 * @param parentShell
+	 *            The shell.
+	 * @param title
+	 *            The title for the message dialog.
+	 * @param message
+	 *            The dialog message text.
+	 * @param buttonLabel
+	 * 			  An string array listing the labels of the message dialog buttons. If <code>null</code>, the default
+	 *            labeling, typically &quot;OK&quot; for a single button message dialog, will be applied.
+	 * @param key
+	 *            The unique key for the stored result value (e.g. "<PluginName>.<ActionOrDialogName>").
+	 * @param contextHelpId
+	 *            The optional help context id. If <code>null</code>, no help
+	 *            button will be shown.
+	 * @param detailsText
+	 * 			  The content of the Details TextArea. If <code>null</code>, no Details TextArea will be shown.
+	 * @param detailsButtonIndex
+	 * 			  The index of the Details Button.
+	 * @return The stored or selected result.
+	 */
+	public static int openErrorDialog(Shell parentShell, String title, String message, String[] buttonLabel, String key, String contextHelpId, String detailsText, int detailsButtonIndex) {
+		int btnIndex = detailsButtonIndex;
+		if (buttonLabel == null) {
+			if (detailsText != null) {
+				buttonLabel = new String[] { IDialogConstants.SHOW_DETAILS_LABEL, IDialogConstants.OK_LABEL };
+				btnIndex = 0;
+			} else {
+				buttonLabel = new String[] { IDialogConstants.OK_LABEL };
+			}
+		}
+		OptionalMessageDialog dialog = new OptionalMessageDialog(parentShell, title, null, message, ERROR, buttonLabel, 1, key, contextHelpId, detailsText);
+		if (detailsText != null) {
+			dialog.setDetailButtonIndex(btnIndex);
+		}
 		return dialog.open();
 	}
 
@@ -675,4 +814,13 @@ public class OptionalMessageDialog extends MessageDialogWithToggle {
 		IDialogSettings settings = UIPlugin.getDefault().getDialogSettings();
 		settings.addNewSection(DIALOG_ID);
 	}
+
+	/**
+     * Set the details button index.
+     *
+     * @param index of the details button.
+     */
+    public void setDetailButtonIndex(int index) {
+    	detailsButtonIndex = index;
+    }
 }

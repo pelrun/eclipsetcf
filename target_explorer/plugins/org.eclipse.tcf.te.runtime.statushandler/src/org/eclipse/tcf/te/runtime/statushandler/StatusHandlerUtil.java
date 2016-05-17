@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2014, 2016 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -42,6 +42,22 @@ public final class StatusHandlerUtil {
 	 * @param callback The callback or <code>null</code>.
 	 */
 	public static void handleStatus(IStatus status, Object context, String template, String title, String contextHelpId, Object caller, ICallback callback) {
+		handleStatus(status, context, template, title, contextHelpId, caller, callback, false);
+	}
+
+	/**
+	 * Handle the given status for the given context.
+	 *
+	 * @param status The status. Must not be <code>null</code>.
+	 * @param context The context. Must not be <code>null</code>.
+	 * @param template The message template or <code>null</code>.
+	 * @param title The dialog title or <code>null</code>.
+	 * @param contextHelpId The context help id or <code>null</code>.
+	 * @param caller The caller or <code>null</code>.
+	 * @param callback The callback or <code>null</code>.
+	 * @param showDetails If <code>true</code> the exception message will be displayed inside the Details Section.
+	 */
+	public static void handleStatus(IStatus status, Object context, String template, String title, String contextHelpId, Object caller, ICallback callback, boolean showDetails) {
 		Assert.isNotNull(status);
 		Assert.isNotNull(context);
 
@@ -53,7 +69,12 @@ public final class StatusHandlerUtil {
 			if (contextHelpId != null) data.setProperty(IStatusHandlerConstants.PROPERTY_CONTEXT_HELP_ID, contextHelpId);
 			if (caller != null) data.setProperty(IStatusHandlerConstants.PROPERTY_CALLER, caller);
 
-			updateMessage(status, template);
+			String fullMsg = getStatusFullMessage(status);
+			updateMessage(status, template, fullMsg);
+
+			if (showDetails) {
+				data.setProperty(IStatusHandlerConstants.PROPERTY_DETAILS_TEXT, fullMsg);
+			}
 
 			handlers[0].handleStatus(status, data, callback);
 		} else {
@@ -62,9 +83,7 @@ public final class StatusHandlerUtil {
 		}
 	}
 
-	private static void updateMessage(IStatus status, String template) {
-		Assert.isNotNull(status);
-
+	private static String getStatusFullMessage(IStatus status) {
 		StringBuilder message = new StringBuilder();
 		String msg = status.getMessage();
 
@@ -93,6 +112,12 @@ public final class StatusHandlerUtil {
 		// Construct the final message string
 		String fullMsg = null;
 		if (message.length() > 0) fullMsg = message.toString().trim();
+
+		return fullMsg;
+	}
+
+	private static void updateMessage(IStatus status, String template, String fullMsg) {
+		Assert.isNotNull(status);
 
 		// Apply the template if any
 		if (template != null) fullMsg = NLS.bind(template, fullMsg != null ? fullMsg : ""); //$NON-NLS-1$

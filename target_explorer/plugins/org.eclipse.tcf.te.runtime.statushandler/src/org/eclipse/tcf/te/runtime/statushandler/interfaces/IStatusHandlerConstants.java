@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2016 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -64,4 +64,14 @@ public interface IStatusHandlerConstants {
 	 * Property: The result of the status handling.
 	 */
 	public final static String PROPERTY_RESULT = "result"; //$NON-NLS-1$
+
+	/**
+	 * Property: The text to be shown in the Details section of the Dialog.
+	 */
+	public final static String PROPERTY_DETAILS_TEXT = "detailsText"; //$NON-NLS-1$
+
+	/**
+	 * Property: The index of the Details button in the Dialog.
+	 */
+	public final static String PROPERTY_DETAILS_BUTTON_INDEX = "detailsButtonIndex"; //$NON-NLS-1$
 }

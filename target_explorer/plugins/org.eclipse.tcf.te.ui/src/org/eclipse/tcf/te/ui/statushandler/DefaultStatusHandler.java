@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2016 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -98,6 +98,8 @@ public class DefaultStatusHandler extends AbstractStatusHandler {
 			String contextHelpId = null;
 			String dontAskAgainId = null;
 			Object caller = null;
+			String detailsText = null;
+			int detailsButtonIndex = -1;
 
 			// Unpack the custom data
 			if (data != null) {
@@ -106,6 +108,8 @@ public class DefaultStatusHandler extends AbstractStatusHandler {
 				contextHelpId = data.getStringProperty(IStatusHandlerConstants.PROPERTY_CONTEXT_HELP_ID);
 				dontAskAgainId = data.getStringProperty(IStatusHandlerConstants.PROPERTY_DONT_ASK_AGAIN_ID);
 				caller = data.getProperty(IStatusHandlerConstants.PROPERTY_CALLER);
+				detailsText = data.getStringProperty(IStatusHandlerConstants.PROPERTY_DETAILS_TEXT);
+				detailsButtonIndex = data.getIntProperty(IStatusHandlerConstants.PROPERTY_DETAILS_BUTTON_INDEX);
 			}
 
 			if (message != null && pluginId != null) {
@@ -160,7 +164,7 @@ public class DefaultStatusHandler extends AbstractStatusHandler {
 					String helpContextId = (contextHelpIds.length > 0) ? contextHelpIds[0] : null;
 
 					// Show the message dialog finally
-					result = doOpenMessageDialog(shell, title, message, buttonLabel, severity, dontAskAgainId, helpContextId);
+					result = doOpenMessageDialog(shell, title, message, buttonLabel, severity, dontAskAgainId, helpContextId, detailsText, detailsButtonIndex);
 				} else {
 					// Not interactive -> Re-pack the status and log it to the error log
 					// Map any non-default status to IStatus.OK
@@ -271,7 +275,7 @@ public class DefaultStatusHandler extends AbstractStatusHandler {
 	 * @return {@link Integer} containing the id of the button pressed if the severity is {@link IStatusHandlerConstants#QUESTION}
 	 * 		   or {@link IStatusHandlerConstants#YES_NO_CANCEL}, <code>null</code> otherwise.
 	 */
-	protected Object doOpenMessageDialog(Shell shell, String title, String message, String[] buttonLabel, int severity, String keyDontAskAgain, String helpContextId) {
+	protected Object doOpenMessageDialog(Shell shell, String title, String message, String[] buttonLabel, int severity, String keyDontAskAgain, String helpContextId, String detailsText, int detailsButtonIndex) {
 		Assert.isNotNull(shell);
 		Assert.isNotNull(title);
 		Assert.isNotNull(message);
@@ -289,7 +293,7 @@ public class DefaultStatusHandler extends AbstractStatusHandler {
 				OptionalMessageDialog.openWarningDialog(shell, title, message, buttonLabel, keyDontAskAgain, helpContextId);
 				break;
 			case IStatus.ERROR:
-				OptionalMessageDialog.openErrorDialog(shell, title, message, buttonLabel, keyDontAskAgain, helpContextId);
+				OptionalMessageDialog.openErrorDialog(shell, title, message, buttonLabel, keyDontAskAgain, helpContextId, detailsText, detailsButtonIndex);
 				break;
 			default:
 				OptionalMessageDialog.openInformationDialog(shell, title, message, buttonLabel, keyDontAskAgain, helpContextId);

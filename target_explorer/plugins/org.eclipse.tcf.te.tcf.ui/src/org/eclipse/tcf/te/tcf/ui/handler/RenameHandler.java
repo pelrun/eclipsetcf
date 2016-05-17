@@ -183,7 +183,7 @@ public class RenameHandler extends AbstractHandler {
 
 									String template = NLS.bind(Messages.RenameHandler_error_renameFailed, Messages.PossibleCause);
 									StatusHandlerUtil.handleStatus(StatusHelper.getStatus(e), selection, template,
-													Messages.RenameHandler_error_title, IContextHelpIds.MESSAGE_RENAME_FAILED, this, null);
+													Messages.RenameHandler_error_title, IContextHelpIds.MESSAGE_RENAME_FAILED, this, null, true);
 								}
 							}
 						}
