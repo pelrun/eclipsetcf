@@ -184,8 +184,8 @@
          </separator>
          <command
                commandId="org.eclipse.tcf.te.launch.command.attach"
-               disabledIcon="platform:/plugin/org.eclipse.tcf.te.launch.ui/icons/dlcl16/attach.gif"
-               icon="platform:/plugin/org.eclipse.tcf.te.launch.ui/icons/elcl16/attach.gif"
+               disabledIcon="icons/dlcl16/attach.gif"
+               icon="icons/elcl16/attach.gif"
                id="org.eclipse.tcf.te.tcf.processes.ui.commands.attach"
                label="%command.attach.label"
                mnemonic="%command.attach.mnemonic"
@@ -212,8 +212,8 @@
          </command>
          <command
                commandId="org.eclipse.tcf.te.launch.command.detach"
-               disabledIcon="platform:/plugin/org.eclipse.tcf.te.launch.ui/icons/dlcl16/detach.gif"
-               icon="platform:/plugin/org.eclipse.tcf.te.launch.ui/icons/elcl16/detach.gif"
+               disabledIcon="icons/dlcl16/detach.gif"
+               icon="icons/elcl16/detach.gif"
                id="org.eclipse.tcf.te.tcf.processes.ui.commands.detach"
                label="%command.detach.label"
                mnemonic="%command.detach.mnemonic"
@@ -335,7 +335,7 @@
          </separator>
          <command
                commandId="org.eclipse.tcf.te.launch.command.attach"
-               disabledIcon="platform:/plugin/org.eclipse.tcf.te.launch.ui/icons/dlcl16/attach.gif"
+               disabledIcon="icons/dlcl16/attach.gif"
                icon="icons/elcl16/attach.gif"
                id="org.eclipse.tcf.te.tcf.processes.ui.commands.attach"
                label="%command.attach.label"
@@ -363,7 +363,7 @@
          <command
                commandId="org.eclipse.tcf.te.launch.command.detach"
                disabledIcon="icons/dlcl16/detach.gif"
-               icon="platform:/plugin/org.eclipse.tcf.te.launch.ui/icons/elcl16/detach.gif"
+               icon="icons/elcl16/detach.gif"
                id="org.eclipse.tcf.te.tcf.processes.ui.commands.detach"
                label="%command.detach.label"
                style="push"
