@@ -175,7 +175,7 @@
                 <cdt-site>http://download.eclipse.org/tools/cdt/builds/neon/milestones</cdt-site>
                 <cdt-launchbar-site>http://download.eclipse.org/tools/cdt/launchbar/neon.m6</cdt-launchbar-site>
 				<terminal-site>http://download.eclipse.org/tm/terminal/updates/4.1milestones</terminal-site>
-				<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/S20160501200945/repository</orbit-site>
+				<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20160520211859/repository</orbit-site>
             </properties>
 
 			<repositories>
