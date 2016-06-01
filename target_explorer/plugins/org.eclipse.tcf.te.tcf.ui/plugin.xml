@@ -68,7 +68,7 @@
             class="org.eclipse.tcf.te.tcf.ui.internal.PropertyTester"
             id="org.eclipse.tcf.te.tcf.ui.propertyTester"
             namespace="org.eclipse.tcf.te.tcf.ui"
-            properties="canDelete"
+            properties="canDelete,canRename"
             type="org.eclipse.jface.viewers.ISelection">
       </propertyTester>
       <propertyTester
@@ -82,7 +82,7 @@
             class="org.eclipse.tcf.te.tcf.ui.internal.PropertyTester"
             id="org.eclipse.tcf.te.tcf.ui.propertyTester.simulator"
             namespace="org.eclipse.tcf.te.tcf.ui"
-            properties="isValidSimulatorConfig,canDelete,hasHistory"
+            properties="isValidSimulatorConfig,canDelete,hasHistory,canRename"
             type="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode">
       </propertyTester>
    </extension>
@@ -935,10 +935,7 @@
             </activeWhen>
             <enabledWhen>
                <with variable="selection">
-                  <count value="1"/>
-                  <iterate operator="and" ifEmpty="false">
-                     <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
-                  </iterate>
+                  <test property="org.eclipse.tcf.te.tcf.ui.canRename" value="true"/>
                </with>
             </enabledWhen>
       </handler>
@@ -1077,7 +1074,7 @@
             </activeWhen>
             <enabledWhen>
                <with variable="defaultContextSelection">
-                  <instanceof value="org.eclipse.tcf.te.tcf.locator.interfaces.nodes.IPeerNode"/>
+                  <test property="org.eclipse.tcf.te.tcf.ui.canRename" value="true"/>
                </with>
             </enabledWhen>
       </handler>   

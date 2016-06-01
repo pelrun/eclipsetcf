@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2016 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -25,6 +25,7 @@ import org.eclipse.tcf.te.tcf.locator.interfaces.services.IDefaultContextService
 import org.eclipse.tcf.te.tcf.locator.model.ModelManager;
 import org.eclipse.tcf.te.tcf.locator.utils.SimulatorUtils;
 import org.eclipse.tcf.te.tcf.ui.handler.DeleteHandler;
+import org.eclipse.tcf.te.tcf.ui.handler.RenameHandler;
 import org.eclipse.tcf.te.tcf.ui.interfaces.IDefaultContextToolbarDelegate;
 import org.eclipse.tcf.te.ui.views.navigator.nodes.NewWizardNode;
 
@@ -34,8 +35,9 @@ import org.eclipse.tcf.te.ui.views.navigator.nodes.NewWizardNode;
  * Property tester implementation.
  */
 public class PropertyTester extends org.eclipse.core.expressions.PropertyTester {
-	// Reference to the peer model delete handler (to determine "canDelete")
+	// References to the peer model delete/rename handlers (to determine "canDelete" and "canRename")
 	private final DeleteHandler deleteHandler = new DeleteHandler();
+	private final RenameHandler renameHandler = new RenameHandler();
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.core.expressions.IPropertyTester#test(java.lang.Object, java.lang.String, java.lang.Object[], java.lang.Object)
@@ -47,7 +49,7 @@ public class PropertyTester extends org.eclipse.core.expressions.PropertyTester 
 			return testSelection((IStructuredSelection)receiver, property, args, expectedValue);
 		}
 
-		if ("canDelete".equals(property)) { //$NON-NLS-1$
+		if ("canDelete".equals(property) || "canRename".equals(property)) { //$NON-NLS-1$ //$NON-NLS-2$
 			return testSelection(new StructuredSelection(receiver), property, args, expectedValue);
 		}
 
@@ -107,6 +109,8 @@ public class PropertyTester extends org.eclipse.core.expressions.PropertyTester 
 
 		if ("canDelete".equals(property)) { //$NON-NLS-1$
 			return deleteHandler.canDelete(selection);
+		} else if ("canRename".equals(property)) { //$NON-NLS-1$
+			return renameHandler.canRename(selection);
 		}
 
 		return false;

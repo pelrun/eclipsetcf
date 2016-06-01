@@ -25,11 +25,15 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.ITreeSelection;
+import org.eclipse.jface.viewers.TreePath;
+import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.jface.window.Window;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.te.core.interfaces.IConnectable;
 import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.runtime.interfaces.callback.ICallback;
 import org.eclipse.tcf.te.runtime.persistence.interfaces.IPersistableNodeProperties;
@@ -271,4 +275,41 @@ public class RenameHandler extends AbstractHandler {
 		return new RenameDialog(shell, null, title, prompt, usedError, formatError, label, name.get(), "[0-9a-zA-Z. _()-]+", usedNames.toArray(new String[usedNames.size()]), null); //$NON-NLS-1$
 	}
 
+	/**
+	 * Tests if this rename handler can rename the elements of the given
+	 * <code>selection</code>.
+	 *
+	 * @param selection The selection. Must not be <code>null</code>.
+	 * @return <code>True</code> if the selection can be renamed by this handler, <code>false</code> otherwise.
+	 */
+	public boolean canRename(ISelection selection) {
+		Assert.isNotNull(selection);
+
+		boolean canRename = false;
+
+		if (!(selection instanceof ITreeSelection) && selection instanceof IStructuredSelection && !selection.isEmpty()) {
+			Iterator<?> it = ((IStructuredSelection)selection).iterator();
+			List<TreePath> treePathes = new ArrayList<TreePath>();
+			while (it.hasNext()) {
+				Object sel = it.next();
+				treePathes.add(new TreePath(new Object[]{sel}));
+			}
+			selection = new TreeSelection(treePathes.toArray(new TreePath[treePathes.size()]));
+		}
+
+		// The selection must be a tree selection, must not be empty, and only a single element must be selected
+		if (selection instanceof ITreeSelection && !selection.isEmpty() && ((ITreeSelection)selection).size() == 1) {
+			TreePath treePath = ((ITreeSelection)selection).getPaths()[0];
+			// Get the element
+			Object element = treePath.getLastSegment();
+			// This handler will take care of peer model nodes only
+			if (element instanceof IPeerNode) {
+				IPeerNode node = (IPeerNode) element;
+				// It can be renamed only when not connected
+				canRename = IConnectable.STATE_DISCONNECTED == node.getConnectState();
+			}
+		}
+
+		return canRename;
+	}
 }
