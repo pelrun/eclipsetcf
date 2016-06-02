@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2016 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -49,13 +49,43 @@ public class FsClipboard extends PropertyChangeProvider {
         }
 	}
 
+	private static class FsClipboardCache {
+		private boolean cacheValid;
+		private boolean clipboardEmpty;
+
+		public FsClipboardCache() {
+			super();
+			cacheValid = false;
+			clipboardEmpty = true;
+		}
+
+		public boolean isCacheValid() {
+			return cacheValid;
+		}
+
+		public void invalidateCache() {
+			cacheValid = false;
+		}
+
+		public boolean isClipboardEmpty() {
+			return clipboardEmpty;
+		}
+
+		public void setClipboardEmpty(boolean empty) {
+			clipboardEmpty = empty;
+			cacheValid = true;
+		}
+	}
+
 	/* default */ final Clipboard clipboard;
+	/* default */ final FsClipboardCache clipboardCache;
 
 	/**
 	 * Create a clip board instance.
 	 */
 	public FsClipboard() {
 		clipboard = new Clipboard(PlatformUI.getWorkbench().getDisplay());
+		clipboardCache = new FsClipboardCache();
 	}
 
 	public boolean isCutOp() {
@@ -93,6 +123,11 @@ public class FsClipboard extends PropertyChangeProvider {
 	}
 
 	public boolean isEmpty() {
+		// Check cache before consulting SWT clipboard
+		if (clipboardCache.isCacheValid()) {
+			return clipboardCache.isClipboardEmpty();
+		}
+
 		final AtomicReference<Object> object = new AtomicReference<Object>();
 
 		Runnable runnable = new Runnable() {
@@ -106,7 +141,9 @@ public class FsClipboard extends PropertyChangeProvider {
 
 		FsClipboardContent content = (FsClipboardContent) object.get();
 
-		return content == null || content.files.isEmpty();
+		boolean empty = content == null || content.files.isEmpty();
+		clipboardCache.setClipboardEmpty(empty);
+		return empty;
 	}
 
 	/**
@@ -142,6 +179,7 @@ public class FsClipboard extends PropertyChangeProvider {
 		Runnable runnable = new Runnable() {
 			@Override
 			public void run() {
+				clipboardCache.invalidateCache();
 				clipboard.setContents(new Object[] { content }, new Transfer[] { transfer });
 
 				PropertyChangeEvent event = new PropertyChangeEvent(this, "cut", null, null); //$NON-NLS-1$
@@ -167,6 +205,7 @@ public class FsClipboard extends PropertyChangeProvider {
 		Runnable runnable = new Runnable() {
 			@Override
 			public void run() {
+				clipboardCache.invalidateCache();
 				clipboard.setContents(new Object[] { content }, new Transfer[] { transfer });
 
 				PropertyChangeEvent event = new PropertyChangeEvent(this, "copy", null, null); //$NON-NLS-1$
@@ -184,6 +223,7 @@ public class FsClipboard extends PropertyChangeProvider {
 		Runnable runnable = new Runnable() {
 			@Override
 			public void run() {
+				clipboardCache.invalidateCache();
 				clipboard.clearContents();
 
 				PropertyChangeEvent event = new PropertyChangeEvent(this, "clear", null, null); //$NON-NLS-1$
