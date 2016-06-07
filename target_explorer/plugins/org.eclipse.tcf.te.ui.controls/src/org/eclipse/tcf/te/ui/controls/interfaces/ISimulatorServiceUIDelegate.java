@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2013, 2016 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -87,8 +87,9 @@ public interface ISimulatorServiceUIDelegate {
 	 *
 	 * @param path The path. Must not be <code>null</code>.
 	 * @param messageProvider The message provider. Must not be <code>null</code>:
+	 * @param mode The connection mode.
 	 *
 	 * @return <code>True</code> if the given kernel image path is valid, <code>false</code> otherwise.
 	 */
-	public boolean validateKernelImage(IPath path, BaseControl messageProvider);
+	public boolean validateKernelImage(IPath path, BaseControl messageProvider, String mode);
 }
