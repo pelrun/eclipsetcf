@@ -142,8 +142,8 @@
       </image>
       <image
             commandId="org.eclipse.tcf.te.ui.command.refresh"
-            disabledIcon="platform:/plugin/org.eclipse.ui/icons/full/dlcl16/refresh_nav.gif"
-            icon="platform:/plugin/org.eclipse.ui/icons/full/elcl16/refresh_nav.gif">
+            disabledIcon="icons/dlcl16/refresh_nav.png"
+            icon="icons/elcl16/refresh_nav.png">
       </image>
    </extension>
 
