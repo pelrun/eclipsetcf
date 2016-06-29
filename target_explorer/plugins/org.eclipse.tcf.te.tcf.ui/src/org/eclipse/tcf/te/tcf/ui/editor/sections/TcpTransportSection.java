@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2016 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -274,6 +274,7 @@ public class TcpTransportSection extends AbstractSection implements IDataExchang
 		section.setClient(client);
 
 		proxyControl = new BaseEditBrowseTextControl(null);
+		proxyControl.setFormToolkit(toolkit);
 		proxyControl.setParentControlIsInnerPanel(true);
 		proxyControl.setEditFieldLabel(Messages.TcpTransportSection_proxies_label);
 		proxyControl.setReadOnly(true);
@@ -283,10 +284,12 @@ public class TcpTransportSection extends AbstractSection implements IDataExchang
 		SWTControlUtil.setEnabled(proxyControl.getEditFieldControl(), false);
 
 		addressControl = new MyRemoteHostAddressControl();
+		addressControl.setFormToolkit(toolkit);
 		addressControl.setupPanel(client);
 		addressControl.getEditFieldControl().setFocus();
 
 		portControl = new MyRemoteHostPortControl();
+		portControl.setFormToolkit(toolkit);
 		portControl.setParentControlIsInnerPanel(true);
 		portControl.setupPanel(addressControl.getInnerPanelComposite());
 		portControl.setEditFieldControlText(getDefaultPort());

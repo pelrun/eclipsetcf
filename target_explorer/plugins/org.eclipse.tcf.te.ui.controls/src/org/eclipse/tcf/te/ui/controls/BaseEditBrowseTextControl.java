@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2016 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -490,16 +490,12 @@ public class BaseEditBrowseTextControl extends AbstractDecoratedDialogPageContro
 		Assert.isNotNull(parent);
 
 		Composite innerPanel = null;
-		FormToolkit toolkit = getFormToolkit();
 
 		if (isGroup()) {
 			innerPanel = new Group(parent, SWT.NONE);
-			if (toolkit != null) {
-				toolkit.adapt(innerPanel);
-			}
 			((Group)innerPanel).setText(getGroupLabel());
 		} else {
-			innerPanel = toolkit != null ? toolkit.createComposite(parent) : new Composite(parent, SWT.NONE);
+			innerPanel = new Composite(parent, SWT.NONE);
 		}
 
 		return innerPanel;
@@ -579,7 +575,7 @@ public class BaseEditBrowseTextControl extends AbstractDecoratedDialogPageContro
 		FormToolkit toolkit = getFormToolkit();
 
 		if (!isLabelIsButton()) {
-			labelControl = toolkit != null ? toolkit.createLabel(parent, null) : new Label(parent, SWT.NONE);
+			labelControl = new Label(parent, SWT.NONE);
 		} else {
 			labelControl = toolkit != null ? toolkit.createButton(parent, null, getLabelButtonStyle()) : new Button(parent, getLabelButtonStyle());
 			SWTControlUtil.setSelection((Button)labelControl, false);
@@ -822,9 +818,6 @@ public class BaseEditBrowseTextControl extends AbstractDecoratedDialogPageContro
 				style |= SWT.READ_ONLY;
 			}
 			editField = new Combo(parent, doAdjustEditFieldControlStyles(style));
-			if (toolkit != null) {
-				toolkit.adapt((Combo)editField);
-			}
 			((Combo)editField).addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
@@ -1184,9 +1177,7 @@ public class BaseEditBrowseTextControl extends AbstractDecoratedDialogPageContro
 	protected Button doCreateButtonControl(Composite parent) {
 		Assert.isNotNull(parent);
 
-		FormToolkit toolkit = getFormToolkit();
-
-		Button button = toolkit != null ? toolkit.createButton(parent, null, SWT.PUSH) : new Button(parent, SWT.PUSH);
+		Button button = new Button(parent, SWT.PUSH);
 		button.setText(getButtonLabel());
 
 		return button;
@@ -1252,12 +1243,10 @@ public class BaseEditBrowseTextControl extends AbstractDecoratedDialogPageContro
 		isInitializing = true;
 		super.setupPanel(parent);
 
-		FormToolkit toolkit = getFormToolkit();
-
 		// do we need a group or a plain composite
 		if (!isParentControlIsInnerPanel() || !(parent.getLayout() instanceof GridLayout)) {
 			// create the control most enclosing composite
-			Composite composite = toolkit != null ? toolkit.createComposite(parent) : new Composite(parent, SWT.NONE);
+			Composite composite = new Composite(parent, SWT.NONE);
 			if (isAdjustBackgroundColor()) {
 				SWTControlUtil.setBackground(composite, parent.getBackground());
 			}
@@ -1295,7 +1284,7 @@ public class BaseEditBrowseTextControl extends AbstractDecoratedDialogPageContro
 		Composite innerInnerPanel = innerPanel;
 		int numColumns = ((GridLayout)innerInnerPanel.getLayout()).numColumns;
 		if ((numColumns == 1 || numColumns == 2) && !isHideBrowseButton() && !isHideEditFieldControl()) {
-			innerInnerPanel = toolkit != null ? toolkit.createComposite(innerPanel) : new Composite(innerPanel, SWT.NONE);
+			innerInnerPanel = new Composite(innerPanel, SWT.NONE);
 			if (isAdjustBackgroundColor()) {
 				SWTControlUtil.setBackground(innerInnerPanel, innerPanel.getBackground());
 			}

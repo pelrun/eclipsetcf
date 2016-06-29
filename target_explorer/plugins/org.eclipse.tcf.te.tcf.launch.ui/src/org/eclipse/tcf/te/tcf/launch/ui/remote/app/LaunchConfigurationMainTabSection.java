@@ -118,12 +118,12 @@ public class LaunchConfigurationMainTabSection extends AbstractSection implement
 			    return true;
 			}
 		};
+		processImage.setFormToolkit(toolkit);
 		processImage.setEditFieldLabel(Messages.LaunchConfigurationMainTabSection_processImage_label);
 		processImage.setIsGroup(false);
 		processImage.setHideBrowseButton(false);
 		processImage.setAdjustBackgroundColor(true);
 		processImage.setParentControlIsInnerPanel(true);
-		processImage.setFormToolkit(toolkit);
 		processImage.setupPanel(client);
 		processImage.doCreateControlDecoration(processImage.getEditFieldControl(), client);
 
@@ -138,6 +138,7 @@ public class LaunchConfigurationMainTabSection extends AbstractSection implement
 			    return true;
 			}
 		};
+		processArguments.setFormToolkit(toolkit);
 		processArguments.setEditFieldLabel(Messages.LaunchConfigurationMainTabSection_processArguments_label);
 		processArguments.setIsGroup(false);
 		processArguments.setHideBrowseButton(true);

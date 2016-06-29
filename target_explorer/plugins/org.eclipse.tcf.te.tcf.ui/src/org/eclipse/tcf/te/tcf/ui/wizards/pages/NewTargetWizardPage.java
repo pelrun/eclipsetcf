@@ -338,6 +338,7 @@ public class NewTargetWizardPage extends AbstractValidatingWizardPage implements
 		createEmptySpace(client, 5, 2, toolkit);
 
 		proxyControl = new BaseEditBrowseTextControl(null);
+		proxyControl.setFormToolkit(toolkit);
 		proxyControl.setParentControlIsInnerPanel(false);
 		proxyControl.setHideBrowseButton(true);
 		proxyControl.setReadOnly(true);
@@ -373,6 +374,7 @@ public class NewTargetWizardPage extends AbstractValidatingWizardPage implements
 
 		// Create and add the panels
 		TcpTransportPanel tcpTransportPanel = new TcpTransportPanel(transportTypePanelControl);
+		transportTypePanelControl.setFormToolkit(toolkit);
 		transportTypePanelControl.addConfigurationPanel(ITransportTypes.TRANSPORT_TYPE_TCP, tcpTransportPanel);
 		transportTypePanelControl.addConfigurationPanel(ITransportTypes.TRANSPORT_TYPE_SSL, tcpTransportPanel);
 		transportTypePanelControl.addConfigurationPanel(ITransportTypes.TRANSPORT_TYPE_PIPE, new PipeTransportPanel(transportTypePanelControl));
