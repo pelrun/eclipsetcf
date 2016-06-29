@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2015 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2012, 2016 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -157,8 +157,7 @@ public class LaunchConfigurationMainTabSection extends AbstractSection implement
 				layoutData.horizontalSpan = 3;
 				label.setLayoutData(layoutData);
 
-				stopAtEntry = new Button(client, SWT.CHECK);
-				stopAtEntry.setText(Messages.LaunchConfigurationMainTabSection_stopAtEntry_label);
+				stopAtEntry = toolkit.createButton(client, Messages.LaunchConfigurationMainTabSection_stopAtEntry_label, SWT.CHECK);
 				layoutData = new GridData(SWT.FILL, SWT.CENTER, true, false);
 				layoutData.horizontalSpan = 3;
 				stopAtEntry.setLayoutData(layoutData);
@@ -169,8 +168,7 @@ public class LaunchConfigurationMainTabSection extends AbstractSection implement
 					}
 				});
 
-				stopAtMain = new Button(client, SWT.CHECK);
-				stopAtMain.setText(Messages.LaunchConfigurationMainTabSection_stopAtMain_label);
+				stopAtMain = toolkit.createButton(client, Messages.LaunchConfigurationMainTabSection_stopAtMain_label, SWT.CHECK);
 				layoutData = new GridData(SWT.FILL, SWT.CENTER, true, false);
 				layoutData.horizontalSpan = 3;
 				stopAtMain.setLayoutData(layoutData);
@@ -181,8 +179,7 @@ public class LaunchConfigurationMainTabSection extends AbstractSection implement
 					}
 				});
 
-				attachChildren = new Button(client, SWT.CHECK);
-				attachChildren.setText(Messages.LaunchConfigurationMainTabSection_attachChildren_label);
+				attachChildren = toolkit.createButton(client, Messages.LaunchConfigurationMainTabSection_attachChildren_label, SWT.CHECK);
 				layoutData = new GridData(SWT.FILL, SWT.CENTER, true, false);
 				layoutData.horizontalSpan = 3;
 				attachChildren.setLayoutData(layoutData);

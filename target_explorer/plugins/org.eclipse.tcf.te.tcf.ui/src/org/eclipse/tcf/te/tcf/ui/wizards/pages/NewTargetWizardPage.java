@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2014 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2012, 2016 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -396,8 +396,7 @@ public class NewTargetWizardPage extends AbstractValidatingWizardPage implements
 				autoConnect = Boolean.getBoolean("NewWizard_" + IPeerProperties.PROP_AUTO_CONNECT); //$NON-NLS-1$
 			}
 
-			connect = new Button(client, SWT.CHECK);
-			connect.setText(Messages.AbstractConfigWizardPage_connect_label);
+			connect = toolkit.createButton(client, Messages.AbstractConfigWizardPage_connect_label, SWT.CHECK);
 			layoutData = new GridData(SWT.FILL, SWT.CENTER, true, false);
 			layoutData.horizontalSpan = 2;
 			connect.setLayoutData(layoutData);

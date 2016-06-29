@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2015 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2012, 2016 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -92,8 +92,7 @@ public class LaunchConfigurationAdvancedTabSection extends AbstractSection imple
 		panel2.setLayout(layout);
 		panel2.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 
-		lineSeparatorDefault = new Button(panel2, SWT.RADIO);
-		lineSeparatorDefault.setText(Messages.LaunchConfigurationAdvancedTabSection_lineseparator_default);
+		lineSeparatorDefault = toolkit.createButton(panel2, Messages.LaunchConfigurationAdvancedTabSection_lineseparator_default, SWT.RADIO);
 		lineSeparatorDefault.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -105,8 +104,7 @@ public class LaunchConfigurationAdvancedTabSection extends AbstractSection imple
 			}
 		});
 
-		lineSeparatorLF = new Button(panel2, SWT.RADIO);
-		lineSeparatorLF.setText(Messages.LaunchConfigurationAdvancedTabSection_lineseparator_lf);
+		lineSeparatorLF = toolkit.createButton(panel2, Messages.LaunchConfigurationAdvancedTabSection_lineseparator_lf, SWT.RADIO);
 		lineSeparatorLF.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -118,8 +116,7 @@ public class LaunchConfigurationAdvancedTabSection extends AbstractSection imple
 			}
 		});
 
-		lineSeparatorCRLF = new Button(panel2, SWT.RADIO);
-		lineSeparatorCRLF.setText(Messages.LaunchConfigurationAdvancedTabSection_lineseparator_crlf);
+		lineSeparatorCRLF = toolkit.createButton(panel2, Messages.LaunchConfigurationAdvancedTabSection_lineseparator_crlf, SWT.RADIO);
 		lineSeparatorCRLF.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -131,8 +128,7 @@ public class LaunchConfigurationAdvancedTabSection extends AbstractSection imple
 			}
 		});
 
-		lineSeparatorCR = new Button(panel2, SWT.RADIO);
-		lineSeparatorCR.setText(Messages.LaunchConfigurationAdvancedTabSection_lineseparator_cr);
+		lineSeparatorCR = toolkit.createButton(panel2, Messages.LaunchConfigurationAdvancedTabSection_lineseparator_cr, SWT.RADIO);
 		lineSeparatorCR.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
