@@ -350,9 +350,9 @@
       <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.delete">
          <command
                commandId="org.eclipse.ui.edit.delete"
-               disabledIcon="platform:/plugin/org.eclipse.ui/icons/full/dtool16/delete.gif"
+               disabledIcon="icons/dtool16/delete.png"
                helpContextId="org.eclipse.tcf.te.ui.command_Delete"
-               icon="platform:/plugin/org.eclipse.ui/icons/full/etool16/delete.gif"
+               icon="icons/etool16/delete.png"
                id="org.eclipse.tcf.te.ui.commands.delete"
                label="%command.delete.label"
                mnemonic="%Delete.menu.mnemonic"

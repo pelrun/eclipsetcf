@@ -80,7 +80,7 @@
 
          <action
                class="org.eclipse.tcf.te.tcf.ui.views.scriptpad.actions.OpenAction"
-               icon="platform:/plugin/org.eclipse.ui/icons/full/obj16/fldr_obj.gif"
+               icon="icons/obj16/fldr_obj.png"
                id="org.eclipse.tcf.te.tcf.ui.scriptpad.toolbar.open"
                label="%OpenAction.label"
                style="push"
@@ -90,8 +90,8 @@
  
          <action
                class="org.eclipse.tcf.te.tcf.ui.views.scriptpad.actions.ClearAction"
-               disabledIcon="platform:/plugin/org.eclipse.ui/icons/full/dtool16/clear.gif"
-               icon="platform:/plugin/org.eclipse.ui/icons/full/etool16/clear.gif"
+               disabledIcon="icons/dtool16/clear.png"
+               icon="icons/etool16/clear.png"
                id="org.eclipse.tcf.te.tcf.ui.scriptpad.toolbar.clear"
                label="%ClearAction.label"
                style="push"
@@ -106,8 +106,8 @@
          <separator name="group.edit" visible="true"/>
          <command
                commandId="org.eclipse.ui.edit.cut"
-               disabledIcon="platform:/plugin/org.eclipse.ui/icons/full/dtool16/cut_edit.gif"
-               icon="platform:/plugin/org.eclipse.ui/icons/full/etool16/cut_edit.gif"
+               disabledIcon="icons/dtool16/cut_edit.png"
+               icon="icons/etool16/cut_edit.png"
                label="%command.cut.label"
                mnemonic="%command.cut.mnemonic"
                style="push"
@@ -115,8 +115,8 @@
          </command>
          <command
                commandId="org.eclipse.ui.edit.copy"
-               disabledIcon="platform:/plugin/org.eclipse.ui/icons/full/dtool16/copy_edit.gif"
-               icon="platform:/plugin/org.eclipse.ui/icons/full/etool16/copy_edit.gif"
+               disabledIcon="icons/dtool16/copy_edit.png"
+               icon="icons/etool16/copy_edit.png"
                label="%command.copy.label"
                mnemonic="%command.copy.mnemonic"
                style="push"
@@ -124,8 +124,8 @@
          </command>
          <command
                commandId="org.eclipse.ui.edit.paste"
-               disabledIcon="platform:/plugin/org.eclipse.ui/icons/full/dtool16/paste_edit.gif"
-               icon="platform:/plugin/org.eclipse.ui/icons/full/etool16/paste_edit.gif"
+               disabledIcon="icons/dtool16/paste_edit.png"
+               icon="icons/etool16/paste_edit.png"
                label="%command.paste.label"
                mnemonic="%command.paste.mnemonic"
                style="push"
@@ -134,8 +134,8 @@
          <separator name="group.select" visible="true"/>
          <command
                commandId="org.eclipse.ui.edit.delete"
-               disabledIcon="platform:/plugin/org.eclipse.ui/icons/full/dtool16/delete.gif"
-               icon="platform:/plugin/org.eclipse.ui/icons/full/etool16/delete.gif"
+               disabledIcon="icons/dtool16/delete.png"
+               icon="icons/etool16/delete.png"
                label="%command.delete.label"
                mnemonic="%command.delete.mnemonic"
                style="push"
@@ -153,8 +153,8 @@
       <menuContribution locationURI="toolbar:org.eclipse.tcf.te.tcf.ui.views.scriptpad?after=save">
          <command
                commandId="org.eclipse.ui.file.save"
-               disabledIcon="platform:/plugin/org.eclipse.ui/icons/full/dtool16/save_edit.gif"
-               icon="platform:/plugin/org.eclipse.ui/icons/full/etool16/save_edit.gif"
+               disabledIcon="icons/dtool16/save_edit.png"
+               icon="icons/etool16/save_edit.png"
                label="%command.save.label"
                mnemonic="%command.save.mnemonic"
                style="push"
@@ -162,8 +162,8 @@
          </command>
          <command
                commandId="org.eclipse.ui.file.saveAs"
-               disabledIcon="platform:/plugin/org.eclipse.ui/icons/full/dtool16/saveas_edit.gif"
-               icon="platform:/plugin/org.eclipse.ui/icons/full/etool16/saveas_edit.gif"
+               disabledIcon="icons/dtool16/saveas_edit.png"
+               icon="icons/etool16/saveas_edit.png"
                label="%command.saveas.label"
                mnemonic="%command.saveas.mnemonic"
                style="push"

@@ -374,9 +374,9 @@
       <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.delete">
          <command
                commandId="org.eclipse.ui.edit.delete"
-               disabledIcon="platform:/plugin/org.eclipse.ui/icons/full/dtool16/delete.gif"
+               disabledIcon="icons/dtool16/delete.png"
                helpContextId="org.eclipse.tcf.te.ui.command_Delete"
-               icon="platform:/plugin/org.eclipse.ui/icons/full/etool16/delete.gif"
+               icon="icons/etool16/delete.png"
                id="org.eclipse.tcf.te.ui.commands.delete"
                label="%command.delete.label"
                mnemonic="%command.delete.mnemonic"
@@ -556,7 +556,7 @@
          <command
                commandId="org.eclipse.tm.terminal.view.ui.command.launch"
                helpContextId="org.eclipse.tm.terminal.view.ui.command_Launch"
-               icon="platform:/plugin/org.eclipse.ui.console/icons/full/eview16/console_view.gif"
+               icon="icons/eview16/console_view.gif"
                id="org.eclipse.tcf.te.tcf.ui.commands.launch"
                label="%command.launch.label"
                mnemonic="%command.launch.mnemonic"

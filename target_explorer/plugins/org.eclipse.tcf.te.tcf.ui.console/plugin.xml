@@ -15,8 +15,8 @@
    <extension point="org.eclipse.ui.commandImages">
       <image
             commandId="org.eclipse.tcf.te.tcf.ui.console.command.remove"
-            disabledIcon="platform:/plugin/org.eclipse.ui.console/icons/full/dlcl16/rem_co.gif"
-            icon="platform:/plugin/org.eclipse.ui.console/icons/full/elcl16/rem_co.gif">
+            disabledIcon="icons/dlcl16/rem_co.gif"
+            icon="icons/elcl16/rem_co.gif">
       </image>
    </extension>
 

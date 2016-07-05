@@ -237,7 +237,7 @@
          <command
                commandId="org.eclipse.ui.edit.cut"
                helpContextId="org.eclipse.tcf.te.tcf.filesystem.command_Cut"
-               icon="platform:/plugin/org.eclipse.ui/icons/full/etool16/cut_edit.gif"
+               icon="icons/obj16/cut_edit.png"
                id="cut"
                label="%command.label.cut"
                mnemonic="%command.cut.mnemonic"
@@ -260,7 +260,7 @@
          <command
                commandId="org.eclipse.ui.edit.copy"
                helpContextId="org.eclipse.tcf.te.tcf.filesystem.command_Copy"
-               icon="platform:/plugin/org.eclipse.ui/icons/full/etool16/copy_edit.gif"
+               icon="icons/obj16/copy_edit.png"
                id="copy"
                label="%command.label.copy"
                mnemonic="%command.copy.mnemonic"
@@ -283,7 +283,7 @@
          <command
                commandId="org.eclipse.ui.edit.paste"
                helpContextId="org.eclipse.tcf.te.tcf.filesystem.command_Paste"
-               icon="platform:/plugin/org.eclipse.ui/icons/full/etool16/paste_edit.gif"
+               icon="icons/obj16/paste_edit.png"
                id="paste"
                label="%command.label.paste"
                mnemonic="%command.paste.mnemonic"
@@ -308,9 +308,9 @@
          </separator>
          <command
                commandId="org.eclipse.ui.edit.delete"
-               disabledIcon="platform:/plugin/org.eclipse.ui/icons/full/dtool16/delete.gif"
+               disabledIcon="icons/dobj16/delete.png"
                helpContextId="org.eclipse.tcf.te.ui.command_Delete"
-               icon="platform:/plugin/org.eclipse.ui/icons/full/etool16/delete.gif"
+               icon="icons/obj16/delete.png"
                id="org.eclipse.tcf.te.ui.commands.delete"
                label="%command.label.delete"
                mnemonic="%command.delete.mnemonic"
@@ -664,7 +664,7 @@
          <command
                commandId="org.eclipse.ui.edit.cut"
                helpContextId="org.eclipse.tcf.te.tcf.filesystem.command_Cut"
-               icon="platform:/plugin/org.eclipse.ui/icons/full/etool16/cut_edit.gif"
+               icon="icons/obj16/cut_edit.png"
                id="cut"
                label="%command.label.cut"
                mnemonic="%command.cut.mnemonic"
@@ -692,7 +692,7 @@
          <command
                commandId="org.eclipse.ui.edit.copy"
                helpContextId="org.eclipse.tcf.te.tcf.filesystem.command_Copy"
-               icon="platform:/plugin/org.eclipse.ui/icons/full/etool16/copy_edit.gif"
+               icon="icons/obj16/copy_edit.png"
                id="copy"
                label="%command.label.copy"
                mnemonic="%command.copy.mnemonic"
@@ -720,7 +720,7 @@
          <command
                commandId="org.eclipse.ui.edit.paste"
                helpContextId="org.eclipse.tcf.te.tcf.filesystem.command_Paste"
-               icon="platform:/plugin/org.eclipse.ui/icons/full/etool16/paste_edit.gif"
+               icon="icons/obj16/paste_edit.png"
                id="paste"
                label="%command.label.paste"
                mnemonic="%command.paste.mnemonic"
@@ -749,9 +749,9 @@
       <menuContribution locationURI="popup:org.eclipse.tcf.te.ui.views.View#Popup?after=group.delete">
          <command
                commandId="org.eclipse.ui.edit.delete"
-               disabledIcon="platform:/plugin/org.eclipse.ui/icons/full/dtool16/delete.gif"
+               disabledIcon="icons/dobj16/delete.png"
                helpContextId="org.eclipse.tcf.te.ui.command_Delete"
-               icon="platform:/plugin/org.eclipse.ui/icons/full/etool16/delete.gif"
+               icon="icons/obj16/delete.png"
                id="org.eclipse.tcf.te.ui.commands.delete"
                label="%command.delete.label"
                mnemonic="%command.delete.mnemonic"

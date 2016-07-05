@@ -413,7 +413,7 @@
          </dynamic>
          <command
                commandId="org.eclipse.tcf.te.ui.views.command.filters"
-               icon="platform:/plugin/org.eclipse.ui.navigator/icons/full/elcl16/filter_ps.gif"
+               icon="icons/elcl16/filter_ps.gif"
                id="org.eclipse.tcf.te.ui.views.command.filters"
                label="%command.filters.label"
                style="push">
@@ -428,7 +428,7 @@
          </dynamic>
          <command
                commandId="org.eclipse.tcf.te.ui.views.command.content"
-               icon="platform:/plugin/org.eclipse.ui.navigator/icons/full/elcl16/content.gif"
+               icon="icons/elcl16/content.gif"
                id="org.eclipse.tcf.te.ui.views.command.content"
                label="%command.content.label"
                style="push">
@@ -605,12 +605,12 @@
       </image>
       <image
             commandId="org.eclipse.tcf.te.ui.views.command.quickfilter"
-            icon="platform:/plugin/org.eclipse.ui.navigator/icons/full/elcl16/filter_ps.gif">
+            icon="icons/elcl16/filter_ps.gif">
       </image>
       <image
             commandId="org.eclipse.tcf.te.ui.views.command.apply"
-            disabledIcon="platform:/plugin/org.eclipse.ui/icons/full/dtool16/save_edit.gif"
-            icon="platform:/plugin/org.eclipse.ui/icons/full/etool16/save_edit.gif">
+            disabledIcon="icons/dtool16/save_edit.png"
+            icon="icons/etool16/save_edit.png">
       </image>
    </extension>
 
