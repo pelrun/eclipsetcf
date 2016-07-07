@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2013-2014 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013-2014, 2016 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -36,6 +36,7 @@
 .. |DoneGetIDs| replace:: :class:`DoneGetIDs`
 .. |DoneGetProperties| replace:: :class:`DoneGetProperties`
 .. |DoneGetStatus| replace:: :class:`DoneGetStatus`
+.. |Pathmap Service| replace:: :mod:`tcf.services.pathmap`
 .. |Status| replace:: :ref:`Tcf-Breakpoints-Status`
 .. |Status Instances| replace:: :ref:`Tcf-Breakpoints-Status-Instances`
 .. |Time Scales| replace:: :ref:`Tcf-Breakpoints-Time-Scales`
@@ -66,6 +67,8 @@ Properties
 +-----------------------+--------------+--------------------------------------+
 | Name                  | Type         | Description                          |
 +=======================+==============+======================================+
+| PROP_ACTION           | |basestring| | Expression or script.                |
++-----------------------+--------------+--------------------------------------+
 | PROP_ACCESS_MODE      | |int|        | The access mode that will trigger    |
 |                       |              | the breakpoint. Access mode can be a |
 |                       |              | bitwise OR of the values defined in  |
@@ -114,6 +117,10 @@ Properties
 | PROP_LINE             | |int|        | The source code line number of       |
 |                       |              | breakpoint location.                 |
 +-----------------------+--------------+--------------------------------------+
+| PROP_LINE_OFFSET      | |int|        | Max number of lines breakpoint is    |
+|                       |              | allowed to be moved in case of       |
+|                       |              | inexact line info match.             |
++-----------------------+--------------+--------------------------------------+
 | PROP_LOCATION         | |basestring| | Defines location of the breakpoint.  |
 |                       |              | The expression evaluates either to a |
 |                       |              | memory address or a register         |
@@ -152,6 +159,10 @@ Properties
 +-----------------------+--------------+--------------------------------------+
 | PROP_UNITS            | |basestring| | The units for the time value. See    |
 |                       |              | |Time Units|.                        |
++-----------------------+--------------+--------------------------------------+
+| PROP_SKIP_PROLOGUE    | |basestring| | If set, the breakpoint is set after  |
+|                       |              | the function prologue. The default   |
+|                       |              | value for this property is **False**.|
 +-----------------------+--------------+--------------------------------------+
 
 .. _Tcf-Breakpoints-Access-Modes:
@@ -248,23 +259,26 @@ Status
 
 Status Instances
 ^^^^^^^^^^^^^^^^
-+-------------------------+--------------+------------------------------------+
-| Name                    | Type         | Description                        |
-+=========================+==============+====================================+
-| INSTANCE_ADDRESS        | |int|        | Breakpoint address.                |
-+-------------------------+--------------+------------------------------------+
-| INSTANCE_CONTEXT        | |basestring| | Breakpoint context.                |
-+-------------------------+--------------+------------------------------------+
-| INSTANCE_ERROR          | |basestring| | Breakpoint status instance error.  |
-+-------------------------+--------------+------------------------------------+
-| INSTANCE_HIT_COUNT      | |int|        | Breakpoint hit count.              |
-+-------------------------+--------------+------------------------------------+
-| INSTANCE_MEMORY_CONTEXT | |basestring| | Breakpoint memory context.         |
-+-------------------------+--------------+------------------------------------+
-| INSTANCE_SIZE           | |int|        | Breakpoint size.                   |
-+-------------------------+--------------+------------------------------------+
-| INSTANCE_TYPE           | |basestring| | Breakpoint type.                   |
-+-------------------------+--------------+------------------------------------+
++--------------------------+--------------+-----------------------------------+
+| Name                     | Type         | Description                       |
++==========================+==============+===================================+
+| INSTANCE_ADDRESS         | |int|        | Breakpoint address.               |
++--------------------------+--------------+-----------------------------------+
+| INSTANCE_CONDITION_ERROR | |basestring| | Breakpoint error message for an   |
+|                          |              | invalid condition.                |
++--------------------------+--------------+-----------------------------------+
+| INSTANCE_CONTEXT         | |basestring| | Breakpoint context.               |
++--------------------------+--------------+-----------------------------------+
+| INSTANCE_ERROR           | |basestring| | Breakpoint status instance error. |
++--------------------------+--------------+-----------------------------------+
+| INSTANCE_HIT_COUNT       | |int|        | Breakpoint hit count.             |
++--------------------------+--------------+-----------------------------------+
+| INSTANCE_MEMORY_CONTEXT  | |basestring| | Breakpoint memory context.        |
++--------------------------+--------------+-----------------------------------+
+| INSTANCE_SIZE            | |int|        | Breakpoint size.                  |
++--------------------------+--------------+-----------------------------------+
+| INSTANCE_TYPE            | |basestring| | Breakpoint type.                  |
++--------------------------+--------------+-----------------------------------+
 
 Service Capabilities
 ^^^^^^^^^^^^^^^^^^^^
@@ -305,8 +319,8 @@ of |basestring| type, and **CAPABILITY_ACCESS_MODE** which is of |int| type.
 |                            | **PROP_COLUMN** breakpoint properties are      |
 |                            | supported.                                     |
 +----------------------------+------------------------------------------------+
-| CAPABILITY_FILE_MAPPING    | If **True**, **PROP_FILE_MAPPING** breakpoint  |
-|                            | property is supported.                         |
+| CAPABILITY_FILE_MAPPING    | If **True**, using file pathmapping is         |
+|                            | supported. See |Pathmap Service|.              |
 +----------------------------+------------------------------------------------+
 | CAPABILITY_HAS_CHILDREN    | If **True**, children of the context can have  |
 |                            | different capabilities.                        |
@@ -321,6 +335,9 @@ of |basestring| type, and **CAPABILITY_ACCESS_MODE** which is of |int| type.
 |                            | property is supported.                         |
 +----------------------------+------------------------------------------------+
 | CAPABILITY_TEMPORARY       | If **True**, **PROP_TEMPORARY** breakpoint     |
+|                            | property is supported.                         |
++----------------------------+------------------------------------------------+
+| CAPABILITY_SKIP_PROLOGUE   | If **True**, **PROP_SKIP_PROLOGUE** breakpoint |
 |                            | property is supported.                         |
 +----------------------------+------------------------------------------------+
 
@@ -458,6 +475,9 @@ PROP_TEMPORARY = "Temporary"
 PROP_EVENT_TYPE = "EventType"
 PROP_EVENT_ARGS = "EventArgs"
 PROP_CLIENT_DATA = "ClientData"
+PROP_SKIP_PROLOGUE = "SkipPrologue"
+PROP_ACTION = "Action"
+PROP_LINE_OFFSET = "LineOffset"
 
 # Deprecated
 PROP_CONTEXTNAMES = "ContextNames"
@@ -502,6 +522,7 @@ INSTANCE_SIZE = "Size"
 INSTANCE_TYPE = "BreakpointType"
 INSTANCE_MEMORY_CONTEXT = "MemoryContext"
 INSTANCE_HIT_COUNT = "HitCount"
+INSTANCE_CONDITION_ERROR = "ConditionError"
 
 # Breakpoint service capabilities.
 CAPABILITY_CONTEXT_ID = "ID"
@@ -519,6 +540,7 @@ CAPABILITY_TEMPORARY = "Temporary"
 CAPABILITY_IGNORE_COUNT = "IgnoreCount"
 CAPABILITY_ACCESS_MODE = "AccessMode"
 CAPABILITY_CLIENT_DATA = "ClientData"
+CAPABILITY_SKIP_PROLOGUE = "SkipPrologue"
 
 # Deprecated
 CAPABILITY_CONTEXTNAMES = "ContextNames"

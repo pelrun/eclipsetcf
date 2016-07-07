@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2014, 2016 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -10,8 +10,8 @@
 # *****************************************************************************
 
 import socket
-import types
 
+from .. import compat
 from .. import protocol
 from .StreamChannel import StreamChannel
 
@@ -45,7 +45,7 @@ class ChannelTCP(StreamChannel):
             self.closed = True
         if self.closed:
             try:
-                if self.socket:
+                if hasattr(self, 'socket') and self.socket:
                     self.socket.close()
             except socket.error as y:
                 protocol.log("Cannot close socket", y)
@@ -78,26 +78,26 @@ class ChannelTCP(StreamChannel):
                 return -1
             raise x
 
+    def str2bytes(self, data):
+        if isinstance(data, compat.strings):
+            return bytearray([ord(x) for x in data])
+        elif isinstance(data, int):
+            return bytearray([data])
+        return data
+
     def put(self, b):
         if self.closed:
             return
-        t = type(b)
-        if t is types.StringType:
-            s = b
-        elif t is types.IntType:
-            s = chr(b)
-        else:
-            raise "Illegal argument type: %s" % t
+        s = self.str2bytes(b)
         self.socket.send(s)
 
     def putBuf(self, buf):
         if self.closed:
             return
-        t = type(buf)
-        if t is types.StringType:
+        if isinstance(buf, (bytes, bytearray)):
             s = buf
         else:
-            s = str(buf)
+            s = self.str2bytes(buf)
         self.socket.sendall(s)
 
     def flush(self):

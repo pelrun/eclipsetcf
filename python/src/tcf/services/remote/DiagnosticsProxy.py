@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2013-2014 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013-2014, 2016 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -58,10 +58,13 @@ class DiagnosticsProxy(diagnostics.DiagnosticsService):
         if isinstance(err, errors.ErrorReport):
             errMap = err.getAttributes()
         else:
+            # Exception.message does not exist in python3, better use
+            # str(Exception)
+
             errMap = {
                 errors.ERROR_TIME: int(time.time() * 1000),
                 errors.ERROR_CODE: errors.TCF_ERROR_OTHER,
-                errors.ERROR_FORMAT: err.message
+                errors.ERROR_FORMAT: str(err)
             }
         done = self._makeCallback(done)
         service = self

@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013, 2016 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -54,10 +54,10 @@ class FileSystemCommand(Command):
         if len(cmd) > 72:
             cmd = cmd[0:72] + "..."
         s = Status(error_code,
-                "TCF command exception:" +
-                "\nCommand: " + cmd +
-                "\nException: " + errors.toErrorString(data) +
-                "\nError code: " + str(error_code), data)
+                   "TCF command exception:" +
+                   "\nCommand: " + cmd +
+                   "\nException: " + errors.toErrorString(data) +
+                   "\nError code: " + str(error_code), data)
         caused_by = data.get(errors.ERROR_CAUSED_BY)
         if caused_by is not None:
             s.initCause(self.toError(caused_by, False))
@@ -480,8 +480,9 @@ class FileSystemProxy(filesystem.FileSystemService):
 
         class CopyCommand(FileSystemCommand):
             def __init__(self):
-                super(CopyCommand, self).__init__(service, "copy",
-                    (src_path, dst_path, copy_permissions, copy_uidgid))
+                copyparams = (src_path, dst_path, copy_permissions,
+                              copy_uidgid)
+                super(CopyCommand, self).__init__(service, "copy", copyparams)
 
             def done(self, error, args):
                 s = None

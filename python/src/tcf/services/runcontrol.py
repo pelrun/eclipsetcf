@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2013-2014 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013-2014, 2016 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -526,8 +526,8 @@ class RunControlISA(object):
         res += 'Address=' + str(self.getAddress()) + ', '
         res += ISA_SIZE + '=' + str(self.getSize()) + ', '
         res += ISA_ALIGNMENT + '=' + str(self.getAlignment()) + ', '
-        res += ISA_MAX_INSTRUCTION_SIZE + '=' + \
-               str(self.getMaxInstructionSize()) + ', '
+        res += ISA_MAX_INSTRUCTION_SIZE + '='
+        res += str(self.getMaxInstructionSize()) + ', '
         res += 'Default=' + str(self.getDefault())
         res += ']'
         return res
@@ -977,6 +977,18 @@ class RunControlListener(object):
 
         :param context_ids: List of removed context IDs.
         :type context_ids: |list|
+        """
+        pass
+
+    def contextStateChanged(self, context):
+        """Called when context state changes and the context is not and was not
+        in suspended state.
+
+        Changes to and from suspended state should be reported by other events:
+        contextSuspended, contextResumed, containerSuspended, containerResumed.
+
+        :param context: ID of a context that changed state.
+        :type context: |basestring|
         """
         pass
 

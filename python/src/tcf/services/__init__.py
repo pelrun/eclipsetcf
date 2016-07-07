@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2013-2014 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013-2014, 2016 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -42,8 +42,8 @@ def removeServiceProvider(provider):
 def onChannelCreated(channel, services_by_name):
     with _lock:
         # TODO ZeroCopy support is incomplete
-#        zero_copy = ZeroCopy()
-#        services_by_name[zero_copy.getName()] = zero_copy
+        # zero_copy = ZeroCopy()
+        # services_by_name[zero_copy.getName()] = zero_copy
         for provider in _providers:
             try:
                 arr = provider.getLocalService(channel)

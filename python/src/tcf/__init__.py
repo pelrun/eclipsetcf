@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2013-2014 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013-2014, 2016 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -15,7 +15,7 @@ TCF - Target Communication Framework
 
 import types
 
-from . import protocol, peer, channel
+from . import compat, protocol, peer, channel
 from .util import task
 
 __all__ = ('connect', 'peers')
@@ -25,9 +25,9 @@ def connect(params, wait=True):
     """Connect to peer. Argument is a string of the form
     <transport>:<host>:<port>, e.g. "TCP:127.0.0.1:1534".
     """
-    if type(params) is types.StringType:
+    if isinstance(params, compat.strings):
         params = _parse_params(params)
-    elif type(params) is not types.DictType:
+    elif isinstance(params, dict):
         raise TypeError("Expected string or dict")
     p = peer.TransientPeer(params)
     if wait:

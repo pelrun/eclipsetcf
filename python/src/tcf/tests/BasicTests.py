@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2013-2014 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013-2014, 2016 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -24,13 +24,13 @@ __TRACE = False
 class TraceListener(channel.TraceListener):
 
     def onMessageReceived(self, msgType, token, service, name, data):
-        print "<<<", msgType, token, service, name, data
+        print("<<< ", msgType, token, service, name, data)
 
     def onMessageSent(self, msgType, token, service, name, data):
-        print ">>>", msgType, token, service, name, data
+        print(">>>", msgType, token, service, name, data)
 
     def onChannelClosed(self, error):
-        print >> sys.stderr, "*** closed ***", error
+        sys.stderr.write("*** closed *** " + str(error) + "\n")
 
 _suspended = []
 _memory = []
@@ -50,8 +50,8 @@ def test():
     assert c.state == channel.STATE_OPEN
     if __TRACE:
         protocol.invokeAndWait(c.addTraceListener, TraceListener())
-    _services = protocol.invokeAndWait(c.getRemoteServices)
-    print "services=", _services
+    _services = sorted(protocol.invokeAndWait(c.getRemoteServices))
+    print("services=" + str(_services))
 
     if "RunControl" in _services:
         # RunControl must be first
@@ -60,14 +60,14 @@ def test():
     for service in _services:
         testFct = globals().get("test" + service)
         if testFct:
-            print "Testing service '%s'..." % service
+            print("Testing service '%s'..." % service)
             try:
                 testFct(c)
-                print "Completed test of service '%s'." % service
+                print("Completed test of service '%s'." % service)
             except Exception as e:
                 protocol.log("Exception testing %s" % service, e)
         else:
-            print "No test for service '%s' found." % service
+            print("No test for service '%s' found." % service)
     try:
         testSyncCommands(c)
         testTasks(c)
@@ -87,11 +87,11 @@ def testTimer():
 
     def countdown(left):
         if left == 0:
-            print "Ignition sequence started!"
+            print("Ignition sequence started!")
             with cond:
                 cond.notify()
             return
-        print "%d seconds to go" % left
+        print("%d seconds to go" % left)
         sys.stdout.flush()
         protocol.invokeLaterWithDelay(1000, countdown, left - 1)
     with cond:
@@ -113,7 +113,7 @@ def testRunControl(c):
                 if error:
                     protocol.log("Error from RunControl.getContext", error)
                 else:
-                    print context
+                    print(context)
 
                 class DoneGetState(runcontrol.DoneGetState):
 
@@ -124,10 +124,10 @@ def testRunControl(c):
                             protocol.log(
                                 "Error from RunControl.getState", error)
                         else:
-                            print "suspended: ", suspended
-                            print "pc:        ", pc
-                            print "reason:    ", reason
-                            print "params:    ", params
+                            print("suspended: " + str(suspended))
+                            print("pc:        " + str(pc))
+                            print("reason:    " + str(reason))
+                            print("params:    " + str(params))
                         if suspended:
                             _suspended.append(context.getID())
                         if len(pending) == 0:
@@ -161,18 +161,18 @@ def testRunControl(c):
 
         class RCListener(runcontrol.RunControlListener):
             def contextSuspended(self, *args):
-                print "context suspended: ", args
+                print("context suspended: " + str(args))
                 rc.removeListener(self)
 
             def contextResumed(self, *args):
-                print "context resumed: ", args
+                print("context resumed: " + str(args))
 
             def containerSuspended(self, *args):
-                print "container suspended:", args
+                print("container suspended: " + str(args))
                 rc.removeListener(self)
 
             def containerResumed(self, *args):
-                print "container resumed:", args
+                print("container resumed: " + str(args))
         rc.addListener(RCListener())
 
         class DoneGetContext(runcontrol.DoneGetContext):
@@ -198,6 +198,7 @@ def testRunControl(c):
         with lock:
             protocol.invokeLater(listenerTest)
             lock.wait(5)
+        _suspended.pop(0)
 
 
 def testBreakpoints(c):
@@ -210,19 +211,19 @@ def testBreakpoints(c):
             if error:
                 protocol.log("Error from Breakpoints.getIDs", error)
                 return
-            print "Breakpoints :", ids
+            print("Breakpoints : " + str(ids))
 
             def doneGetProperties(token, error, props):
                 if error:
                     protocol.log("Error from Breakpoints.getProperties", error)
                     return
-                print "Breakpoint Properties: ", props
+                print("Breakpoint Properties: " + str(props))
 
             def doneGetStatus(token, error, props):
                 if error:
                     protocol.log("Error from Breakpoints.getStatus", error)
                     return
-                print "Breakpoint Status: ", props
+                print("Breakpoint Status: " + str(props))
             for bpid in ids:
                 bps.getProperties(bpid, doneGetProperties)
                 bps.getStatus(bpid, doneGetStatus)
@@ -234,17 +235,18 @@ def testBreakpoints(c):
 
         class BPListener(breakpoints.BreakpointsListener):
             def breakpointStatusChanged(self, bpid, status):
-                print "breakpointStatusChanged", bpid, status
+                print("breakpointStatusChanged " + str(bpid) + " " +
+                      str(status))
 
             def contextAdded(self, bps):
-                print "breakpointAdded", bps
+                print("breakpointAdded " + str(bps))
                 bpsvc.removeListener(self)
 
             def contextChanged(self, bps):
-                print "breakpointChanged", bps
+                print("breakpointChanged " + str(bps))
 
             def contextRemoved(self, ids):
-                print "breakpointRemoved", ids
+                print("breakpointRemoved " + str(ids))
         bpsvc.addListener(BPListener())
 
         def doneSet(token, error):
@@ -280,7 +282,7 @@ def testStackTrace(c):
                             return
                         if ctxs:
                             for ctx in ctxs:
-                                print ctx
+                                print(ctx)
                 stack.getContext(ctx_ids, DoneGetContext())
         stack.getChildren(ctx_id, DoneGetChildren())
     for ctx_id in _suspended:
@@ -303,11 +305,11 @@ def testDisassembly(c):
             if frameData:
                 addr = frameData[0].get("IP")
                 if addr:
-                    print "Disassemble context %s from 0x%x" % (ctx_id, addr)
+                    print("Disassemble context %s from 0x%x" % (ctx_id, addr))
                     lines = dis.disassemble(ctx_id, addr, 256, None).get()
                     if lines:
                         for line in lines:
-                            print line
+                            print(line)
 
 
 def testSymbols(c):
@@ -328,7 +330,7 @@ def testSymbols(c):
                             protocol.log(
                                 "Error from Symbols.getContext", error)
                             return
-                        print ctx
+                        print(ctx)
                 if ctx_ids:
                     for ctx_id in ctx_ids:
                         syms.getContext(ctx_id, DoneGetContext())
@@ -366,7 +368,7 @@ def testRegisters(c):
                             protocol.log(
                                 "Error from Registers.getContext", error)
                         else:
-                            print ctx
+                            print(ctx)
                             if ctx.isReadable() and not ctx.isReadOnce() \
                                     and ctx.getSize() >= 2:
                                 locs = []
@@ -383,8 +385,9 @@ def testRegisters(c):
                                                 "Error from Registers.getm",
                                                 error)
                                         else:
-                                            print "getm", \
-                                                ctx.getID(), map(ord, value)
+                                            print("getm " + str(ctx.getID()) +
+                                                  " " +
+                                                  str(list(map(int, value))))
                                         if not pending:
                                             onDone()
                                 pending.append(regs.getm(locs, DoneGetM()))
@@ -429,7 +432,7 @@ def testExpressions(c):
     e = exprs.create(_suspended[0], None, "1+2*(3-4/2)").getE()
     eid = e.get(expressions.PROP_ID)
     val, cls = exprs.evaluate(eid).getE()
-    print e.get(expressions.PROP_EXPRESSION), "=", val
+    print(e.get(expressions.PROP_EXPRESSION) + " = " + str(val))
     exprs.dispose(eid)
 
 
@@ -445,10 +448,10 @@ def testLineNumbers(c):
         if bt:
             bt = stack.getContext(bt).get()
             for frame in bt:
-                addr = frame.get(stacktrace.PROP_INSTRUCTION_ADDRESS)
+                addr = frame.get(stacktrace.PROP_INSTRUCTION_ADDRESS) or 0
                 area = lineNumbers.mapToSource(ctx_id, addr, addr + 1).get()
-                print "Frame %d - CodeArea: %s" % (
-                            frame.get(stacktrace.PROP_LEVEL), area)
+                print("Frame %d - CodeArea: %s" %
+                      (frame.get(stacktrace.PROP_LEVEL), area))
 
 
 def testSyncCommands(c):
@@ -468,16 +471,16 @@ def testSyncCommands(c):
     e = errors.ErrorReport("Test", errors.TCF_ERROR_OTHER)
     r = diag.echoERR(e.getAttributes()).getE()
     assert e.getAttributes() == r
-    print "Diagnostic tests:", diag.getTestList().getE()
+    print("Diagnostic tests: " + str(diag.getTestList().getE()))
 
     for ctx_id in _suspended:
-        print "Symbols:", ctl.Symbols.list(ctx_id)
+        print("Symbols: " + str(ctl.Symbols.list(ctx_id)))
     for ctx_id in _suspended:
         frame_ids = ctl.StackTrace.getChildren(ctx_id).get()
         if frame_ids:
             error, args = ctl.StackTrace.getContext(frame_ids)
             if not error:
-                print "Stack contexts:", args
+                print("Stack contexts: " + str(args))
     try:
         ctl.Breakpoints
     except AttributeError:
@@ -485,10 +488,10 @@ def testSyncCommands(c):
         return
 
     def gotBreakpoints(error, bps):
-        print "Got breakpoint list:", bps
+        print("Got breakpoint list: " + str(bps))
     ctl.Breakpoints.getIDs(onDone=gotBreakpoints)
     try:
-        print ctl.Processes.getChildren(None, False)
+        print(ctl.Processes.getChildren(None, False))
     except:
         pass  # no Processes service
 
@@ -516,7 +519,7 @@ def testTasks(c):
         es.create(_suspended[0], None, expr, doneCreate)
     t = task.Task(compute, "1+2*(3-4/2)", channel=c)
     val = t.get()
-    print "Task result:", val
+    print("Task result: " + str(val))
 
 
 def testEvents(c):
@@ -534,16 +537,16 @@ def testEvents(c):
         return
     ctx = ctxs[0]
     rc.resume(ctx, 0, 1, None).wait()
-    print recorder
+    print(recorder)
     rc.suspend(ctx).wait()
-    print recorder
+    print(recorder)
     recorder.stop()
 
 
 def testDataCache(c):
     from tcf.util import cache  # @UnresolvedImport
     from tcf.services import runcontrol  # @UnresolvedImport
-    if not runcontrol.NAME in _services:
+    if runcontrol.NAME not in _services:
         return
 
     class ContextsCache(cache.DataCache):
@@ -572,7 +575,7 @@ def testDataCache(c):
     contextsCache = ContextsCache(c)
 
     def done():
-        print "ContextsCache is valid:", contextsCache.getData()
+        print("ContextsCache is valid: " + str(contextsCache.getData()))
     protocol.invokeLater(contextsCache.validate, done)
 
 
@@ -593,7 +596,7 @@ def testProcesses(c):
                 if error:
                     protocol.log("Error from Processes.GetChildren", error)
                 else:
-                    print "Processes:", context_ids
+                    print("Processes: " + str(context_ids))
                 with lock:
                     lock.notify()
         proc.getChildren(None, False, DoneGetChildren())
@@ -610,9 +613,9 @@ def testFileSystem(c):
         # no FileSystem service
         return
     roots = fs.roots().get()
-    print "FileSystem roots:", roots
+    print("FileSystem roots: " + str(roots))
     user = fs.user().get()
-    print "User info: ", user
+    print("User info: " + str(user))
 
 
 def testMemory(c):
@@ -629,7 +632,7 @@ def testMemory(c):
                 if error:
                     protocol.log("Error from Memory.getContext", error)
                 else:
-                    print context
+                    print(context)
                 if len(pending) == 0:
                     with lock:
                         lock.notify()
@@ -674,7 +677,7 @@ def testMemoryMap(c):
                 if error:
                     protocol.log("Error from MemoryMap.get", error)
                 else:
-                    print mmap
+                    print(mmap)
                 with lock:
                     lock.notify()
         mm.get(map_id, DoneGet())
@@ -691,15 +694,13 @@ def testMemoryMap(c):
                     protocol.log("Error from MemoryMap.set", error)
                 with lock:
                     lock.notify()
-        mm.set(
-            id,
-            {memorymap.PROP_FILE_NAME: "/tmp/system.elf"},
-            DoneSet())
+        mm.set(map_id, {memorymap.PROP_FILE_NAME: "/tmp/system.elf"},
+               DoneSet())
     with lock:
         protocol.invokeLater(setMap)
         lock.wait(1)
-    mmap = mm.get(id).get()
-    print "Memory map:", mmap
+    mmap = mm.get(map_id).get()
+    print("Memory map: " + str(mmap))
 
 
 def testPathMap(c):
@@ -720,7 +721,7 @@ def testPathMap(c):
                 if error:
                     protocol.log("Error from PathMap.get", error)
                 else:
-                    print mmap
+                    print(mmap)
                 with lock:
                     lock.notify()
         pm.get(DoneGet())
@@ -743,7 +744,7 @@ def testPathMap(c):
         protocol.invokeLater(setMap)
         lock.wait(1)
     mmap = pm.get().get()
-    print "Path map:", mmap
+    print("Path map: " + str(mmap))
 
 
 def testSysMonitor(c):
@@ -788,14 +789,14 @@ def testSysMonitor(c):
     with lock:
         protocol.invokeLater(getProcesses)
         lock.wait(5)
-    print "%d processes found:" % len(processes)
+    print("%d processes found:" % len(processes))
     for p in processes:
-        print p
+        print(p)
         cmdl = sm.getCommandLine(p.getID()).get()
         if cmdl:
-            print "Command line: ", cmdl
+            print("Command line: " + str(cmdl))
         envp = sm.getEnvironment(p.getID()).get()
-        print "Environment: ", envp
+        print("Environment: " + str(envp))
 
 if __name__ == '__main__':
     test()

@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013, 2016 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -14,10 +14,15 @@ from ... import channel
 from ...channel.Command import Command
 
 
-class Context(symbols.Symbol):
+class SymbolWithValue(symbols.Symbol):
     def __init__(self, props):
-        super(Context, self).__init__(props)
+        super(SymbolWithValue, self).__init__(props)
         self.value = channel.toByteArray(props.get(symbols.PROP_VALUE))
+
+    def __str__(self):
+        res = symbols.Symbol.__str__(self).rstrip(']')
+        res += ', value=' + str(self.value) + ']'
+        return res
 
     def getValue(self):
         return self.value
@@ -44,7 +49,7 @@ class SymbolsProxy(symbols.SymbolsService):
                     assert len(args) == 2
                     error = self.toError(args[0])
                     if args[1]:
-                        ctx = Context(args[1])
+                        ctx = SymbolWithValue(args[1])
                 done.doneGetContext(self.token, error, ctx)
         return GetContextCommand().token
 

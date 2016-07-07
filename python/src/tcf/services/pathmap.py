@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2013-2014 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013-2014, 2016 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -17,7 +17,11 @@
 .. |DoneSet| replace:: :class:`DoneSet`
 .. |PathMapRule| replace:: :class:`PathMapRule`
 .. |PathMapListener| replace:: :class:`PathMapListener`
+.. |Properties| replace:: :ref:`Tcf-Path-Mapping-Properties`
+.. |Protocols| replace:: :ref:`Tcf-Path-Mapping-Protocols`
 
+
+.. _Tcf-Path-Mapping-Properties:
 
 Path Mapping Properties
 -----------------------
@@ -39,14 +43,15 @@ All properties are of type |basestring|.
 +--------------------+--------------------------------------------------------+
 | PROP_ID            | Rule ID.                                               |
 +--------------------+--------------------------------------------------------+
-| PROP_PROTOCOL      | File access protocol, see `Protocols`_, default is     |
-|                    | ``PROTOCOL_FILE``.                                     |
+| PROP_PROTOCOL      | File access protocol, see |Protocols|                  |
 +--------------------+--------------------------------------------------------+
 | PROP_SOURCE        | Source, or compile-time file path.                     |
 +--------------------+--------------------------------------------------------+
 
-Protocols
-^^^^^^^^^
+.. _Tcf-Path-Mapping-Protocols:
+
+Path Mapping Protocols
+^^^^^^^^^^^^^^^^^^^^^^
 All protocols are of type |basestring|.
 
 +-----------------+-----------------------------------------------------------+
@@ -147,7 +152,7 @@ class PathMapRule(object):
     """PathMapRule represents a single file path mapping rule.
 
     :param props: The properties to initialise this pathmap rule with. See
-                  `Properties`_.
+                  |Properties|.
     :type props: |dict|
     """
     def __init__(self, props):
@@ -169,7 +174,7 @@ class PathMapRule(object):
     def getProperties(self):
         """Get rule properties.
 
-        See `Properties`_ definitions for property names.
+        See |Properties| definitions for property names.
 
         Context properties are read only, clients should not try to modify
         them.
@@ -211,12 +216,11 @@ class PathMapRule(object):
     def getProtocol(self):
         """Get file access protocol name.
 
-        See `Protocols`_ for path mapping protocol values.
+        See |Protocols| for path mapping protocol values.
 
-        :returns: A |basestring| representing protocol name or
-                  ``PROTOCOL_FILE``.
+        :returns: A |basestring| representing protocol name or **None**.
         """
-        return self._props.get(PROP_PROTOCOL, PROTOCOL_FILE)
+        return self._props.get(PROP_PROTOCOL, None)
 
 
 class PathMapService(services.Service):

@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013, 2016 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -67,8 +67,8 @@ class CommandControl(object):
             return services
         if attr in services:
             return ServiceWrapper(self, attr)
-        raise AttributeError("Unknown service: %s. Use one of %s" % (
-                                                        attr, services))
+        raise AttributeError("Unknown service: %s. Use one of %s" %
+                             (attr, services))
 
     def invoke(self, service, command, *args, **kwargs):
         cmd = None
@@ -91,8 +91,10 @@ class CommandControl(object):
 
         class GenericCommand(Command):
             _result = None
+
             def done(self, error, args):  # @IgnorePep8
                 resultArgs = None
+                rcmds = ('read', 'readdir', 'roots')
                 if not error and args:
                     # error result is usually in args[0],
                     # but there are exceptions
@@ -102,16 +104,15 @@ class CommandControl(object):
                     elif service == "Expressions" and command == "evaluate":
                         error = self.toError(args[1])
                         resultArgs = (args[0], args[2])
-                    elif service == "FileSystem" and command in (
-                                                'read', 'readdir', 'roots'):
+                    elif service == "FileSystem" and command in rcmds:
                         error = self.toError(args[1])
                         resultArgs = (args[0],) + tuple(args[2:])
                     elif service == "Streams" and command == 'read':
                         error = self.toError(args[1])
                         resultArgs = (args[0],) + tuple(args[2:])
-                    elif service == "Diagnostics" and \
-                                                command.startswith("echo"):
-                        resultArgs = (args[0],)
+                    elif service == "Diagnostics":
+                        if command.startswith("echo"):
+                            resultArgs = (args[0],)
                     else:
                         error = self.toError(args[0])
                         resultArgs = args[1:]
@@ -218,7 +219,7 @@ class CommandControl(object):
             protocol.invokeLater(self.cancel)
             return
         with self._lock:
-            for cmd in self._pending.values():
+            for cmd in list(self._pending.values()):
                 cmd.token.cancel()
             del self._queue[:]
 
@@ -226,7 +227,7 @@ class CommandControl(object):
         if wait:
             self.wait()
         with self._lock:
-            result = map(lambda c: c.getResult(), self._complete)
+            result = [c.getResult() for c in self._complete]
             del self._complete[:]
         return result
 
@@ -267,5 +268,5 @@ class CommandWrapper(object):
         self._command = command
 
     def __call__(self, *args, **kwargs):
-        return self._control.invoke(
-                    self._service, self._command, *args, **kwargs)
+        return self._control.invoke(self._service, self._command, *args,
+                                    **kwargs)

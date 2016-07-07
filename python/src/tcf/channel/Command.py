@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013, 2016 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -9,7 +9,6 @@
 # *     Wind River Systems - initial API and implementation
 # *****************************************************************************
 
-import cStringIO
 from .. import protocol, errors, services
 from ..channel import Token, toJSONSequence, fromJSONSequence, dumpJSONObject
 
@@ -92,37 +91,32 @@ class Command(object):
         raise NotImplementedError("Abstract method")
 
     def getCommandString(self):
-        buf = cStringIO.StringIO()
-        buf.write(str(self.service))
-        buf.write(" ")
-        buf.write(self.command)
+        buf = str(self.service) + ' ' + str(self.command)
         if self.args is not None:
             i = 0
             for arg in self.args:
                 if i == 0:
-                    buf.write(" ")
+                    buf += " "
                 else:
-                    buf.write(", ")
+                    buf += ", "
                 i += 1
                 try:
-                    dumpJSONObject(arg, buf)
+                    buf += dumpJSONObject(arg)
                 except Exception as x:
-                    buf.write("***")
-                    buf.write(x.message)
-                    buf.write("***")
-        return buf.getvalue()
+                    # Exception.message does not exist in python3, better use
+                    # str(Exception)
+                    buf += '***' + str(x) + '***'
+        return buf
 
     def toError(self, data, include_command_text=True):
         if not isinstance(data, dict):
             return None
         errMap = data
-        bf = cStringIO.StringIO()
-        bf.write("TCF error report:\n")
+        bf = 'TCF error report:\n'
         if include_command_text:
             cmd = self.getCommandString()
             if len(cmd) > 120:
                 cmd = cmd[:120] + "..."
-            bf.write("Command: ")
-            bf.write(cmd)
-        errors.appendErrorProps(bf, errMap)
-        return errors.ErrorReport(bf.getvalue(), errMap)
+            bf += 'Command: ' + str(cmd)
+        bf += errors.appendErrorProps(errMap)
+        return errors.ErrorReport(bf, errMap)

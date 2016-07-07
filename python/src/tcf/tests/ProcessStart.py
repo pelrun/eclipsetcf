@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2013-2014 Wind River Systems, Inc. and others.
+# * Copyright (c) 2013-2014, 2016 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -43,6 +43,7 @@ class TcfProtocolLogger (object):
         """Sometimes we get some protocol warnings. I would like to remove them
         by flushing the log cache here.
         """
+        pass
 
 
 class TcfValue(object):
@@ -122,7 +123,11 @@ class StreamsListener(streams.StreamsListener):
                 :param eos: true if end of stream was reached.
                 """
                 if data:
-                    print data,
+                    if isinstance(data, bytearray):
+                        s = data.decode('utf-8')
+                    else:
+                        s = str(data)
+                    sys.stdout.write(s)
                 if not eos:
                     self._service.read(self._streamID, self._size, self)
 
@@ -216,7 +221,7 @@ def getChildren(service, contextID=None):
                 :param context_ids: array of available context IDs.
                 """
                 if error:
-                    protocol.log("Error from " + service.getName() + \
+                    protocol.log("Error from " + service.getName() +
                                  ".getContext()", error)
                 else:
                     val.setValue(ids)
@@ -267,7 +272,8 @@ def getContext(service, contextID):
         rcIDs = getChildren(rcSvc, None)
         rcContext = getContext(rcSvc, rcIDs[0])
 
-        print 'Runcontrol context is a container: ', rcContext.isContainer()
+        print('Runcontrol context is a container: ' +
+              str(rcContext.isContainer()))
 
     :param service: The TCF service to get context from.
     :param contextID: ID of the context to get from *service*
@@ -296,7 +302,7 @@ def getContext(service, contextID):
                 :param context: context data.
                 """
                 if error:
-                    protocol.log("Error from " + service.getName() + \
+                    protocol.log("Error from " + service.getName() +
                                  ".getContext()", error)
                 else:
                     val.setValue(context)
@@ -397,11 +403,11 @@ def start(connection, path, *args):
         # get connection's processes service
 
         proc = connection.getRemoteService(processes_v1.NAME) or \
-               connection.getRemoteService(processes.NAME)
+            connection.getRemoteService(processes.NAME)
 
         if not proc:
             with condition:
-                print 'No processes service available'
+                print('No processes service available')
                 condition.notify()
             return
 
@@ -616,11 +622,11 @@ p = start(c, '/bin/ls', '-l', '-a')
 rcSvc = getService(c, runcontrol.NAME)
 
 if rcSvc is None:
-    print 'No runcontrol service. Exiting ...'
+    print('No runcontrol service. Exiting ...')
     sys.exit()
 
 context = getContext(rcSvc, p.getID())
-print 'Runcontrol context is a container:', context.isContainer()
+print('Runcontrol context is a container: ' + str(context.isContainer()))
 
 while context and not context.hasState():
     children = getChildren(rcSvc, context.getID())
@@ -630,14 +636,14 @@ while context and not context.hasState():
             break
 
 if context is None:
-    print 'No runcontrol context to resume. Exiting ...'
+    print('No runcontrol context to resume. Exiting ...')
     sys.exit()
 
 # get the state of this context. State is a tuple of
 # (suspended, pc, reason, params)
 
 ctxState = state(context)
-print 'Context state : ' + str(ctxState)
+print('Context state : ' + str(ctxState))
 
 while ctxState and ctxState[0]:
     resume(context)
@@ -646,7 +652,7 @@ while ctxState and ctxState[0]:
     try:
         ctxState = state(context)
         if ctxState:
-            print 'Context state : ' + str(ctxState)
+            print('Context state : ' + str(ctxState))
     except:
         pass
 

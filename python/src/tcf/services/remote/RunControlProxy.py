@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2013-2014 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013-2014, 2016 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -134,6 +134,9 @@ class ChannelEventListener(channel.EventListener):
             elif name == "containerResumed":
                 assert len(args) == 1
                 self.listener.containerResumed(args[0])
+            elif name == "contextStateChanged":
+                assert len(args) == 1
+                self.listener.contextStateChanged(args[0])
             else:
                 raise IOError("RunControl service: unknown event: " + name)
         except Exception as x:

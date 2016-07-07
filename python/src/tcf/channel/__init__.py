@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013, 2016 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -10,7 +10,6 @@
 # *****************************************************************************
 
 import binascii
-import cStringIO
 import json
 import types
 
@@ -51,7 +50,10 @@ class Token(object):
             tokenID = str(_token_cnt)
             _token_cnt += 1
         else:
-            tokenID = str(tokenID)
+            if isinstance(tokenID, bytearray):
+                tokenID = tokenID.decode('utf-8')
+            else:
+                tokenID = str(tokenID)
         self.id = tokenID
         self.listener = listener
 
@@ -165,11 +167,15 @@ class CommandListener(object):
 def toJSONSequence(args):
     if args is None:
         return None
-    buf = cStringIO.StringIO()
+    sequence = []
     for arg in args:
-        json.dump(arg, buf, separators=(',', ':'), cls=TCFJSONEncoder)
-        buf.write('\0')
-    return buf.getvalue()
+        sequence.append(json.dumps(arg, separators=(',', ':'),
+                                   cls=TCFJSONEncoder))
+    if sequence:
+        res = '\0'.join(sequence) + '\0'
+    else:
+        res = ''
+    return res
 
 
 def fromJSONSequence(byteArray):
@@ -186,8 +192,8 @@ def fromJSONSequence(byteArray):
     return objects
 
 
-def dumpJSONObject(obj, buf):
-        json.dump(obj, buf, separators=(',', ':'), cls=TCFJSONEncoder)
+def dumpJSONObject(obj):
+    return json.dumps(obj, separators=(',', ':'), cls=TCFJSONEncoder)
 
 
 def toByteArray(data):
@@ -196,10 +202,8 @@ def toByteArray(data):
     t = type(data)
     if t is bytearray:
         return data
-    elif t is str:
-        return binascii.a2b_base64(data)
-    elif t is unicode:
-        return binascii.a2b_base64(str(data))
+    else:
+        return bytearray(binascii.a2b_base64(data))
     raise TypeError(str(t))
 
 
@@ -207,6 +211,8 @@ class TCFJSONEncoder(json.JSONEncoder):
     def default(self, o):
         if isinstance(o, bytearray):
             return binascii.b2a_base64(o)[:-1]
+        elif isinstance(o, bytes):
+            return o.decode('utf-8')
         elif hasattr(o, '__json__'):
             return o.__json__()
         elif hasattr(o, '__iter__'):

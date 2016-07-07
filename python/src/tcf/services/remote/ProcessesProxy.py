@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2013-2014 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013-2014, 2016 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -36,7 +36,7 @@ class ProcessContext(processes.ProcessContext):
         class _Command(Command):
             def __init__(self):
                 super(_Command, self).__init__(service.channel, service,
-                        command, (contextID,))
+                                               command, (contextID,))
 
             def done(self, error, args):
                 if not error:
@@ -248,7 +248,7 @@ def _toEnvStringArray(envVars):
     arr = []
     if not envVars:
         return arr
-    for name, value in envVars.items():
+    for name, value in list(envVars.items()):
         arr.append("%s=%s" % (name, value))
     return arr
 

@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013, 2015-2016 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -12,9 +12,8 @@
 import sys
 import threading
 import time
-import types
 
-from .. import protocol, transport, services, peer, errors
+from .. import compat, protocol, transport, services, peer, errors
 from ..services import locator
 from ..channel import STATE_CLOSED, STATE_OPEN, STATE_OPENING
 from ..channel import Token, fromJSONSequence, toJSONSequence
@@ -25,7 +24,7 @@ EOM = -2  # End Of Message
 
 class Message(object):
     def __init__(self, typeCode):
-        if type(typeCode) is types.IntType:
+        if isinstance(typeCode, int):
             typeCode = chr(typeCode)
         self.type = typeCode
         self.service = None
@@ -63,7 +62,7 @@ class ReaderThread(threading.Thread):
                 if n == EOM:
                     raise IOError("Unexpected end of message")
                 if n < 0:
-                    raise IOError("Communication channel is closed by " + \
+                    raise IOError("Communication channel is closed by " +
                                   "remote peer")
             buf.append(n)
         return buf
@@ -256,7 +255,7 @@ class AbstractChannel(object):
             services.onChannelCreated(self, self.local_service_by_name)
             self.__makeServiceByClassMap(self.local_service_by_name,
                                          self.local_service_by_class)
-            args = self.local_service_by_name.keys()
+            args = list(self.local_service_by_name.keys())
             self.sendEvent(protocol.getLocator(), "Hello",
                            toJSONSequence((args,)))
         except IOError as x:
@@ -280,7 +279,7 @@ class AbstractChannel(object):
         @param peer_attrs - peer that will become new remote communication
                             endpoint of this channel.
         """
-        if isinstance(peer_attrs, str):
+        if isinstance(peer_attrs, compat.strings):
             # support for redirect(peerId)
             attrs = {}
             attrs[peer.ATTR_ID] = peer_attrs
@@ -370,7 +369,7 @@ class AbstractChannel(object):
                 self.terminate(x)
 
     def __makeServiceByClassMap(self, by_name, by_class):
-        for service in by_name.values():
+        for service in list(by_name.values()):
             for clazz in service.__class__.__bases__:
                 if clazz == services.Service:
                     continue
@@ -498,7 +497,7 @@ class AbstractChannel(object):
                         x = Exception(error)
                     else:
                         x = IOError("Channel is closed")
-                    for msg in channel.out_tokens.values():
+                    for msg in list(channel.out_tokens.values()):
                         try:
                             s = str(msg)
                             if len(s) > 72:
@@ -549,17 +548,17 @@ class AbstractChannel(object):
     def getLocalServices(self):
         assert protocol.isDispatchThread()
         assert self.state != STATE_OPENING
-        return self.local_service_by_name.keys()
+        return list(self.local_service_by_name.keys())
 
     def getRemoteServices(self):
         assert protocol.isDispatchThread()
         assert self.state != STATE_OPENING
-        return self.remote_service_by_name.keys()
+        return list(self.remote_service_by_name.keys())
 
     def getLocalService(self, cls_or_name):
         assert protocol.isDispatchThread()
         assert self.state != STATE_OPENING
-        if type(cls_or_name) == types.StringType:
+        if isinstance(cls_or_name, compat.strings):
             return self.local_service_by_name.get(cls_or_name)
         else:
             return self.local_service_by_class.get(cls_or_name)
@@ -567,7 +566,7 @@ class AbstractChannel(object):
     def getRemoteService(self, cls_or_name):
         assert protocol.isDispatchThread()
         assert self.state != STATE_OPENING
-        if type(cls_or_name) == types.StringType:
+        if isinstance(cls_or_name, compat.strings):
             return self.remote_service_by_name.get(cls_or_name)
         else:
             return self.remote_service_by_class.get(cls_or_name)
@@ -787,7 +786,7 @@ class AbstractChannel(object):
         level = protocol.getCongestionLevel()
         if level == self.local_congestion_level:
             return
-        i = (level - self.local_congestion_level) / 8
+        i = int((level - self.local_congestion_level) / 8)
         if i != 0:
             level = self.local_congestion_level + i
         self.local_congestion_time = timeVal

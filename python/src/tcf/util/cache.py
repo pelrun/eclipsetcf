@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2013-2014 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013-2014, 2016 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -9,7 +9,6 @@
 # *     Wind River Systems - initial API and implementation
 # *****************************************************************************
 
-import cStringIO
 from .. import protocol, channel
 from .task import Task
 
@@ -263,7 +262,7 @@ class DataCache(object):
         if not self.__disposed:
             self.__data = data
             self.__error = None
-            self.__valid = True
+            self.__valid = data is not None
         self.post()
 
     def cancel(self):
@@ -286,20 +285,19 @@ class DataCache(object):
         self.__disposed = True
 
     def __str__(self):
-        bf = cStringIO.StringIO()
-        bf.write('[')
+        res = '['
         if self.__valid:
-            bf.append("valid,")
+            res += 'valid,'
         if self.__disposed:
-            bf.write("disposed,")
+            res += 'disposed,'
         if self.__posted:
-            bf.write("posted,")
+            res += 'posted,'
         if self.__error is not None:
-            bf.write("error,")
-        bf.write("data=")
-        bf.write(str(self.__data))
-        bf.write(']')
-        return bf.getvalue()
+            res += 'error,'
+        res += 'data='
+        res += str(self.__data)
+        res += ']'
+        return res
 
     def startDataRetrieval(self):
         """

@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013, 2016 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -65,7 +65,7 @@ class DisassemblyProxy(disassembly.DisassemblyService):
 def _toDisassemblyArray(o):
     if o is None:
         return None
-    return map(_toDisassemblyLine, o)
+    return list(map(_toDisassemblyLine, o))
 
 
 def _toDisassemblyLine(m):

@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011-2014 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011-2014, 2016 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -47,16 +47,24 @@ class ProcessesV1Proxy(ProcessesProxy.ProcessesProxy,
         class GetCapabilitiesCommand(Command):
 
             def __init__(self):
-                super(GetCapabilitiesCommand,
-                       self).__init__(service.channel, service,
-                                      "getCapabilities", (contextId,))
+                super(GetCapabilitiesCommand, self).__init__(service.channel,
+                                                             service,
+                                                             "getCapabilities",
+                                                             (contextId,))
 
             def done(self, error, args):
                 capabilityData = None
                 if not error:
-                    assert len(args) == 2
-                    error = self.toError(args[0])
-                    capabilityData = args[1]
+                    # Defect WB4-1784, getting capabilities with a null
+                    # context ID does not return the global system capabilities
+                    # as it should
+                    if len(args) == 1:
+                        error = self.toError(args[0])
+                        capabilityData = {}
+                    else:
+                        assert len(args) == 2
+                        error = self.toError(args[0])
+                        capabilityData = args[1]
 
                 done.doneGetCapabilities(self.token, error, capabilityData)
 

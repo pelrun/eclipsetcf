@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2013-2014 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013-2014, 2016 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -238,7 +238,7 @@ class DisassemblyLine(object):
 
     def getOpcodeValue(self):
         """
-        :returns: instruction address.
+        :returns: a |bytearray| representing this instruction opcode value.
         """
         return self.opcode
 
@@ -258,15 +258,15 @@ class DisassemblyLine(object):
 
     def __repr__(self):
         res = self.__class__.__name__ + '(' + repr(self.addr) + ', ' + \
-              repr(self.size) + ', ' + repr(self.instruction) + ', ' + \
-              repr(self.opcode) + ')'
+            repr(self.size) + ', ' + repr(self.instruction) + ', ' + \
+            repr(self.opcode) + ')'
         return res
 
     def __str__(self):
         op = self.opcode
         oplen = len(op)
         res = self.__class__.__name__ + ' [address=' + str(self.addr) + \
-              ', size=' + str(self.size) + ', instruction=' + \
-              str(self.instruction) + ', opcode=' + \
-              ' '.join('%02x' % ord(byte) for byte in op[0:oplen]) + ']'
+            ', size=' + str(self.size) + ', instruction=' + \
+            str(self.instruction) + ', opcode=' + \
+            ' '.join('%02x' % ord(byte) for byte in op[0:oplen]) + ']'
         return res

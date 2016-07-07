@@ -1,5 +1,5 @@
-#******************************************************************************
-# * Copyright (c) 2011, 2013-2014 Wind River Systems, Inc. and others.
+# *****************************************************************************
+# * Copyright (c) 2011, 2014-2016 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -7,7 +7,7 @@
 # *
 # * Contributors:
 # *     Wind River Systems - initial API and implementation
-#******************************************************************************
+# *****************************************************************************
 
 """TCF symbols service interface.
 
@@ -62,16 +62,22 @@ Symbol Context Properties
 | PROP_BIG_ENDIAN    | |bool|       | **True** if symbol's value is big       |
 |                    |              | endian.                                 |
 +--------------------+--------------+-----------------------------------------+
+| PROP_BIT_STRIDE    | |int|        | Symbol's bit stride (if any).           |
++--------------------+--------------+-----------------------------------------+
 | PROP_CONTAINER_ID  | |basestring| | ID of the symbol containing this symbol.|
 +--------------------+--------------+-----------------------------------------+
 | PROP_FLAGS         | |int|        | Symbol flags. See                       |
 |                    |              | `Symbol Flags Properties`_.             |
++--------------------+--------------+-----------------------------------------+
+| PROP_FRAME         | |int|        | Symbol frame index.                     |
 +--------------------+--------------+-----------------------------------------+
 | PROP_ID            | |basestring| | Symbol's unique TCF ID.                 |
 +--------------------+--------------+-----------------------------------------+
 | PROP_INDEX_TYPE_ID | |basestring| | Index type ID.                          |
 +--------------------+--------------+-----------------------------------------+
 | PROP_LENGTH        | |int|        | Symbol length (if applicable)           |
++--------------------+--------------+-----------------------------------------+
+| PROP_LOC_ENT_OFFSET| |int|        | Symbol local entry point offset.        |
 +--------------------+--------------+-----------------------------------------+
 | PROP_LOWER_BOUND   | |int|        | Symbol's lower bound in memory.         |
 +--------------------+--------------+-----------------------------------------+
@@ -114,7 +120,7 @@ All symbol flags are of type |int|.
 +-------------------------+--------------------------------+
 | SYM_FLAG_BIG_ENDIAN     | Symbol is big endian.          |
 +-------------------------+--------------------------------+
-| SYM_FLAG_BOOL_TYPE      | Symbol is a boolean            |
+| SYM_FLAG_BOOL_TYPE      | Symbol is a boolean.           |
 +-------------------------+--------------------------------+
 | SYM_FLAG_CLASS_TYPE     | Symbol is a class type symbol. |
 +-------------------------+--------------------------------+
@@ -124,7 +130,9 @@ All symbol flags are of type |int|.
 +-------------------------+--------------------------------+
 | SYM_FLAG_EXTERNAL       | Symbol is external.            |
 +-------------------------+--------------------------------+
-| SYM_FLAG_INHERITANCE    | Symbol is a base class         |
+| SYM_FLAG_INDIRECT       | Symbol is a data indirection.  |
++-------------------------+--------------------------------+
+| SYM_FLAG_INHERITANCE    | Symbol is a base class.        |
 +-------------------------+--------------------------------+
 | SYM_FLAG_INTERFACE_TYPE | Symbol is an interface.        |
 +-------------------------+--------------------------------+
@@ -145,6 +153,8 @@ All symbol flags are of type |int|.
 | SYM_FLAG_REFERENCE      | Symbol is a reference.         |
 +-------------------------+--------------------------------+
 | SYM_FLAG_RESTRICT_TYPE  | Symbol is of restrict type.    |
++-------------------------+--------------------------------+
+| SYM_FLAG_RVALUE         | Symbol is a rvalue reference.  |
 +-------------------------+--------------------------------+
 | SYM_FLAG_SHARED_TYPE    | Symbol is of shared type.      |
 +-------------------------+--------------------------------+
@@ -265,26 +275,30 @@ Symbol Location Properties
 
 .. seealso:: |getLocationInfo|
 
-+-----------------+--------+--------------------------------------------------+
-| Name            | Type   | Description                                      |
-+=================+========+==================================================+
-| LOC_ARG_CNT     | |int|  | Number of argument required to execute location  |
-|                 |        | instructions.                                    |
-+-----------------+--------+--------------------------------------------------+
-| LOC_CODE_ADDR   | |int|  | Start address of code range where the location   |
-|                 |        | info is valid, or **None** if it is valid        |
-|                 |        | everywhere.                                      |
-+-----------------+--------+--------------------------------------------------+
-| LOC_CODE_SIZE   | |int|  | Size in bytes of code range where the location   |
-|                 |        | info is valid, or **None** if it is valid        |
-|                 |        | everywhere.                                      |
-+-----------------+--------+--------------------------------------------------+
-| LOC_LENGTH_CMDS | |list| | Instructions to compute dynamic array length     |
-|                 |        | location.                                        |
-+-----------------+--------+--------------------------------------------------+
-| LOC_VALUE_CMDS  | |list| | Instructions to compute object value location,   |
-|                 |        | e.g. address, or offset, or register ID, etc...  |
-+-----------------+--------+--------------------------------------------------+
++------------------+--------+-------------------------------------------------+
+| Name             | Type   | Description                                     |
++==================+========+=================================================+
+| LOC_ARG_CNT      | |int|  | Number of argument required to execute location |
+|                  |        | instructions.                                   |
++------------------+--------+-------------------------------------------------+
+| LOC_CODE_ADDR    | |int|  | Start address of code range where the location  |
+|                  |        | info is valid, or **None** if it is valid       |
+|                  |        | everywhere.                                     |
++------------------+--------+-------------------------------------------------+
+| LOC_CODE_SIZE    | |int|  | Size in bytes of code range where the location  |
+|                  |        | info is valid, or **None** if it is valid       |
+|                  |        | everywhere.                                     |
++------------------+--------+-------------------------------------------------+
+| LOC_LENGTH_CMDS  | |list| | Instructions to compute dynamic array length    |
+|                  |        | location.                                       |
++------------------+--------+-------------------------------------------------+
+| LOC_VALUE_CMDS   | |list| | Instructions to compute object value location,  |
+|                  |        | e.g. address, or offset, or register ID, etc... |
++------------------+--------+-------------------------------------------------+
+| LOC_DISCRIMINANT | |list| | List of discriminant values for a variant.      |
+|                  |        | Each element of the list is a |dict| with two   |
+|                  |        | values, the lower bound 'X' and upper bound 'Y'.|
++------------------+--------+-------------------------------------------------+
 
 Service Methods
 ---------------
@@ -383,14 +397,21 @@ DoneList
 
 Helper Classes
 --------------
+
+.. _Tcf-Symbol:
+
 Symbol
 ^^^^^^
 .. autoclass:: Symbol
     :members:
 
+.. _Tcf-Symbol-Class:
+
 SymbolClass
 ^^^^^^^^^^^
 .. autoclass:: SymbolClass
+
+.. _Tcf-Symbol-Type-Class:
 
 TypeClass
 ^^^^^^^^^
@@ -415,30 +436,34 @@ class SymbolClass:
 
         if symbol.getSymbolClass() is tcfsyms.TypeClass.function:
             # Print name + address
-            print '{0} : 0x{1:016x}'.format(symbol.getName(),
-                                            symbol.getAddress())
+            print('{0} : 0x{1:016x}'.format(symbol.getName(),
+                                            symbol.getAddress()))
 
     Here is the value/class association table:
 
-    +-------+-----------+-----------------------+
-    | Value | Name      | Description           |
-    +=======+===========+=======================+
-    | **0** | unknown   | Unknown symbol class. |
-    +-------+-----------+-----------------------+
-    | **1** | value     | Constant value.       |
-    +-------+-----------+-----------------------+
-    | **2** | reference | Variable data object. |
-    +-------+-----------+-----------------------+
-    | **3** | function  | Function body.        |
-    +-------+-----------+-----------------------+
-    | **4** | type      | A type.               |
-    +-------+-----------+-----------------------+
-    | **5** | comp_unit | A compilation unit.   |
-    +-------+-----------+-----------------------+
-    | **6** | block     | A block of code.      |
-    +-------+-----------+-----------------------+
-    | **7** | namespace | A namespace.          |
-    +-------+-----------+-----------------------+
+    +-------+--------------+-----------------------------+
+    | Value | Name         | Description                 |
+    +=======+==============+=============================+
+    | **0** | unknown      | Unknown symbol class.       |
+    +-------+--------------+-----------------------------+
+    | **1** | value        | Constant value.             |
+    +-------+--------------+-----------------------------+
+    | **2** | reference    | Variable data object.       |
+    +-------+--------------+-----------------------------+
+    | **3** | function     | Function body.              |
+    +-------+--------------+-----------------------------+
+    | **4** | type         | A type.                     |
+    +-------+--------------+-----------------------------+
+    | **5** | comp_unit    | A compilation unit.         |
+    +-------+--------------+-----------------------------+
+    | **6** | block        | A block of code.            |
+    +-------+--------------+-----------------------------+
+    | **7** | namespace    | A namespace.                |
+    +-------+--------------+-----------------------------+
+    | **8** | variant_part | A variant part.             |
+    +-------+--------------+-----------------------------+
+    | **9** | variant      | A member of a variant part. |
+    +-------+--------------+-----------------------------+
     """
     unknown = 0
     value = 1
@@ -448,6 +473,8 @@ class SymbolClass:
     comp_unit = 5
     block = 6
     namespace = 7
+    variant_part = 8
+    variant = 9
 
 
 class TypeClass:
@@ -461,8 +488,8 @@ class TypeClass:
 
         if symbol.getTypeClass() is tcfsyms.TypeClass.pointer:
             # print it as a pointer
-            print '{0} : 0x{1:016x}'.format(symbol.getName(),
-                                            symbol.getAddress())
+            print('{0} : 0x{1:016x}'.format(symbol.getName(),
+                                            symbol.getAddress()))
 
     Here is the value/type association table:
 
@@ -501,33 +528,35 @@ class TypeClass:
     function = 8
     member_ptr = 9
 
-SYM_FLAG_PARAMETER = 0x000001
-SYM_FLAG_TYPEDEF = 0x000002
-SYM_FLAG_CONST_TYPE = 0x000004
-SYM_FLAG_PACKET_TYPE = 0x000008
-SYM_FLAG_SUBRANGE_TYPE = 0x000010
-SYM_FLAG_VOLATILE_TYPE = 0x000020
-SYM_FLAG_RESTRICT_TYPE = 0x000040
-SYM_FLAG_UNION_TYPE = 0x000080
-SYM_FLAG_CLASS_TYPE = 0x000100
-SYM_FLAG_INTERFACE_TYPE = 0x000200
-SYM_FLAG_SHARED_TYPE = 0x000400
-SYM_FLAG_REFERENCE = 0x000800
-SYM_FLAG_BIG_ENDIAN = 0x001000
-SYM_FLAG_LITTLE_ENDIAN = 0x002000
-SYM_FLAG_OPTIONAL = 0x004000
-SYM_FLAG_EXTERNAL = 0x008000
-SYM_FLAG_VARARG = 0x010000
-SYM_FLAG_ARTIFICIAL = 0x020000
-SYM_FLAG_TYPE_PARAMETER = 0x040000
-SYM_FLAG_PRIVATE = 0x080000
-SYM_FLAG_PROTECTED = 0x0100000
-SYM_FLAG_PUBLIC = 0x0200000
-SYM_FLAG_ENUM_TYPE = 0x0400000
-SYM_FLAG_STRUCT_TYPE = 0x0800000
-SYM_FLAG_STRING_TYPE = 0x1000000
-SYM_FLAG_INHERITANCE = 0x2000000
-SYM_FLAG_BOOL_TYPE = 0x4000000
+SYM_FLAG_PARAMETER = 0x0000001
+SYM_FLAG_TYPEDEF = 0x0000002
+SYM_FLAG_CONST_TYPE = 0x0000004
+SYM_FLAG_PACKET_TYPE = 0x0000008
+SYM_FLAG_SUBRANGE_TYPE = 0x0000010
+SYM_FLAG_VOLATILE_TYPE = 0x0000020
+SYM_FLAG_RESTRICT_TYPE = 0x0000040
+SYM_FLAG_UNION_TYPE = 0x0000080
+SYM_FLAG_CLASS_TYPE = 0x0000100
+SYM_FLAG_INTERFACE_TYPE = 0x0000200
+SYM_FLAG_SHARED_TYPE = 0x0000400
+SYM_FLAG_REFERENCE = 0x0000800
+SYM_FLAG_BIG_ENDIAN = 0x0001000
+SYM_FLAG_LITTLE_ENDIAN = 0x0002000
+SYM_FLAG_OPTIONAL = 0x0004000
+SYM_FLAG_EXTERNAL = 0x0008000
+SYM_FLAG_VARARG = 0x0010000
+SYM_FLAG_ARTIFICIAL = 0x0020000
+SYM_FLAG_TYPE_PARAMETER = 0x0040000
+SYM_FLAG_PRIVATE = 0x0080000
+SYM_FLAG_PROTECTED = 0x00100000
+SYM_FLAG_PUBLIC = 0x00200000
+SYM_FLAG_ENUM_TYPE = 0x00400000
+SYM_FLAG_STRUCT_TYPE = 0x00800000
+SYM_FLAG_STRING_TYPE = 0x01000000
+SYM_FLAG_INHERITANCE = 0x02000000
+SYM_FLAG_BOOL_TYPE = 0x04000000
+SYM_FLAG_INDIRECT = 0x08000000
+SYM_FLAG_RVALUE = 0x10000000
 
 # Symbol context property names.
 
@@ -551,11 +580,54 @@ PROP_BIG_ENDIAN = "BigEndian"
 PROP_REGISTER = "Register"
 PROP_FLAGS = "Flags"
 PROP_CONTAINER_ID = "ContainerID"
+PROP_FRAME = "Frame"
+PROP_LOC_ENT_OFFSET = "LocalEntryOffset"
+PROP_BIT_STRIDE = "BitStride"
 
 # Symbol context properties update policies.
 
 UPDATE_ON_MEMORY_MAP_CHANGES = 0
 UPDATE_ON_EXE_STATE_CHANGES = 1
+
+# Command codes that are used to calculate frame pointer and register values
+# during stack tracing.
+
+CMD_NUMBER = 1
+CMD_FP = 3
+CMD_ADD = 5
+CMD_SUB = 6
+CMD_MUL = 7
+CMD_DIV = 8
+CMD_AND = 9
+CMD_OR = 10
+CMD_XOR = 11
+CMD_NEG = 12
+CMD_GE = 13
+CMD_GT = 14
+CMD_LE = 15
+CMD_LT = 16
+CMD_SHL = 17
+CMD_SHR = 18
+CMD_ARG = 19
+CMD_LOCATION = 20
+CMD_FCALL = 21
+CMD_WR_REG = 22
+CMD_WR_MEM = 23
+CMD_PIECE = 24
+
+# Deprecated
+
+CMD_REGISTER = 2
+CMD_DEREF = 4
+
+# Symbol location properties.
+
+LOC_CODE_ADDR = "CodeAddr"
+LOC_CODE_SIZE = "CodeSize"
+LOC_ARG_CNT = "ArgCnt"
+LOC_VALUE_CMDS = "ValueCmds"
+LOC_LENGTH_CMDS = "LengthCmds"
+LOC_DISCRIMINANT = "Discriminant"
 
 
 class Symbol(object):
@@ -569,15 +641,104 @@ class Symbol(object):
     def __init__(self, props):
         self._props = props or {}
 
+    def __repr__(self):
+        return self.__class__.__name__ + '(' + repr(self._props) + ')'
+
     def __str__(self):
-        return "[Symbol Context %s]" % self._props
+        res = self.__class__.__name__ + ' ['
+        for key in list(self._props.keys()):
+            res += str(key) + '=' + str(self._props.get(key))
+            if key == PROP_SYMBOL_CLASS:
+                # Add a meaningful word here.
+                value = self._props.get(key)
+                for attr in dir(SymbolClass):
+                    if getattr(SymbolClass, attr) == value:
+                        res += '(' + attr + ')'
+                        break
+            if key == PROP_TYPE_CLASS:
+                # Add a meaningful word here.
+                value = self._props.get(key)
+                for attr in dir(TypeClass):
+                    if getattr(TypeClass, attr) == value:
+                        res += '(' + attr + ')'
+                        break
+            if key == PROP_FLAGS and self._props.get(key) != 0:
+                value = self._props.get(key)
+                flags = []
+                if value & SYM_FLAG_PARAMETER:
+                    flags.append('PARAMETER')
+                if value & SYM_FLAG_TYPEDEF:
+                    flags.append('TYPEDEF')
+                if value & SYM_FLAG_CONST_TYPE:
+                    flags.append('CONST_TYPE')
+                if value & SYM_FLAG_PACKET_TYPE:
+                    flags.append('PACKET_TYPE')
+                if value & SYM_FLAG_SUBRANGE_TYPE:
+                    flags.append('SUBRANGE_TYPE')
+                if value & SYM_FLAG_VOLATILE_TYPE:
+                    flags.append('VOLATILE_TYPE')
+                if value & SYM_FLAG_RESTRICT_TYPE:
+                    flags.append('RESTRICT_TYPE')
+                if value & SYM_FLAG_UNION_TYPE:
+                    flags.append('UNION_TYPE')
+                if value & SYM_FLAG_CLASS_TYPE:
+                    flags.append('CLASS_TYPE')
+                if value & SYM_FLAG_INTERFACE_TYPE:
+                    flags.append('INTERFACE_TYPE')
+                if value & SYM_FLAG_SHARED_TYPE:
+                    flags.append('SHARED_TYPE')
+                if value & SYM_FLAG_REFERENCE:
+                    flags.append('REFERENCE')
+                if value & SYM_FLAG_BIG_ENDIAN:
+                    flags.append('BIG_ENDIAN')
+                if value & SYM_FLAG_LITTLE_ENDIAN:
+                    flags.append('LITTLE_ENDIAN')
+                if value & SYM_FLAG_OPTIONAL:
+                    flags.append('OPTIONAL')
+                if value & SYM_FLAG_EXTERNAL:
+                    flags.append('EXTERNAL')
+                if value & SYM_FLAG_VARARG:
+                    flags.append('VARARG')
+                if value & SYM_FLAG_ARTIFICIAL:
+                    flags.append('ARTIFICIAL')
+                if value & SYM_FLAG_TYPE_PARAMETER:
+                    flags.append('TYPE_PARAMETER')
+                if value & SYM_FLAG_PRIVATE:
+                    flags.append('PRIVATE')
+                if value & SYM_FLAG_PROTECTED:
+                    flags.append('PROTECTED')
+                if value & SYM_FLAG_PUBLIC:
+                    flags.append('PUBLIC')
+                if value & SYM_FLAG_ENUM_TYPE:
+                    flags.append('ENUM_TYPE')
+                if value & SYM_FLAG_STRUCT_TYPE:
+                    flags.append('STRUCT_TYPE')
+                if value & SYM_FLAG_STRING_TYPE:
+                    flags.append('STRING_TYPE')
+                if value & SYM_FLAG_INHERITANCE:
+                    flags.append('INHERITANCE')
+                if value & SYM_FLAG_BOOL_TYPE:
+                    flags.append('BOOL_TYPE')
+                res += '(' + '|'.join(flags) + ')'
+            res += ', '
+        res = res.rstrip(', ')
+        res += ']'
+        return res
 
     def getID(self):
         """Get symbol ID.
 
-        :returns: A |basestring| reprsenting this symbol's unique TCF ID.
+        :returns: A |basestring| representing this symbol's unique TCF ID.
         """
         return self._props.get(PROP_ID)
+
+    def getFrame(self):
+        """Get symbol frame index.
+
+        :returns: A |int| representing frame index (from top stack frame), or
+                  **None** if the symbol is not defined in a frame.
+        """
+        return self._props.get(PROP_FRAME, None)
 
     def getOwnerID(self):
         """Get symbol owner ID.
@@ -653,6 +814,14 @@ class Symbol(object):
             * otherwise - return **None**
         """
         return self._props.get(PROP_BASE_TYPE_ID)
+
+    def getBitStride(self):
+        """Return bit stride of this symbol for this array.
+
+        :returns: An |int| reprsenting this symbol's bit stride in bits or
+                  **None**.
+        """
+        return self._props.get(PROP_BIT_STRIDE)
 
     def getContainerID(self):
         """Get container type ID.
@@ -746,6 +915,14 @@ class Symbol(object):
                   `Symbol Flags Properties`_).
         """
         return self._props.get(PROP_FLAGS, 0)
+
+    def getLocalEntryOffset(self):
+        """Return offset of the symbol local entry point.
+
+        :returns: An |int| representing this symbol's local entry point offset
+                  or **None**
+        """
+        return self._props.get(PROP_LOC_ENT_OFFSET)
 
     def getProperties(self):
         """Get complete map of context properties.
@@ -1050,45 +1227,6 @@ class DoneGetArrayType(object):
         :type type_id: |basestring|
         """
         pass
-
-# Command codes that are used to calculate frame pointer and register values
-# during stack tracing.
-
-CMD_NUMBER = 1
-CMD_FP = 3
-CMD_ADD = 5
-CMD_SUB = 6
-CMD_MUL = 7
-CMD_DIV = 8
-CMD_AND = 9
-CMD_OR = 10
-CMD_XOR = 11
-CMD_NEG = 12
-CMD_GE = 13
-CMD_GT = 14
-CMD_LE = 15
-CMD_LT = 16
-CMD_SHL = 17
-CMD_SHR = 18
-CMD_ARG = 19
-CMD_LOCATION = 20
-CMD_FCALL = 21
-CMD_WR_REG = 22
-CMD_WR_MEM = 23
-CMD_PIECE = 24
-
-# Deprecated
-
-CMD_REGISTER = 2
-CMD_DEREF = 4
-
-# Symbol location properties.
-
-LOC_CODE_ADDR = "CodeAddr"
-LOC_CODE_SIZE = "CodeSize"
-LOC_ARG_CNT = "ArgCnt"
-LOC_VALUE_CMDS = "ValueCmds"
-LOC_LENGTH_CMDS = "LengthCmds"
 
 
 class DoneFindFrameInfo(object):

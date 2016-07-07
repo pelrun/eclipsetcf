@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2013-2014 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013-2014, 2016 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -244,6 +244,8 @@ NAME = "SysMonitor"
 # Context property names.
 PROP_ID = "ID"
 PROP_PARENTID = "ParentID"
+PROP_SYSTEMID = "SystemID"
+PROP_SYSTEMTYPE = "SystemType"
 PROP_CWD = "CWD"
 PROP_ROOT = "Root"
 PROP_UID = "UID"
@@ -327,6 +329,22 @@ class SysMonitorContext(object):
         :returns: A |basestring| representing this context parent TCF ID.
         """
         return self._props.get(PROP_PARENTID, '')
+
+    def getSystemID(self):
+        """Get target context ID.
+
+        :returns: A |basestring| representing this target context ID or None
+                  if unspecified.
+        """
+        return self._props.get(PROP_SYSTEMID, None)
+
+    def getSystemType(self):
+        """Get target context type.
+
+        :returns: A |basestring| representing this target context type or None
+                  if unspecified.
+        """
+        return self._props.get(PROP_SYSTEMTYPE, None)
 
     def getPGRP(self):
         """Get process group ID.

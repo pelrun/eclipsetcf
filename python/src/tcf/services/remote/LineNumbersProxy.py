@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013, 2016 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -69,10 +69,15 @@ def _toCodeAreaArray(o):
         directory = area.get("Dir", directory)
         filePath = area.get("File", filePath)
         arr.append(linenumbers.CodeArea(directory, filePath,
-                area.get("SLine", 0), area.get("SCol", 0),
-                area.get("ELine", 0), area.get("ECol", 0),
-                area.get("SAddr"), area.get("EAddr"),
-                area.get("ISA", 0),
-                area.get("IsStmt"), area.get("BasicBlock"),
-                area.get("PrologueEnd"), area.get("EpilogueBegin")))
+                                        area.get("SLine", 0),
+                                        area.get("SCol", 0),
+                                        area.get("ELine", 0),
+                                        area.get("ECol", 0),
+                                        area.get("SAddr"),
+                                        area.get("EAddr"),
+                                        area.get("ISA", 0),
+                                        area.get("IsStmt"),
+                                        area.get("BasicBlock"),
+                                        area.get("PrologueEnd"),
+                                        area.get("EpilogueBegin")))
     return arr

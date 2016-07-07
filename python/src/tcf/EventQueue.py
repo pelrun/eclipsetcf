@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2013-2014 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013-2014, 2016 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -38,7 +38,7 @@ class EventQueue(object):
                     self.__lock.notifyAll()
             self.__thread.join()
         except Exception as e:
-            import protocol  # as protocol import this module too
+            from . import protocol  # as protocol import this module too
             protocol.log("Failed to shutdown TCF event dispatch thread", e)
 
     def isShutdown(self):
@@ -46,8 +46,9 @@ class EventQueue(object):
             return self.__is_shutdown
 
     def __error(self, x):
-        import protocol  # as protocol import this module too
-        protocol.log("Unhandled exception in TCF event dispatch", x)
+        if not self.isShutdown():
+            from . import protocol  # as protocol import this module too
+            protocol.log("Unhandled exception in TCF event dispatch", x)
 
     def __call__(self):
         while True:
@@ -79,8 +80,8 @@ class EventQueue(object):
     def getCongestion(self):
         with self.__lock:
             job_cnt = 0
-            l0 = job_cnt / 10 - 100
-            l1 = len(self.__queue) / 10 - 100
+            l0 = int(job_cnt / 10) - 100
+            l1 = int(len(self.__queue) / 10) - 100
             if l1 > l0:
                 l0 = l1
             if l0 > 100:

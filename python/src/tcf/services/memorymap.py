@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2013-2014 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013-2014, 2016 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -114,6 +114,7 @@ MemoryRegion
     :members:
 """
 
+from .. import compat
 from .. import services
 
 NAME = "MemoryMap"
@@ -148,7 +149,7 @@ class MemoryRegion(object):
          # <address> is an integer, <region> is a MemoryRegion object
 
          if address in region:
-             print address
+             print(address)
 
     :param props: Properties to initialise memory region with. See
                   `Properties`_.
@@ -265,9 +266,9 @@ class MemoryRegion(object):
         res += PROP_FILE_NAME + '=' + str(self._props.get(PROP_FILE_NAME))
         res += ', ' + PROP_ID + '=' + str(self._props.get(PROP_ID))
         addr = self._props.get(PROP_ADDRESS)
-        if isinstance(addr, int):
+        if isinstance(addr, compat.inttype):
             res += ', ' + PROP_ADDRESS + '=0x{0:08x}'.format(addr)
-        elif isinstance(addr, long):
+        elif isinstance(addr, compat.longtype):
             res += ', ' + PROP_ADDRESS + '=0x{0:016x}'.format(addr)
         else:
             res += ', ' + PROP_ADDRESS + '=' + str(addr)

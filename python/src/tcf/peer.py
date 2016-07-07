@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2013-2014 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013-2014, 2016 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -326,11 +326,11 @@ class AbstractPeer(TransientPeer):
     def updateAttributes(self, attrs):
         equ = True
         assert attrs.get(ATTR_ID) == self.rw_attrs.get(ATTR_ID)
-        for key in self.rw_attrs.keys():
+        for key in list(self.rw_attrs.keys()):
             if self.rw_attrs.get(key) != attrs.get(key):
                 equ = False
                 break
-        for key in attrs.keys():
+        for key in list(attrs.keys()):
             if attrs.get(key) != self.rw_attrs.get(key):
                 equ = False
                 break
@@ -350,8 +350,8 @@ class AbstractPeer(TransientPeer):
             except IOError as x:
                 protocol.log("Locator: failed to send 'peerChanged' event", x)
             self.last_heart_beat_time = timeVal
-        elif self.last_heart_beat_time + locator.DATA_RETENTION_PERIOD / 4 \
-                                                                    < timeVal:
+        elif self.last_heart_beat_time + \
+                int(locator.DATA_RETENTION_PERIOD / 4) < timeVal:
             for l in protocol.getLocator().getListeners():
                 try:
                     l.peerHeartBeat(attrs.get(ATTR_ID))

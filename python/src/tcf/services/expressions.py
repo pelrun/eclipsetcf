@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2013-2014 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013-2014, 2016 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -24,6 +24,10 @@ Context Properties
 +====================+==============+=========================================+
 | PROP_BITS          | |int|        | Size of expression value in bits.       |
 +--------------------+--------------+-----------------------------------------+
+| PROP_BIT_OFFS      | |int|        | Bit offset in expression piece.         |
++--------------------+--------------+-----------------------------------------+
+| PROP_BIT_SIZE      | |int|        | Bit size of expression piece.           |
++--------------------+--------------+-----------------------------------------+
 | PROP_CAN_ASSIGN    | |bool|       | **True** if the expression can be       |
 |                    |              | assigned a new value.                   |
 +--------------------+--------------+-----------------------------------------+
@@ -40,6 +44,8 @@ Context Properties
 | PROP_LANGUAGE      | |basestring| | Language of expression script.          |
 +--------------------+--------------+-----------------------------------------+
 | PROP_PARENT_ID     | |basestring| | ID of expression's parent context.      |
++--------------------+--------------+-----------------------------------------+
+| PROP_PIECES        | |dict|       | Expression piece.                       |
 +--------------------+--------------+-----------------------------------------+
 | PROP_SIZE          | |int|        | Size in bytes.                          |
 +--------------------+--------------+-----------------------------------------+
@@ -163,7 +169,7 @@ Value
 """
 
 from .. import services
-from .  import symbols
+from . import symbols
 
 NAME = "Expressions"
 """Expressions service name."""
@@ -181,6 +187,9 @@ PROP_TYPE = "Type"
 PROP_CAN_ASSIGN = "CanAssign"
 PROP_HAS_FUNC_CALL = "HasFuncCall"
 PROP_CLASS = "Class"  # same as symbols.TypeClass
+PROP_PIECES = "Pieces"
+PROP_BIT_OFFS = "BitOffs"
+PROP_BIT_SIZE = "BitSize"
 
 # Expression value property names.
 
@@ -261,6 +270,30 @@ class Expression(object):
         """
         return self._props.get(PROP_BITS, 0)
 
+    def getBitSize(self):
+        """Get size of expression value in bits.
+
+        Can be **0** if value size is even number of bytes, use :meth:`getSize`
+        in such case.
+
+        :returns: Size in bits.
+        """
+        return self._props.get(PROP_BIT_SIZE, 0)
+
+    def getPieces(self):
+        """Get complete dictionary of pieces properties.
+
+        :returns: A |dict| of pieces properties.
+        """
+        return self._props.get(PROP_PIECES)
+
+    def getBitOffset(self):
+        """Get offset of expression value in bits.
+
+        :returns: Offset in bits.
+        """
+        return self._props.get(PROP_BIT_OFFS, 0)
+
     def getSize(self):
         """Get size in bytes. The size can include extra (unused) bits.
 
@@ -331,7 +364,11 @@ class Value(object):
         self._props = props or {}
 
     def __str__(self):
-        return "[Expression Value %s %s]" % (self._value, self._props)
+        if isinstance(self._value, bytearray):
+            valuestr = ' '.join([hex(b) for b in self._value])
+        else:
+            valuestr = str(self._value)
+        return '[Expression Value %s %s]' % (valuestr, self._props)
 
     def getTypeClass(self):
         """Get value type class.

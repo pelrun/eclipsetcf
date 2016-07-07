@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2013-2014 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013-2014, 2016 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -9,9 +9,7 @@
 # *     Wind River Systems - initial API and implementation
 # *****************************************************************************
 
-import cStringIO
 import time
-import types
 
 # Error report attribute names
 
@@ -168,7 +166,7 @@ class ErrorReport(Exception):
     """
     def __init__(self, msg, attrs):
         super(ErrorReport, self).__init__(msg)
-        if type(attrs) is types.IntType:
+        if isinstance(attrs, int):
             attrs = {
                 ERROR_CODE: attrs,
                 ERROR_TIME: int(time.time() * 1000),
@@ -179,11 +177,9 @@ class ErrorReport(Exception):
         caused_by = attrs.get(ERROR_CAUSED_BY)
         if caused_by:
             errMap = caused_by
-            bf = cStringIO.StringIO()
-            bf.write("TCF error report:")
-            bf.write('\n')
-            appendErrorProps(bf, errMap)
-            self.caused_by = ErrorReport(bf.getvalue(), errMap)
+            bf = 'TCF error report:\n'
+            bf += appendErrorProps(errMap)
+            self.caused_by = ErrorReport(bf, errMap)
 
     def getErrorCode(self):
         """Get this exception error code.
@@ -235,44 +231,33 @@ def toErrorString(data):
     return "Invalid error report format"
 
 
-def appendErrorProps(bf, errMap):
+def appendErrorProps(errMap):
     timeVal = errMap.get(ERROR_TIME)
     code = errMap.get(ERROR_CODE)
     service = errMap.get(ERROR_SERVICE)
     severity = errMap.get(ERROR_SEVERITY)
     alt_code = errMap.get(ERROR_ALT_CODE)
     alt_org = errMap.get(ERROR_ALT_ORG)
+    bf = ''
     if timeVal:
-        bf.write('\n')
-        bf.write("Time: ")
-        bf.write(time.strftime(_timestamp_format,
-                               time.localtime(timeVal / 1000.)))
+        bf += '\nTime: '
+        bf += time.strftime(_timestamp_format, time.localtime(timeVal / 1000.))
     if severity:
-        bf.write('\n')
-        bf.write("Severity: ")
+        bf += '\nSeverity: '
         if severity == SEVERITY_ERROR:
-            bf.write("Error")
+            bf += 'Error'
         elif severity == SEVERITY_FATAL:
-            bf.write("Fatal")
+            bf += 'Fatal'
         elif severity == SEVERITY_WARNING:
-            bf.write("Warning")
+            bf += 'Warning'
         else:
-            bf.write("Unknown")
-    bf.write('\n')
-    bf.write("Error text: ")
-    bf.write(toErrorString(errMap))
-    bf.write('\n')
-    bf.write("Error code: ")
-    bf.write(str(code))
+            bf += 'Unknown'
+    bf += '\nError text: ' + str(toErrorString(errMap)) + '\n'
+    bf += 'Error code: ' + str(code)
     if service:
-        bf.write('\n')
-        bf.write("Service: ")
-        bf.write(service)
+        bf += '\nService: ' + str(service)
     if alt_code:
-        bf.write('\n')
-        bf.write("Alt code: ")
-        bf.write(str(alt_code))
+        bf += '\nAlt code: ' + str(alt_code)
         if alt_org:
-            bf.write('\n')
-            bf.write("Alt org: ")
-            bf.write(alt_org)
+            bf += '\nAlt org: ' + str(alt_org)
+    return bf

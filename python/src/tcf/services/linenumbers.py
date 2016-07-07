@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2013-2014 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013-2014, 2016 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -124,52 +124,42 @@ class CodeArea(object):
         if self.file:
             h += hash(self.file)
         return h + self.start_line + self.start_column + self.end_line + \
-               self.end_column
+            self.end_column
 
     def __str__(self):
-        import cStringIO
-        bf = cStringIO.StringIO()
-        bf.write('[')
+        res = '['
         if self.directory:
-            bf.write(self.directory)
-            bf.write(':')
+            res += str(self.directory) + ':'
         if self.file:
-            bf.write(self.file)
-            bf.write(':')
-        bf.write(str(self.start_line))
+            res += str(self.file) + ':'
+        res += str(self.start_line)
         if self.start_column:
-            bf.write('.')
-            bf.write(str(self.start_column))
-        bf.write("..")
-        bf.write(str(self.end_line))
+            res += '.' + str(self.start_column)
+        res += '..' + str(self.end_line)
         if self.end_column:
-            bf.write('.')
-            bf.write(str(self.end_column))
-        bf.write(" -> ")
+            res += '.' + str(self.end_column)
+        res += ' -> '
         if self.start_address:
-            bf.write("0x")
-            bf.write(hex(self.start_address))
+            res += '0x' + str(hex(self.start_address))
         else:
-            bf.write('0')
-        bf.write("..")
+            res += '0'
+        res += '..'
         if self.end_address:
-            bf.write("0x")
-            bf.write(hex(self.end_address))
+            res += '0x' + str(hex(self.end_address))
         else:
-            bf.write('0')
+            res += '0'
         if self.isa:
-            bf.write(",isa ")
-            bf.write(str(self.isa))
+            res += ',isa ' + str(self.isa)
         if self.is_statement:
-            bf.write(",statement")
+            res += ',statement'
         if self.basic_block:
-            bf.write(",basic block")
+            res += ',basic block'
         if self.prologue_end:
-            bf.write(",prologue end")
+            res += ',prologue end'
         if self.epilogue_begin:
-            bf.write(",epilogue begin")
-        bf.write(']')
-        return bf.getvalue()
+            res += ',epilogue begin'
+        res += ']'
+        return res
 
 
 class LineNumbersService(services.Service):

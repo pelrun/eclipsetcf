@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013, 2016 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -9,7 +9,7 @@
 # *     Wind River Systems - initial API and implementation
 # *****************************************************************************
 
-import types
+from .. import compat
 from .AbstractChannel import AbstractChannel, EOS, EOM
 
 ESC = 3
@@ -92,7 +92,7 @@ class StreamChannel(AbstractChannel):
             elif n == 2:
                 return EOS
             elif n == 3:
-                for i in xrange(0, 100000, 7):
+                for i in range(0, 100000, 7):
                     while self.buf_pos >= self.buf_len:
                         self.buf_len = self.getBuf(self.buf)
                         self.buf_pos = 0
@@ -123,12 +123,12 @@ class StreamChannel(AbstractChannel):
             self.put(n)
 
     def write(self, buf):
-        t = type(buf)
-        if t == types.IntType:
+        if isinstance(buf, int):
             self.writeByte(buf)
             return
-        elif t == types.StringType:
-            buf = bytearray(buf)
+        elif isinstance(buf, compat.strings):
+            buf = bytearray(buf, 'utf-8')
+
         if len(buf) > 32 and self.isZeroCopySupported():
             self.put(ESC)
             self.put(3)

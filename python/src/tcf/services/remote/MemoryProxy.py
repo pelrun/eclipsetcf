@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2013-2014 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013-2014, 2016 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -19,6 +19,9 @@ class Range(object):
     size = 0
     stat = 0
     msg = None
+
+    def __lt__(self, o):
+        return self.__cmp__(o) == -1
 
     def __cmp__(self, o):
         if self.offs < o.offs:
@@ -59,7 +62,7 @@ class MemoryErrorReport(errors.ErrorReport, memory.MemoryError,
         l = 0
         h = len(self.ranges) - 1
         while l <= h:
-            n = (l + h) / 2
+            n = int((l + h) / 2)
             r = self.ranges[n]
             if r.offs > offset:
                 h = n - 1
@@ -75,7 +78,7 @@ class MemoryErrorReport(errors.ErrorReport, memory.MemoryError,
         l = 0
         h = len(self.ranges) - 1
         while l <= h:
-            n = (l + h) / 2
+            n = int((l + h) / 2)
             r = self.ranges[n]
             if r.offs > offset:
                 h = n - 1
@@ -105,7 +108,9 @@ class MemContext(memory.MemoryContext):
             def done(self, error, args):
                 e = None
                 if error:
-                    e = memory.MemoryError(error.message)
+                    # XXX : fle : Exception.message does not exist in python3,
+                    #             better use str(Exception)
+                    e = memory.MemoryError(str(error))
                 else:
                     assert len(args) == 2
                     e = self.toMemoryError(addr, args[0], args[1])
@@ -126,7 +131,9 @@ class MemContext(memory.MemoryContext):
             def done(self, error, args):
                 e = None
                 if error:
-                    e = memory.MemoryError(error.message)
+                    # Exception.message does not exist in python3, better use
+                    # str(Exception)
+                    e = memory.MemoryError(str(error))
                 else:
                     assert len(args) == 3
                     byts = channel.toByteArray(args[0])
@@ -152,7 +159,9 @@ class MemContext(memory.MemoryContext):
             def done(self, error, args):
                 e = None
                 if error:
-                    e = memory.MemoryError(error.message)
+                    # XXX : fle : Exception.message does not exist in python3,
+                    #             better use str(Exception)
+                    e = memory.MemoryError(str(error))
                 else:
                     assert len(args) == 2
                     e = self.toMemoryError(addr, args[0], args[1])
@@ -282,10 +291,10 @@ def _toContextArray(svc, o):
 def _toSizeArray(o):
     if o is None:
         return None
-    return map(lambda m: m.get("size", 0), o)
+    return [m.get("size", 0) for m in o]
 
 
 def _toAddrArray(o):
     if o is None:
         return None
-    return map(lambda m: m.get("addr"), o)
+    return [m.get("addr") for m in o]

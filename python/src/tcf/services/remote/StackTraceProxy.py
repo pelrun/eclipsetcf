@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013, 2015-2016 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -29,13 +29,37 @@ class StackTraceProxy(stacktrace.StackTraceService):
                                                          (parent_context_id,))
 
             def done(self, error, args):
-                contexts = None
+                contextIds = None
                 if not error:
                     assert len(args) == 2
                     error = self.toError(args[0])
-                    contexts = args[1]
-                done.doneGetChildren(self.token, error, contexts)
+                    contextIds = args[1]
+                done.doneGetChildren(self.token, error, contextIds)
         return GetChildrenCommand().token
+
+    def getChildrenRange(self, parent_context_id, range_start, range_end,
+                         done):
+        done = self._makeCallback(done)
+        service = self
+
+        class GetChildrenRangeCommand(Command):
+            def __init__(self):
+                super(GetChildrenRangeCommand, self).__init__(
+                    service.channel,
+                    service,
+                    "getChildrenRange",
+                    (parent_context_id,
+                     range_start,
+                     range_end,))
+
+            def done(self, error, args):
+                contextIds = None
+                if not error:
+                    assert len(args) == 2
+                    error = self.toError(args[0])
+                    contextIds = args[1]
+                done.doneGetChildren(self.token, error, contextIds)
+        return GetChildrenRangeCommand().token
 
     def getContext(self, ids, done):
         done = self._makeCallback(done)

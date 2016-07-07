@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013, 2016 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -27,7 +27,7 @@ class DelegatingEventListener(channel.EventListener):
 
 
 def _print_event(service, name, *args):
-    print "Event: %s.%s%s" % (service, name, tuple(args))
+    print("Event: %s.%s%s" % (service, name, tuple(args)))
 
 
 def get_event_printer():
@@ -70,7 +70,7 @@ class EventRecorder(object):
         if service:
             self.record(service, False)
         else:
-            for service in self._listeners.keys():
+            for service in list(self._listeners.keys()):
                 self.record(service, False)
 
     def get(self):

@@ -1,5 +1,5 @@
-#******************************************************************************
-# * Copyright (c) 2011, 2013-2014 Wind River Systems, Inc. and others.
+# *****************************************************************************
+# * Copyright (c) 2011, 2014-2015, 2016 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -7,11 +7,12 @@
 # *
 # * Contributors:
 # *     Wind River Systems - initial API and implementation
-#******************************************************************************
+# *****************************************************************************
 
 """TCF stacktrace service interface.
 
 .. |getChildren| replace:: :meth:`~StackTraceService.getChildren`
+.. |getChildrenRange| replace:: :meth:`~StackTraceService.getChildrenRange`
 .. |getContext| replace:: :meth:`~StackTraceService.getContext`
 .. |runcontrol| replace:: :mod:`~tcf.services.runcontrol`
 .. |DoneGetChildren| replace:: :class:`DoneGetChildren`
@@ -35,6 +36,9 @@ Properties
 +--------------------------+--------------+-----------------------------------+
 | PROP_ID                  | |basestring| | String, stack frame ID.           |
 +--------------------------+--------------+-----------------------------------+
+| PROP_INDEX               | |int|        | Stack frame level, starting from  |
+|                          |              | stack top.                        |
++--------------------------+--------------+-----------------------------------+
 | PROP_INSTRUCTION_ADDRESS | |int|        | Instruction pointer.              |
 +--------------------------+--------------+-----------------------------------+
 | PROP_LEVEL               | |int|        | Stack frame level, starting from  |
@@ -50,6 +54,15 @@ Properties
 +--------------------------+--------------+-----------------------------------+
 | PROP_TOP_FRAME           | |bool|       | **True** if the frame is top frame|
 |                          |              | on a stack.                       |
++--------------------------+--------------+-----------------------------------+
+| PROP_WALK                | |bool|       | **True** if the frame is found by |
+|                          |              | stack walking (debug info).       |
++--------------------------+--------------+-----------------------------------+
+| PROP_INLINED             | |int|        | Inlined function level.           |
++--------------------------+--------------+-----------------------------------+
+| PROP_FUNC_ID             | |basestring| | Function symbol ID.               |
++--------------------------+--------------+-----------------------------------+
+| PROP_CODE_AREA           | |CodeArea|   | Call site code area.              |
 +--------------------------+--------------+-----------------------------------+
 
 Service Methods
@@ -68,6 +81,10 @@ getContext
 getChildren
 ^^^^^^^^^^^
 .. automethod:: StackTraceService.getChildren
+
+getChildrenRange
+^^^^^^^^^^^^^^^^
+.. automethod:: StackTraceService.getChildrenRange
 
 Callback Classes
 ----------------
@@ -91,6 +108,7 @@ StackTraceContext
 """
 
 from .. import services
+from .remote.LineNumbersProxy import _toCodeAreaArray
 
 NAME = "StackTrace"
 """StackTrace service name."""
@@ -108,6 +126,9 @@ PROP_ARGUMENTS_COUNT = "ArgsCnt"
 PROP_ARGUMENTS_ADDRESS = "ArgsAddr"
 PROP_INDEX = "Index"
 PROP_WALK = "Walk"
+PROP_INLINED = "Inlined"
+PROP_FUNC_ID = "FuncID"
+PROP_CODE_AREA = "CodeArea"
 
 
 class StackTraceService(services.Service):
@@ -134,7 +155,7 @@ class StackTraceService(services.Service):
         raise NotImplementedError("Abstract method")
 
     def getChildren(self, parent_context_id, done):
-        """Retrieve stack trace context list.
+        """Retrieve stack trace contexts list.
 
         Parent context usually corresponds to an execution thread.
 
@@ -147,6 +168,31 @@ class StackTraceService(services.Service):
 
         :param parent_context_id: Parent context ID.
         :type parent_context_id: |basestring|
+        :param done: call back interface called when operation is completed
+        :type done: |DoneGetChildren|
+        """
+        raise NotImplementedError("Abstract method")
+
+    def getChildrenRange(self, parent_context_id, range_start, range_end,
+                         done):
+        """Retrieve a range of stack trace contexts.
+
+        Parent context usually corresponds to an execution thread.
+
+        Some targets have more than one stack. In such case children of a
+        thread are stacks, and stack frames are deeper in the hierarchy - they
+        can be retrieved with additional :meth:`getChildren` commands.
+
+        The command will fail if parent thread is not suspended. Client can use
+        |runcontrol| service to suspend a thread.
+
+        :param parent_context_id: Parent context ID.
+        :type parent_context_id: |basestring|
+        :param range_start: Start index of the range (inclusive). Index 0 is
+                            the top frame.
+        :type range_start: |int|
+        :param range_end: End index of the range (inclusive).
+        :type range_end: |int|
         :param done: call back interface called when operation is completed
         :type done: |DoneGetChildren|
         """
@@ -350,6 +396,39 @@ class StackTraceContext(object):
                   or **None** if not available.
         """
         return self._props.get(PROP_ARGUMENTS_ADDRESS, None)
+
+    def getInlined(self):
+        """Get inlined function level.
+
+        :returns: An |int| representing the inlined function level, or
+                  **None**.
+        """
+        return self._props.get(PROP_INLINED, None)
+
+    def getFuncID(self):
+        """Get function symbol ID.
+
+        If **None**, client should use Symbols service to find function
+        symbol ID.
+
+        :returns: A |basestring| representing function symbol ID, or an empty
+                  |basestring| if unknown.
+        """
+        return self._props.get(PROP_FUNC_ID, '')
+
+    def getCodeArea(self):
+        """Get code area context.
+
+        Get code area that describes source code location of the frame.
+        If **None**, client should use LineNumbers service to find frame source
+        location.
+
+        :returns: A |list| of |CodeArea| objects. representing this stack code
+                  area or **None** if not available.
+        """
+        if self._props.get(PROP_CODE_AREA, None):
+            return _toCodeAreaArray((self._props.get(PROP_CODE_AREA, None),))
+        return None
 
     def getProperties(self):
         """Get complete map of context properties.

@@ -1,5 +1,5 @@
 # *****************************************************************************
-# * Copyright (c) 2011, 2013-2014 Wind River Systems, Inc. and others.
+# * Copyright (c) 2011, 2013-2014, 2016 Wind River Systems, Inc. and others.
 # * All rights reserved. This program and the accompanying materials
 # * are made available under the terms of the Eclipse Public License v1.0
 # * which accompanies this distribution, and is available at
@@ -53,8 +53,8 @@ class print_peers:
 
     def __repr__(self):
         peers = tcf.peers()
-        return '\n'.join(map(lambda p: "%s, %s" % (p.getID(), p.getName()),
-                             peers.values()))
+        return '\n'.join(["%s, %s" % (p.getID(), p.getName())
+                          for p in list(peers.values())])
 
 
 class Shell(code.InteractiveConsole, protocol.ChannelOpenListener,
