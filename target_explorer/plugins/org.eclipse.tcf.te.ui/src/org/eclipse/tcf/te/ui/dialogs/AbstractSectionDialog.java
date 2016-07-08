@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2015 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2013, 2016 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -114,6 +114,7 @@ public abstract class AbstractSectionDialog extends CustomTitleAreaDialog implem
 		setMessage(message);
 
 		FormToolkit toolkit = new FormToolkit(getShell().getDisplay());
+		toolkit.setBackground(parent.getBackground());
 		ScrolledForm scrolledForm = new CustomFormToolkit(toolkit).createScrolledForm(parent, null, true);
 		scrolledForm.setLayoutData(getSectionAreaLayoutData());
 		scrolledForm.getBody().setLayout(FormLayoutFactory.createClearGridLayout(false, 1));
