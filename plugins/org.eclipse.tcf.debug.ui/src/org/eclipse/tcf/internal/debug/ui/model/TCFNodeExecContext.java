@@ -1741,10 +1741,10 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
     public int compareTo(TCFNode n) {
         if (n instanceof TCFNodeExecContext) {
             TCFNodeExecContext f = (TCFNodeExecContext)n;
-            if (mem_seq_no < f.mem_seq_no) return -1;
-            if (mem_seq_no > f.mem_seq_no) return +1;
             if (exe_seq_no < f.exe_seq_no) return -1;
             if (exe_seq_no > f.exe_seq_no) return +1;
+            if (mem_seq_no < f.mem_seq_no) return -1;
+            if (mem_seq_no > f.mem_seq_no) return +1;
         }
         return id.compareTo(n.id);
     }
