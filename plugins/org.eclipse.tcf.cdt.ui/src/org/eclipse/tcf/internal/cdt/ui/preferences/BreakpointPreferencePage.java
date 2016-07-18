@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others.
+ * Copyright (c) 2011, 2016 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,6 +15,7 @@ import java.util.Set;
 import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.preference.*;
 import org.eclipse.ui.IWorkbenchPart;
@@ -167,18 +168,21 @@ public class BreakpointPreferencePage extends FieldEditorPreferencePage implemen
             part = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart();
         }
         if (part != null) {
-            ISelection selection = part.getSite().getSelectionProvider().getSelection();
-            Set<?> enablers = DebugUITools.getToggleBreakpointsTargetManager().getEnabledToggleBreakpointsTargetIDs(part, selection);
+            ISelectionProvider provider = part.getSite().getSelectionProvider();
+            if (provider != null) {
+                ISelection selection = provider.getSelection();
+                Set<?> enablers = DebugUITools.getToggleBreakpointsTargetManager().getEnabledToggleBreakpointsTargetIDs(part, selection);
 
-            if (enablers != null &&
-                !enablers.contains(TCFToggleBreakpointsTargetFactory.ID_TCF_BREAKPOINT_TOGGLE_TARGET)) {
-                return true;
-            }
+                if (enablers != null &&
+                    !enablers.contains(TCFToggleBreakpointsTargetFactory.ID_TCF_BREAKPOINT_TOGGLE_TARGET)) {
+                    return true;
+                }
 
-            String preferred = DebugUITools.getToggleBreakpointsTargetManager().getPreferredToggleBreakpointsTargetID(part, selection);
-            if (preferred != null &&
-                !preferred.equals(TCFToggleBreakpointsTargetFactory.ID_TCF_BREAKPOINT_TOGGLE_TARGET)) {
-                return false;
+                String preferred = DebugUITools.getToggleBreakpointsTargetManager().getPreferredToggleBreakpointsTargetID(part, selection);
+                if (preferred != null &&
+                    !preferred.equals(TCFToggleBreakpointsTargetFactory.ID_TCF_BREAKPOINT_TOGGLE_TARGET)) {
+                    return false;
+                }
             }
         }
         return true;
