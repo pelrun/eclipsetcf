@@ -26,6 +26,9 @@ import org.eclipse.tcf.protocol.IPeer;
 public class TransientPeer implements IPeer {
 
     protected final Map<String, String> ro_attrs;
+    /**
+     * Attributes
+     */
     protected final Map<String, String> rw_attrs;
 
     public TransientPeer(Map<String,String> attrs) {

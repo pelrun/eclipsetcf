@@ -57,8 +57,17 @@ import org.eclipse.tcf.services.ILocator;
 // TODO: research usage of DNS-SD (DNS Service Discovery) to discover TCF peers
 public class LocatorService implements ILocator {
 
+    /**
+     * Default discovery port
+     */
     private static final int DISCOVERY_PORT = 1534;
+    /**
+     * Max packet size
+     */
     private static final int MAX_PACKET_SIZE = 9000 - 40 - 8;
+    /**
+     * Preferred packet size
+     */
     private static final int PREF_PACKET_SIZE = 1500 - 40 - 8;
 
     private static LocatorService locator;
@@ -80,6 +89,9 @@ public class LocatorService implements ILocator {
      */
     private static boolean TRACE_DISCOVERY = System.getProperty("org.eclipse.tcf.core.tracing.discovery") != null;
 
+    /**
+     * Internal Subnetwork Representation
+     */
     private static class SubNet {
         final int prefix_length;
         final InetAddress address;
@@ -94,6 +106,11 @@ public class LocatorService implements ILocator {
             this.broadcast = broadcast;
         }
 
+        /**
+         * Check whether the IP Address in part the subnetwork
+         * @param addr IP Address
+         * @return true if the IP Address is contained, otherwise false
+         */
         boolean contains(InetAddress addr) {
             if (addr == null || address == null) return false;
             byte[] a1 = addr.getAddress();
@@ -136,14 +153,16 @@ public class LocatorService implements ILocator {
         }
     }
 
+    /** Represents a peer which was discovered, that is a peer whose Locator was not the first Locator in the network.
+     * A master is the peer which discovered a slave, that is a peer whose Locator was the first Locator in the network */
     private static class Slave {
         final InetAddress address;
         final int port;
 
-        /* Time of last packet receiver from this slave */
+        /** Time of last packet receiver from this slave */
         long last_packet_time;
 
-        /* Time of last REQ_SLAVES packet received from this slave */
+        /** Time of last REQ_SLAVES packet received from this slave */
         long last_req_slaves_time;
 
         Slave(InetAddress address, int port) {
@@ -157,6 +176,12 @@ public class LocatorService implements ILocator {
         }
     }
 
+    /**
+     * Represents a hostname/address item that is used when resolving IP addresses from hostnames. 
+     * It contains a timestamp of the last time the resolution of hostname -> ip was done.
+     * As well as if it the mapping was used in a DATA_RETENTION_PERIOD
+     *
+     */
     private static class AddressCacheItem {
         final String host;
         InetAddress address;
@@ -168,12 +193,32 @@ public class LocatorService implements ILocator {
         }
     }
 
+    /**
+     * Stores Hostname/IP addresses mappings that are used when resolving an IP Address from a hostname
+     */
     private static final HashMap<String,AddressCacheItem> addr_cache = new HashMap<String,AddressCacheItem>();
+    
+    /**
+     * Used to request an inmediate prune and update of addr_cache mappings
+     */
     private static boolean addr_request;
 
+    /**
+     * Socket used to send/receive the packets to/from remote peers
+     */
     private DatagramSocket socket;
+    
+    /**
+     * The timestamp of the last received packet from a Locator master.
+     * If there is no remote locator master, meaning that this is the locator master, then the value is 0.
+     */
     private long last_master_packet_time;
 
+    /**
+     * LocatorService's thread for refreshing subnet list of peers, as part of the discovery.
+     * Its run method delegates the refresh of the subnet list of peers to the dispatch thread, using the {@code refresh_timer} method.
+     * Thread's name is: TCF Locator Timer
+     */
     private final Thread timer_thread = new Thread() {
         public void run() {
             while (true) {
@@ -197,6 +242,11 @@ public class LocatorService implements ILocator {
         }
     };
 
+    /**
+     * LocatorService's thread for maintaining the hostname/ip mapping held in addr_cache as part of the discovery.
+     * It runs while the <code>getInetAddress(String hostname)</code> is not running, to refresh ip resolution of hostsnames that getInetAddress has already added to addr_cache
+     * Thread's name is: TCF Locator DNS Lookup
+     */
     private Thread dns_lookup_thread = new Thread() {
         public void run() {
             while (true) {
@@ -209,17 +259,26 @@ public class LocatorService implements ILocator {
                         for (Iterator<AddressCacheItem> i = addr_cache.values().iterator(); i.hasNext();) {
                             AddressCacheItem a = i.next();
                             if (a.time_stamp + DATA_RETENTION_PERIOD * 10 < time) {
+                                /*
+                                 * Remove entries that have not been used in between sucessive runs of this method 
+                                 */
                                 if (a.used) {
                                     if (set == null) set = new HashSet<AddressCacheItem>();
                                     set.add(a);
-                                }
+                                } 
                                 else {
                                     i.remove();
                                 }
                             }
                         }
+                        /*
+                         * Once we have pruned the addr_cache we wait for the DATA_RETENTION_PERIOD unless the getInetAddress method sets addr_request true
+                         */
                         addr_request = false;
                     }
+                    /*
+                     * Update the used AddressCacheItems of addr_cache
+                     */
                     if (set != null) {
                         for (AddressCacheItem a : set) {
                             InetAddress addr = null;
@@ -283,6 +342,11 @@ public class LocatorService implements ILocator {
         }
     }
 
+    /**
+     * LocatorService's thread for handling packets received from other Peers, as part of the discovery.
+     * Its run method delegates the handling of the packet to the dispatch thread, using the {@code handleDatagramPacket} method.
+     * Thread's name is: TCF Locator Receiver
+     */
     private final Thread input_thread = new Thread() {
         public void run() {
             try {
@@ -317,6 +381,9 @@ public class LocatorService implements ILocator {
     static {
         ServiceManager.addServiceProvider(new IServiceProvider() {
 
+            /*
+             * LocatorService's ServiceProvider only implements getLocalService, as this service is implemented locally and not remotely
+             */
             public IService[] getLocalService(final IChannel channel) {
                 channel.addCommandServer(locator, new IChannel.ICommandServer() {
                     public void command(IToken token, String name, byte[] data) {
@@ -343,6 +410,12 @@ public class LocatorService implements ILocator {
         }
     }
 
+    /**
+     * Creates a socket which will behave either as a slave locator or master locator, depending on the given slave parameter
+     * @param slave true if the socket is representing a slave locator, false otherwise
+     * @return the newly created socket
+     * @throws SocketException thrown when the socket could not be created on the discovery port (couldn't be a master locator)
+     */
     private static DatagramSocket createSocket(boolean slave) throws SocketException {
         DatagramSocket socket = null;
         if (slave) {
@@ -357,11 +430,19 @@ public class LocatorService implements ILocator {
         return socket;
     }
 
+    /**
+     * Creates a local instance of the LocatorService which involves creating:
+     * 1. LocalPeer
+     * 2. LocatorService itself
+     */
     public static void createLocalInstance() {
         local_peer = new LocalPeer();
         locator = new LocatorService();
     }
 
+    /**
+     * LocatorService constructor used in {@code createLocalInstace} 
+     */
     public LocatorService() {
         try {
             loopback_addr = InetAddress.getByName(null);
@@ -383,6 +464,7 @@ public class LocatorService implements ILocator {
                 socket = createSocket(true);
                 if (TRACE_DISCOVERY) {
                     LoggingUtil.trace("Became a slave agent (bound to port " + socket.getLocalPort() + ")");
+                    
                 }
             }
             input_thread.setName("TCF Locator Receiver");
@@ -391,6 +473,9 @@ public class LocatorService implements ILocator {
             input_thread.setDaemon(true);
             timer_thread.setDaemon(true);
             dns_lookup_thread.setDaemon(true);
+            /*
+             * All the locator thread's are run in the dispatch thread
+             */
             Protocol.invokeLater(new Runnable() {
                 @Override
                 public void run() {
@@ -421,14 +506,28 @@ public class LocatorService implements ILocator {
         }
     }
 
+    /**
+     * Get the LocalPeer instance
+     * @return LocalPeer instance
+     */
     public static LocalPeer getLocalPeer() {
         return local_peer;
     }
 
+    /**
+     * Get the Locator Event listeners
+     * @return array of locator listeners
+     */
     public static LocatorListener[] getListeners() {
         return listeners.toArray(new LocatorListener[listeners.size()]);
     }
 
+    /**
+     * Creates an error report using the given TCF error code, and msg parameters 
+     * @param code the error code, from the Standard TCF error codes
+     * @param msg an error message
+     * @return return a map representation of the error report
+     */
     private Map<String,Object> makeErrorReport(int code, String msg) {
         Map<String,Object> err = new HashMap<String,Object>();
         err.put(IErrorReport.ERROR_TIME, Long.valueOf(System.currentTimeMillis()));
@@ -437,8 +536,19 @@ public class LocatorService implements ILocator {
         return err;
     }
 
+    /**
+     * Handles all command messages received through the channel
+     *  
+     * @param channel the channel through which the commands are received/sent
+     * @param token handle associated with the command
+     * @param name command name
+     * @param data command arguments in byte array format 
+     */
     private void command(final AbstractChannel channel, final IToken token, String name, byte[] data) {
         try {
+            /*
+             * Redirect command
+             */
             if (name.equals("redirect")) {
                 String peer_id = (String)JSON.parseSequence(data)[0];
                 IPeer peer = peers.get(peer_id);
@@ -455,15 +565,24 @@ public class LocatorService implements ILocator {
                 }
                 new ChannelProxy(channel, peer.openChannel());
             }
+            /*
+             * Sync command
+             */
             else if (name.equals("sync")) {
                 channel.sendResult(token, null);
             }
+            /*
+             * getPeers command
+             */
             else if (name.equals("getPeers")) {
                 int i = 0;
                 Object[] arr = new Object[peers.size()];
                 for (IPeer p : peers.values()) arr[i++] = p.getAttributes();
                 channel.sendResult(token, JSON.toJSONSequence(new Object[]{ null, arr }));
             }
+            /*
+             * Unrecognized command
+             */
             else {
                 channel.rejectCommand(token);
             }
@@ -473,6 +592,11 @@ public class LocatorService implements ILocator {
         }
     }
 
+    /**
+     * Logs the given message and Exception/Error
+     * @param msg message to be logged
+     * @param x exception or error to be logged
+     */
     private void log(String msg, Throwable x) {
         // Don't report same error multiple times to avoid filling up the log file.
         synchronized (error_log) {
@@ -482,6 +606,16 @@ public class LocatorService implements ILocator {
         Protocol.log(msg, x);
     }
 
+    /**
+     * Gets the IP Address from a Hostname.
+     * To do that it uses the addr_cache, to search for an entry with the given host.
+     * If there's such an entry, it returns the address.
+     * If there isn't such an entry it constructs an AddressCacheItem entry and adds it to the addr_cache.
+     * Marks the given AddressCacheItem's used field as true.
+     * 
+     * @param host Host in Hostname format
+     * @return IP Address of the Host
+     */
     private InetAddress getInetAddress(String host) {
         if (host == null || host.length() == 0) return null;
         synchronized (addr_cache) {
@@ -509,6 +643,10 @@ public class LocatorService implements ILocator {
         }
     }
 
+    /**
+     * Refreshes the Subnetworks lists for slaves 
+     * @param nets Subnetwork lists
+     */
     private void refresh_timer(HashSet<SubNet> nets) {
         long time = System.currentTimeMillis();
         /* Cleanup slave table */
@@ -516,6 +654,7 @@ public class LocatorService implements ILocator {
             int i = 0;
             while (i < slaves.size()) {
                 Slave s = slaves.get(i);
+                /* Removes slave if there is no recent packet receveid from it */
                 if (s.last_packet_time + DATA_RETENTION_PERIOD < time) {
                     slaves.remove(i);
                 }
@@ -560,7 +699,17 @@ public class LocatorService implements ILocator {
         sendAll(null, 0, null, time);
     }
 
+    /**
+     * Add a slaves with the given Address, port number and timestamp to the array of slaves, and return it 
+     * @param addr IP Address of the slave
+     * @param port Port of the slave
+     * @param timestamp timestamp at which the last packet was received
+     * @return the slave which was created using the given parameters
+     */
     private Slave addSlave(InetAddress addr, int port, long timestamp) {
+        /*
+         * Check if there's an slave already in the list of known slaves, and if there is refresh the timestamp of the last packet received and return it
+         */
         for (Slave s : slaves) {
             if (s.port == port && s.address.equals(addr)) {
                 if (s.last_packet_time < timestamp) s.last_packet_time = timestamp;
@@ -570,6 +719,9 @@ public class LocatorService implements ILocator {
         final Slave s = new Slave(addr, port);
         s.last_packet_time = timestamp;
         slaves.add(s);
+        /*
+         * Crea
+         */
         Protocol.invokeLater(new Runnable() {
             public void run() {
                 long time_now = System.currentTimeMillis();
@@ -605,6 +757,10 @@ public class LocatorService implements ILocator {
         return new_nets;
     }
 
+    /**
+     * Finds all subnetworks, adds them to the {@code subnet} set and returns it. 
+     * @return set of SubNets
+     */
     private HashSet<SubNet> getSubNetList() {
         HashSet<SubNet> set = new HashSet<SubNet>();
         try {
@@ -631,6 +787,11 @@ public class LocatorService implements ILocator {
         return set;
     }
 
+    /**
+     * Find and adds all subnets to the given set
+     * @param set set of subnetworks
+     * @throws SocketException
+     */
     private void getSubNetList(HashSet<SubNet> set) throws SocketException {
         for (Enumeration<NetworkInterface> e = NetworkInterface.getNetworkInterfaces(); e.hasMoreElements();) {
             NetworkInterface f = e.nextElement();
@@ -658,6 +819,11 @@ public class LocatorService implements ILocator {
         }
     }
 
+    /**
+     * Finds and adds Subnetworks to the 
+     * @param set
+     * @throws Exception
+     */
     private void getWindowsSubNetList(HashSet<SubNet> set) throws Exception {
         HashMap<String,InetAddress> map = new HashMap<String,InetAddress>();
         for (Enumeration<NetworkInterface> e = NetworkInterface.getNetworkInterfaces(); e.hasMoreElements();) {
@@ -760,6 +926,14 @@ public class LocatorService implements ILocator {
             "CONF_PEER_REMOVE"
     };
 
+    /**
+     * Sends a Datagram packet of the given length to the Peer in the given subnet, with the given address and port 
+     * @param subnet the subnet on which the the peer address is located
+     * @param size the datagram packet size
+     * @param addr the peer's IP address
+     * @param port the destination port number
+     * @return true if the datagram was sent, false is the datagram was not sent
+     */
     private boolean sendDatagramPacket(SubNet subnet, int size, InetAddress addr, int port) {
         try {
             if (addr == null) {
@@ -845,6 +1019,11 @@ public class LocatorService implements ILocator {
         return map;
     }
 
+    /**
+     * Sends a Peer Request to the given Address and Port  on all subnets
+     * @param addr IP Address of the Peer
+     * @param port Port number of the Peer
+     */
     private void sendPeersRequest(InetAddress addr, int port) {
         out_buf[4] = CONF_REQ_INFO;
         for (SubNet subnet : subnets) {
@@ -852,6 +1031,12 @@ public class LocatorService implements ILocator {
         }
     }
 
+    /**
+     * 
+     * @param peer
+     * @param addr
+     * @param port
+     */
     private void sendPeerInfo(IPeer peer, InetAddress addr, int port) {
         Map<String,String> attrs = peer.getAttributes();
         InetAddress peer_addr = getInetAddress(attrs.get(IPeer.ATTR_IP_HOST));
@@ -885,6 +1070,11 @@ public class LocatorService implements ILocator {
         }
     }
 
+    /**
+     * Sends a CONF_SLAVES_INFO empty packet to the given address/port
+     * @param addr IP address of the peer
+     * @param port port number of the peer
+     */
     private void sendEmptyPacket(InetAddress addr, int port) {
         out_buf[4] = CONF_SLAVES_INFO;
         for (SubNet subnet : subnets) {
@@ -893,6 +1083,13 @@ public class LocatorService implements ILocator {
         }
     }
 
+    /**
+     * Sends a packet to 
+     * @param addr IP address of the slave/peer
+     * @param port port number of the slave/peer
+     * @param sl slave to which the packet is going to be sent to
+     * @param time 
+     */
     private void sendAll(InetAddress addr, int port, Slave sl, long time) {
         for (SubNet subnet : subnets) subnet.send_all_ok = false;
         for (IPeer peer : peers.values()) sendPeerInfo(peer, addr, port);
@@ -902,11 +1099,22 @@ public class LocatorService implements ILocator {
         sendEmptyPacket(addr, port);
     }
 
+    /**
+     * Sends a CONF_REQ_SLAVES packet to the given address and port number in the given subnet
+     * @param subnet subnet in which the address belongs to
+     * @param addr IP address of the slave
+     * @param port port number of the slave
+     */
     private void sendSlavesRequest(SubNet subnet, InetAddress addr, int port) {
         out_buf[4] = CONF_REQ_SLAVES;
         sendDatagramPacket(subnet, 8, addr, port);
     }
 
+    /**
+     * Sends a CONF_SLAVES_INFO packet to the given slave with the given timestamp
+     * @param x slave
+     * @param time
+     */
     private void sendSlaveInfo(Slave x, long time) {
         int ttl = (int)(x.last_packet_time + DATA_RETENTION_PERIOD - time);
         if (ttl <= 0) return;
@@ -927,6 +1135,12 @@ public class LocatorService implements ILocator {
         }
     }
 
+    /**
+     * Sends a CONF_SLAVES_INFO packet to the given address, port number with the given timestamp
+     * @param addr IP Address of slave
+     * @param port Port number of slave
+     * @param time timestamp of
+     */
     private void sendSlavesInfo(InetAddress addr, int port, long time) {
         out_buf[4] = CONF_SLAVES_INFO;
         for (SubNet subnet : subnets) {
@@ -954,6 +1168,12 @@ public class LocatorService implements ILocator {
         }
     }
 
+    /**
+     * Checks if the the address and port are from a RemotePeer
+     * @param address IP address of peer
+     * @param port port number of peer
+     * @return true is the address and port are not from a Remote Peer but instead is the Local Peer, else false
+     */
     private boolean isRemote(InetAddress address, int port) {
         if (port != socket.getLocalPort()) return true;
         for (SubNet s : subnets) {
@@ -962,6 +1182,13 @@ public class LocatorService implements ILocator {
         return true;
     }
 
+    /**
+     * Handles packets received during the auto discovery.
+     * It verifies the packet is indeed a TCF packet, and handles it depending on the auto-configuration command and responses codes e.g: CONF_PEER_INFO,
+     * CONF_REQ_INFO, etc..
+     * 
+     * @param p packet received
+     */
     private void handleDatagramPacket(InputPacket p) {
         try {
             long time = System.currentTimeMillis();
@@ -1018,6 +1245,10 @@ public class LocatorService implements ILocator {
         }
     }
 
+    /**
+     * Handles a received CONF_PEER_INFO packet
+     * @param p packet received
+     */
     private void handlePeerInfoPacket(InputPacket p) {
         try {
             Map<String,String> map = parsePeerAtrributes(p.getData(), p.getLength());
@@ -1053,11 +1284,23 @@ public class LocatorService implements ILocator {
         }
     }
 
+    /**
+     * Handles a CONF_REQ_INFO packet received from the given slave, at the given time 
+     * It sendsAll
+     * @param p packet received
+     * @param sl slave
+     * @param time timestamp at which the packet was received
+     */
     private void handleReqInfoPacket(InputPacket p, Slave sl, long time) {
         if (TRACE_DISCOVERY) traceDiscoveryPacket(true, "CONF_REQ_INFO", null, p);
         sendAll(p.getAddress(), p.getPort(), sl, time);
     }
 
+    /**
+     * Handles a received CONF_SLAVES_INFO
+     * @param p packet received
+     * @param time_now timestamp when the packet was received
+     */
     private void handleSlavesInfoPacket(InputPacket p, long time_now) {
         try {
             Map<String,String> map = parseIDs(p.getData(), p.getLength());
@@ -1115,12 +1358,24 @@ public class LocatorService implements ILocator {
         }
     }
 
+    /**
+     * Handles CONF_REQ_SLAVES packet
+     * SendsSlavesInfo
+     * @param p packet received
+     * @param sl slave from which the packet was received
+     * @param time timestamp of when the packet was received
+     */
     private void handleReqSlavesPacket(InputPacket p, Slave sl, long time) {
         if (TRACE_DISCOVERY) traceDiscoveryPacket(true, "CONF_REQ_SLAVES", null, p);
         if (sl != null) sl.last_req_slaves_time = time;
         sendSlavesInfo(p.getAddress(), p.getPort(),  time);
     }
 
+    /**
+     * Handles a received CONF_PEER_REMOVED packet
+     * @param p packet received
+     * @param master_exited true if the master locator was removed, false if it was a slave locator
+     */
     private void handlePeerRemovedPacket(InputPacket p, boolean master_exited) {
         try {
             Map<String,String> map = parseIDs(p.getData(), p.getLength());
@@ -1200,17 +1455,11 @@ public class LocatorService implements ILocator {
      * sent to stdout. This should be called only if the tracing has been turned
      * on via java property definitions.
      *
-     * @param received
-     *            true if the packet was sent, otherwise it was received
-     * @param type
-     *            a string specifying the type of packet, e.g., "CONF_PEER_INFO"
-     * @param attrs
-     *            a set of attributes relevant to the type of packet (typically
-     *            a peer's attributes)
-     * @param addr
-     *            the network address the packet is being sent to
-     * @param port
-     *            the port the packet is being sent to
+     * @param received false if the packet was sent, otherwise it was received
+     * @param type a string specifying the type of packet, e.g., "CONF_PEER_INFO"
+     * @param attrs a set of attributes relevant to the type of packet (typically a peer's attributes)
+     * @param addr the network address the packet is being sent to
+     * @param port the port the packet is being sent to
      */
     private static void traceDiscoveryPacket(boolean received, String type, Map<String,String> attrs, InetAddress addr, int port) {
         assert TRACE_DISCOVERY;
@@ -1228,6 +1477,11 @@ public class LocatorService implements ILocator {
     /**
      * Convenience variant that takes a DatagramPacket for specifying
      * the target address and port.
+     * 
+     * @param received false if the packet was sent, otherwise it was received
+     * @param type a string specifying the type of packet, e.g., "CONF_PEER_INFO"
+     * @param attrs a set of attributes relevant to the type of packet (typically a peer's attributes)
+     * @param packet packet received
      */
     private static void traceDiscoveryPacket(boolean received, String type, Map<String,String> attrs, InputPacket packet) {
         traceDiscoveryPacket(received, type, attrs, packet.getAddress(), packet.getPort());

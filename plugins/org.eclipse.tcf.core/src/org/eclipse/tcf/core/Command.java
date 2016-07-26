@@ -69,6 +69,13 @@ public abstract class Command implements IChannel.ICommandListener {
     private static final SimpleDateFormat timestamp_format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
     private static int arg_size_limit = Integer.MAX_VALUE;
 
+    /**
+     * Constructs a Command message on the given channel, belong to the given service, with the given command name, and with the given array of arguments
+     * @param channel
+     * @param service
+     * @param command
+     * @param args
+     */
     public Command(IChannel channel, IService service, String command, Object[] args) {
         this.service = service;
         this.command = command;
@@ -92,6 +99,9 @@ public abstract class Command implements IChannel.ICommandListener {
         token = t;
     }
 
+    /**
+     * l
+     */
     public void progress(IToken token, byte[] data) {
         assert this.token == token;
     }

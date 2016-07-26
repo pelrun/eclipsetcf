@@ -122,6 +122,9 @@ public interface ILocator extends IService {
      */
     void removeListener(LocatorListener listener);
 
+    /**
+     * ILocator service event listener interface
+     */
     interface LocatorListener {
         /**
          * A new peer is added into locator peer table.

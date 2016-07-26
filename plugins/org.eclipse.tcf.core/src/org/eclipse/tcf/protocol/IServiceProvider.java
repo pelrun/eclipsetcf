@@ -16,7 +16,18 @@ package org.eclipse.tcf.protocol;
  */
 public interface IServiceProvider {
 
+    /**
+     * Get the local services available in the given channel 
+     * @param channel channel
+     * @return an array of services
+     */
     public IService[] getLocalService(IChannel channel);
 
+    /**
+     * Get the service o in the given channel for the given service name
+     * @param channel
+     * @param service_name
+     * @return the service
+     */
     public IService getServiceProxy(IChannel channel, String service_name);
 }

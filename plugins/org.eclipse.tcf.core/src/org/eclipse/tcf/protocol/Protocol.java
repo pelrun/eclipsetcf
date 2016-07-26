@@ -36,12 +36,31 @@ import org.eclipse.tcf.services.ILocator;
  */
 public final class Protocol {
 
+    /**
+     * Event queue instance that holds all the Runnables to be run in the dispatch thread
+     */
     private static IEventQueue event_queue;
+    /**
+     * Main Logger instance used by the TCF Framework
+     */
     private static ILogger logger;
+    /**
+     * Set that holds the Timer objects for dispatch by the timer_dispatcher thread
+     */
     private static final TreeSet<Timer> timer_queue = new TreeSet<Timer>();
+    /**
+     * Agent ID constant generated pseudorandomly by UUID
+     */
     private static final String agent_id = UUID.randomUUID().toString();
+    /**
+     * Static variable that is incremented for every new Timer object added to the timer_queue, and whose value is used as ID of the Timer object,
+     * for resolving a time in the timestamps of different Timer objects
+     */
     private static int timer_cnt;
 
+    /**
+     * Class used for by the timer_dispatcher thread, that binds a Timestamp and a Runnable, and that enables the ordering of objects, according the Time
+     */
     private static class Timer implements Comparable<Timer> {
         final int id;
         final long time;
@@ -75,6 +94,10 @@ public final class Protocol {
         }
     }
 
+    /**
+     * Thread used for dispatching Runnables which must wait for a certain delay to be dispatched in the dispatch thread.
+     * @see #invokeLater(long delay, Runnable runnable)
+     */
     private static final Thread timer_dispatcher = new Thread() {
         public void run() {
             try {
@@ -174,7 +197,7 @@ public final class Protocol {
     /**
      * Causes <code>runnable</code> event to have its <code>run</code>
      * method called in the dispatch thread of the framework.
-     * The event is dispatched after given delay.
+     * The event is dispatched after the given delay.
      *
      * This method can be invoked from any thread.
      *

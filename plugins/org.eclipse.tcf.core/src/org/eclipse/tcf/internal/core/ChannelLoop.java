@@ -16,7 +16,11 @@ import java.io.InterruptedIOException;
 import org.eclipse.tcf.core.StreamChannel;
 import org.eclipse.tcf.protocol.IPeer;
 
-
+/**
+ * Simulates a loopback connection, which feeds a received signal back to
+ * the sender
+ *
+ */
 public class ChannelLoop extends StreamChannel {
 
     private final byte[] buf = new byte[0x1000];

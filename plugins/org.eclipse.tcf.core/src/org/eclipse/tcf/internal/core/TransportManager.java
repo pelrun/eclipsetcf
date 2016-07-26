@@ -28,13 +28,28 @@ import org.eclipse.tcf.protocol.ITransportProvider;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.ILocator;
 
-
+/**
+ * Class TansportManager provides static methods for other core and internal TCF
+ * classes which concern the maintenance of Channels, ChannelOpenListeners and
+ * TransportProviders </br>
+ * 
+ * These methods are used by Protocol, TransientPeer, AbstractChannel, and others.
+ */
 public class TransportManager {
 
+    /**
+     * Collection of Channels
+     */
     private static final Collection<AbstractChannel> channels =
         new LinkedList<AbstractChannel>();
+    /**
+     * Collection of ChannelOpenListeners
+     */
     private static final Collection<Protocol.ChannelOpenListener> listeners =
         new LinkedList<Protocol.ChannelOpenListener>();
+    /**
+     * Map of TransportProviders and their names
+     */
     private static final HashMap<String,ITransportProvider> transports =
         new HashMap<String,ITransportProvider>();
 
@@ -98,6 +113,12 @@ public class TransportManager {
         });
     }
 
+    /**
+     * Converts a port number from String representation to int
+     * 
+     * @param port port number
+     * @return port number as an int
+     */
     private static int parsePort(String port) {
         if (port == null) throw new Error("No port number");
         try {
@@ -111,6 +132,16 @@ public class TransportManager {
         }
     }
 
+    /**
+     * Adds different transport providers to the private collection of
+     * transports, if a transport was already in the collection, then it a Error
+     * is thrown
+     * 
+     * This is internal API, TCF clients should use {@code org.eclipse.tcf.protocol.Protocol}
+     * 
+     * @param transport
+     *            TransportProviders such as TCP, Pipe, etc..
+     */
     public static void addTransportProvider(ITransportProvider transport) {
         String name = transport.getName();
         assert name != null;
@@ -120,6 +151,14 @@ public class TransportManager {
         }
     }
 
+    /**
+     * Remove transport providers to the private collection of transports, if a
+     * transport if a transport was already in the collection
+     * 
+     * This is internal API, TCF clients should use {@code org.eclipse.tcf.protocol.Protocol}
+     * 
+     * @param transport TransportProviders such as TCP, Pipe, etc.. 
+     */
     public static void removeTransportProvider(ITransportProvider transport) {
         String name = transport.getName();
         assert name != null;
@@ -128,6 +167,15 @@ public class TransportManager {
         }
     }
 
+    /**
+     * Opens the Channel to which the peer belongs to, using the underlying
+     * TransportProvider. The channel is not added to the list of open channels
+     * yet because the channel is not fully open.
+     * 
+     * @param peer
+     *            on which to open the channel
+     * @return the channel instance to be opened
+     */
     public static IChannel openChannel(IPeer peer) {
         String name = peer.getTransportName();
         if (name == null) throw new Error("No transport name");
@@ -139,6 +187,12 @@ public class TransportManager {
         return transport.openChannel(peer);
     }
 
+    /**
+     * Adds the channel to the collection of open channels. The channel is fully
+     * open by this time.
+     * 
+     * @param channel the channel
+     */
     public static void channelOpened(final AbstractChannel channel) {
         assert !channels.contains(channel);
         channels.add(channel);
@@ -153,20 +207,45 @@ public class TransportManager {
         }
     }
 
+    /**
+     * Removes the channel from the collection of channels. This method is called by the Channel whenever it closes.
+     * 
+     * @param channel channel to close 
+     * @param x Error to throw
+     */
     public static void channelClosed(final AbstractChannel channel, final Throwable x) {
         assert channels.contains(channel);
         channels.remove(channel);
     }
 
+    /**
+     * Returns an array of all the open channels
+     *
+     * This is internal API, TCF clients should use {@code org.eclipse.tcf.protocol.Protocol}
+     */
     public static IChannel[] getOpenChannels() {
         return channels.toArray(new IChannel[channels.size()]);
     }
 
+    /**
+     * Add a Channel Open Listener, i.e: a listener that will be notified when a channel is opened
+     *
+     * This is internal API, TCF clients should use {@code org.eclipse.tcf.protocol.Protocol}
+     *
+     * @param listener listener to be added
+     */
     public static void addChanelOpenListener(Protocol.ChannelOpenListener listener) {
         assert listener != null;
         listeners.add(listener);
     }
 
+    /**
+     * Remove a Channel Open Listener, i.e: a listener that will be notified when a channel is opened
+     *
+     * This is internal API, TCF clients should use {@code org.eclipse.tcf.protocol.Protocol}
+     *
+     * @param listener to be removed
+     */
     public static void removeChanelOpenListener(Protocol.ChannelOpenListener listener) {
         listeners.remove(listener);
     }
@@ -176,6 +255,10 @@ public class TransportManager {
      * The message is sent to all open communication channels - broadcasted.
      *
      * This is internal API, TCF clients should use {@code org.eclipse.tcf.protocol.Protocol}.
+     *
+     * @param service_name service name 
+     * @param event_name 
+     * @param data
      */
     public static void sendEvent(String service_name, String event_name, byte[] data) {
         for (AbstractChannel c : channels) {

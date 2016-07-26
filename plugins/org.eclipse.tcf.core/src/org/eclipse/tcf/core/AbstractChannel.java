@@ -63,11 +63,34 @@ public abstract class AbstractChannel implements IChannel {
         public void onChannelClosed(Throwable error);
     }
 
+    /**
+     * Represents a message sent through a channel between peers
+     */
     private static class Message {
+        /**
+         * Type of message.
+         * "C" for Commands.
+         * "R" for Command Results.
+         * "N" for Unkown Command Result.
+         * "P" for Progress Result.
+         * "E" for Events.
+         */
         final char type;
+        /**
+         * Token associated with the Command
+         */
         Token token;
+        /**
+         * Name of the service
+         */
         String service;
+        /**
+         * In case of a Command ("C" Message) or an Event ("E" Message), the name of it
+         */
         String name;
+        /**
+         * The array of bytes that accompanies the message
+         */
         byte[] data;
 
         boolean is_sent;
@@ -75,6 +98,10 @@ public abstract class AbstractChannel implements IChannel {
 
         Collection<TraceListener> trace;
 
+        /**
+         * Constructs a Message of the given type. Type could be 'C', 'R', 'N' 'P' or 'E'
+         * @param type type of message
+         */
         Message(char type) {
             this.type = type;
         }
@@ -126,6 +153,9 @@ public abstract class AbstractChannel implements IChannel {
     private final Collection<IChannelListener> channel_listeners = new ArrayList<IChannelListener>();
     private final Map<String,IChannel.IEventListener[]> event_listeners = new HashMap<String,IChannel.IEventListener[]>();
     private final Map<String,IChannel.ICommandServer> command_servers = new HashMap<String,IChannel.ICommandServer>();
+    /**
+     * Tokens used for output
+     */
     private final Map<String,Message> out_tokens = new LinkedHashMap<String,Message>();
     private final Thread inp_thread;
     private final Thread out_thread;
@@ -151,8 +181,14 @@ public abstract class AbstractChannel implements IChannel {
     protected static final boolean TRACE = Boolean.getBoolean("org.eclipse.tcf.core.tracing.channel");
 
     public static final int
-        EOS = -1, // End Of Stream
-        EOM = -2; // End Of Message
+        /**
+         * End of Stream
+         */
+        EOS = -1,
+        /**
+         * End of Message
+         */
+        EOM = -2;
 
     protected AbstractChannel(IPeer remote_peer) {
         this(LocatorService.getLocalPeer(), remote_peer);
@@ -163,32 +199,58 @@ public abstract class AbstractChannel implements IChannel {
         this.remote_peer = remote_peer;
         this.local_peer = local_peer;
 
+        /**
+         * Thread used handles messages received through the channel
+         */
         inp_thread = new Thread() {
 
+            /**
+             * Empty byte array used when returning a zero-length byte array on {@code readBytes}
+             */
             final byte[] empty_byte_array = new byte[0];
+            /**
+             * Byte array used as temporary storage of bytes read on {@code readBytes}
+             */
             byte[] buf = new byte[1024];
+            /**
+             * Byte array used as temporary storage of bytes read on {@code readString}
+             */
             char[] cbf = new char[1024];
+
+            /**
+             * Byte array used to store the error
+             */
             byte[] eos_err_report;
 
+            /**
+             * Throws an IOException when the input thread reads a malformed Message from the channel
+             * @throws IOException with the message "Protocol syntax error"
+             */
             private void error() throws IOException {
                 throw new IOException("Protocol syntax error");
             }
 
+            /**
+             * Reads bytes from a channel
+             * @param end the first byte character
+             * @return a byte array containing all the bytes read
+             * @throws IOException if it finds EOM or EOS reading from input stream
+             */
             private byte[] readBytes(int end) throws IOException {
                 int len = 0;
                 for (;;) {
-                    int n = read();
-                    if (n <= 0) {
-                        if (n == end) break;
-                        if (n == EOM) throw new IOException("Unexpected end of message");
-                        if (n < 0) throw new IOException("Communication channel is closed by remote peer");
+                    int ch = read();
+                    if (ch <= 0) {
+                        if (ch == end) break;
+                        if (ch == EOM) throw new IOException("Unexpected end of message");
+                        if (ch < 0) throw new IOException("Communication channel is closed by remote peer");
                     }
                     if (len >= buf.length) {
                         byte[] tmp = new byte[buf.length * 2];
                         System.arraycopy(buf, 0, tmp, 0, len);
                         buf = tmp;
                     }
-                    buf[len++] = (byte)n;
+                    buf[len++] = (byte)ch;
                 }
                 if (len == 0) return empty_byte_array;
                 byte[] res = new byte[len];
@@ -196,6 +258,11 @@ public abstract class AbstractChannel implements IChannel {
                 return res;
             }
 
+            /**
+             * Reads complete strings made of bytes and return the Java string that it forms
+             * @return string containing all the bytes read
+             * @throws IOException if it finds EOM or EOS reading from input stream
+             */
             private String readString() throws IOException {
                 int len = 0;
                 for (;;) {
@@ -204,6 +271,9 @@ public abstract class AbstractChannel implements IChannel {
                         if (ch == EOM) throw new IOException("Unexpected end of message");
                         if (ch < 0) throw new IOException("Communication channel is closed by remote peer");
                     }
+                    /*
+                     * Check if ch is not part of the Basic Latin alphabet
+                     */
                     if ((ch & 0x80) != 0) {
                         int n = 0;
                         if ((ch & 0xe0) == 0xc0) {
@@ -237,6 +307,9 @@ public abstract class AbstractChannel implements IChannel {
                         }
                     }
                     if (ch == 0) break;
+                    /*
+                     * Duplicate size of array used to hold the bytes, after the size is bigger than original array
+                     */
                     if (len >= cbf.length) {
                         char[] tmp = new char[cbf.length * 2];
                         System.arraycopy(cbf, 0, tmp, 0, len);
@@ -288,6 +361,9 @@ public abstract class AbstractChannel implements IChannel {
                         default:
                             error();
                         }
+                        /*
+                         * Message handling is done in the dispatch thread
+                         */
                         Protocol.invokeLater(new Runnable() {
                             public void run() {
                                 handleInput(msg);
@@ -333,6 +409,9 @@ public abstract class AbstractChannel implements IChannel {
             }
         };
 
+        /**
+         * Thread used to handle messages sent through the channel
+         */
         out_thread = new Thread() {
 
             private final byte[] out_buf = new byte[0x4000];
@@ -591,7 +670,9 @@ public abstract class AbstractChannel implements IChannel {
         for (IService service : by_name.values()) {
             for (Class<?> fs : service.getClass().getInterfaces()) {
                 if (fs.equals(IService.class)) continue;
-                if (!IService.class.isAssignableFrom(fs)) continue;
+                if (!IService.class.isAssignableFrom(fs)) {
+                    continue;
+                }
                 by_class.put(fs, service);
             }
         }
@@ -672,7 +753,9 @@ public abstract class AbstractChannel implements IChannel {
 
     public void close() {
         assert Protocol.isDispatchThread();
-        if (state == STATE_CLOSED) return;
+        if (state == STATE_CLOSED) {
+            return;
+        }
         try {
             sendEndOfStream(10000);
             close(null);
@@ -684,7 +767,9 @@ public abstract class AbstractChannel implements IChannel {
 
     public void terminate(Throwable error) {
         assert Protocol.isDispatchThread();
-        if (state == STATE_CLOSED) return;
+        if (state == STATE_CLOSED) {
+            return;
+        }
         try {
             sendEndOfStream(500);
             close(error);
@@ -897,32 +982,58 @@ public abstract class AbstractChannel implements IChannel {
         return token;
     }
 
+    /**
+     * Send a command's progress response. Used for commands that can deliver partial results.
+     * @param token token associated with this command/response 
+     * @param results array of bytes containing the data of the message
+     */
     public void sendProgress(IToken token, byte[] results) {
         assert Protocol.isDispatchThread();
-        if (state != STATE_OPEN) throw new Error("Channel is closed");
+        if (state != STATE_OPEN) {
+            throw new Error("Channel is closed");
+        }
         Message msg = new Message('P');
         msg.data = results;
         msg.token = (Token)token;
         addToOutQueue(msg);
     }
 
+    /**
+     * Send a command's result response. There's exactly one result per command
+     * @param token token associated with this command/response
+     * @param results array of bytes containing the data of the message
+     */
     public void sendResult(IToken token, byte[] results) {
         assert Protocol.isDispatchThread();
-        if (state != STATE_OPEN) throw new Error("Channel is closed");
+        if (state != STATE_OPEN) {
+            throw new Error("Channel is closed");
+        }
         Message msg = new Message('R');
         msg.data = results;
         msg.token = (Token)token;
         addToOutQueue(msg);
     }
 
+    /**
+     * Sends an "unrecognized command" message for the command corresponding to the given token
+     * @param token token associated with this command/response
+     */
     public void rejectCommand(IToken token) {
         assert Protocol.isDispatchThread();
-        if (state != STATE_OPEN) throw new Error("Channel is closed");
+        if (state != STATE_OPEN) {
+            throw new Error("Channel is closed");
+        }
         Message msg = new Message('N');
         msg.token = (Token)token;
         addToOutQueue(msg);
     }
 
+    /**
+     * Sends an event message with the given name, for the given service with the given arguments
+     * @param service service this event belongs to
+     * @param name event's name
+     * @param args additional arguments of the event
+     */
     public void sendEvent(IService service, String name, byte[] args) {
         assert Protocol.isDispatchThread();
         if (!(state == STATE_OPEN || state == STATE_OPENING && service instanceof ILocator)) {
@@ -939,10 +1050,16 @@ public abstract class AbstractChannel implements IChannel {
         return zero_copy;
     }
 
+    /**
+     * Handles the message received from the channel
+     * @param msg
+     */
     @SuppressWarnings("unchecked")
     private void handleInput(Message msg) {
         assert Protocol.isDispatchThread();
-        if (state == STATE_CLOSED) return;
+        if (state == STATE_CLOSED) {
+            return;
+        }
         if (trace_listeners != null) {
             for (TraceListener l : trace_listeners) {
                 try {
@@ -964,7 +1081,9 @@ public abstract class AbstractChannel implements IChannel {
             case 'N':
                 String token_id = msg.token.getID();
                 cmd = msg.type == 'P' ? out_tokens.get(token_id) : out_tokens.remove(token_id);
-                if (cmd == null) throw new Exception("Invalid token received: " + token_id);
+                if (cmd == null) {
+                    throw new Exception("Invalid token received: " + token_id);
+                }
                 token = cmd.token;
                 break;
             }
@@ -1087,15 +1206,25 @@ public abstract class AbstractChannel implements IChannel {
         }
     }
 
+    /**
+     * 
+     * @throws IOException
+     */
     private void sendCongestionLevel() throws IOException {
-        if (++local_congestion_cnt < 8) return;
+        if (++local_congestion_cnt < 8) {
+            return;
+        }
         local_congestion_cnt = 0;
         if (state != STATE_OPEN) return;
         long time = System.currentTimeMillis();
-        if (time - local_congestion_time < 500) return;
+        if (time - local_congestion_time < 500) {
+            return;
+        }
         assert Protocol.isDispatchThread();
         int level = Protocol.getCongestionLevel();
-        if (level == local_congestion_level) return;
+        if (level == local_congestion_level) {
+            return;
+        }
         int i = (level - local_congestion_level) / 8;
         if (i != 0) level = local_congestion_level + i;
         local_congestion_time = time;
@@ -1157,7 +1286,9 @@ public abstract class AbstractChannel implements IChannel {
      */
     protected void write(byte[] buf) throws IOException {
         assert Thread.currentThread() == out_thread;
-        for (int i = 0; i < buf.length; i++) write(buf[i] & 0xff);
+        for (int i = 0; i < buf.length; i++) {
+            write(buf[i] & 0xff);
+        }
     }
 
     /**
@@ -1171,6 +1302,8 @@ public abstract class AbstractChannel implements IChannel {
      */
     protected void write(byte[] buf, int pos, int len) throws IOException {
         assert Thread.currentThread() == out_thread;
-        for (int i = pos; i < pos + len; i++) write(buf[i] & 0xff);
+        for (int i = pos; i < pos + len; i++) {
+            write(buf[i] & 0xff);
+        }
     }
 }

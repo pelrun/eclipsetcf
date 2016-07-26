@@ -43,6 +43,13 @@ public class ChannelTCP extends StreamChannel {
         ChannelTCP.ssl_context = ssl_context;
     }
 
+    /**
+     * Main constructor of ChannelTCP
+     * @param remote_peer Remote Peer to which we want to connect
+     * @param host Hostname or IP Address of the Remote Peer
+     * @param port Port of the Remote Peer
+     * @param ssl true if the socket needs to be an SSL socket, false otherwise
+     */
     public ChannelTCP(IPeer remote_peer, final String host, final int port, final boolean ssl) {
         super(remote_peer);
         socket = new Socket();
@@ -74,10 +81,23 @@ public class ChannelTCP extends StreamChannel {
         });
     }
 
+    /**
+     * Constructs a non-secured ChannelTCP, i.e: the socket underlying the ChannelTCP is non-SSL socket
+     * @param remote_peer Remote Peer to which we want to connect
+     * @param host Hostname or IP Address of the Remote Peer
+     * @param port Port of the Remote Peer
+     */
     public ChannelTCP(IPeer remote_peer, String host, int port) {
         this(remote_peer, host, port, false);
     }
 
+    /**
+     * Construct a non-secured ChannelTCP, i.e: the socket underlying the ChannelTCP is non-SSL socket.
+     * @param local_peer local peer
+     * @param remote_peer Remote Peer to which we want to connect
+     * @param socket socket for the underlying tcp connection
+     * @throws IOException
+     */
     public ChannelTCP(IPeer local_peer, IPeer remote_peer, Socket socket) throws IOException {
         super(local_peer, remote_peer);
         this.socket = socket;
@@ -116,6 +136,9 @@ public class ChannelTCP extends StreamChannel {
         socket.setPerformancePreferences(connection_time, latency, bandwidth);
     }
 
+    /**
+     * @param x exception object, or null if there was no exception creating the ChannelTCP object
+     */
     private void onSocketConnected(final Throwable x) {
         Protocol.invokeLater(new Runnable() {
             public void run() {

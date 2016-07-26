@@ -27,6 +27,10 @@ public class RemotePeer extends AbstractPeer {
 
     private long last_update_time;
 
+    /**
+     * Constructs a Remote Peer and initializes it with the given attributes
+     * @param attrs attributes map used to initialize the Peer Properties
+     */
     public RemotePeer(Map<String,String> attrs) {
         super(attrs);
         last_update_time = System.currentTimeMillis();

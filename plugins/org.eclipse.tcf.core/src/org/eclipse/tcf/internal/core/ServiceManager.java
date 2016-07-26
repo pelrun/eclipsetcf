@@ -22,6 +22,10 @@ import org.eclipse.tcf.protocol.IService;
 import org.eclipse.tcf.protocol.IServiceProvider;
 import org.eclipse.tcf.protocol.Protocol;
 
+/**
+ * ServiceManager class provides static methods used to handle ServiceProviders.
+ * These methods are used by the Protocol class and the LocatorService Class.
+ */
 public class ServiceManager {
 
     private static final Collection<IServiceProvider> providers = new ArrayList<IServiceProvider>();
@@ -49,6 +53,10 @@ public class ServiceManager {
         });
     }
 
+    /**
+     * Get the ServiceManager ID
+     * @return ServiceManagerID
+     */
     public static String getID() {
         // In current implementation ServiceManager is a singleton,
         // so its ID is same as agent ID.

@@ -22,46 +22,66 @@ import org.eclipse.tcf.services.ILocator;
 import org.eclipse.tcf.services.ILocator.LocatorListener;
 
 /**
- * Abstract implementation of IPeer interface.
- * Objects of this class are stored in Locator service peer table.
- * The class implements sending notification events to Locator listeners.
- * See TransientPeer for IPeer objects that are not stored in the Locator table.
+ * Abstract implementation of IPeer interface. Objects of this class are stored
+ * in Locator service peer table. The class implements sending notification
+ * events to Locator listeners. See TransientPeer for IPeer objects that are not
+ * stored in the Locator table.
  */
 public class AbstractPeer extends TransientPeer {
 
     private long last_heart_beat_time;
 
-    public AbstractPeer(Map<String,String> attrs) {
+    /**
+     * Constructs an AbstractPeer object using the given attributes, adds the
+     * peer to the LocatorService Peer Table and sends a "peerAdded" event to
+     * the TCF Channel
+     *
+     * @param attrs attributes maps with which to initialize the peer
+     */
+    public AbstractPeer(Map<String, String> attrs) {
         super(attrs);
         assert Protocol.isDispatchThread();
         String id = getID();
         assert id != null;
-        Map<String,IPeer> peers = LocatorService.getLocator().getPeers();
+        Map<String, IPeer> peers = LocatorService.getLocator().getPeers();
         if (peers.get(id) instanceof RemotePeer) {
-            ((RemotePeer)peers.get(id)).dispose();
+            ((RemotePeer) peers.get(id)).dispose();
         }
         assert peers.get(id) == null;
         peers.put(id, this);
         sendPeerAddedEvent();
     }
 
+    /**
+     * Removes the Peer from the Locator Service Peer table and sends a
+     * "peerRemoved" event to the TCF Channel
+     */
     public void dispose() {
         assert Protocol.isDispatchThread();
         String id = getID();
         assert id != null;
-        Map<String,IPeer> peers = LocatorService.getLocator().getPeers();
+        Map<String, IPeer> peers = LocatorService.getLocator().getPeers();
         assert peers.get(id) == this;
         peers.remove(id);
         sendPeerRemovedEvent();
     }
 
+    /**
+     * Method called whenever a channel is terminated
+     */
     void onChannelTerminated() {
         // A channel to this peer was terminated:
         // not delaying next heart beat helps client to recover much faster.
         last_heart_beat_time = 0;
     }
 
-    public void updateAttributes(Map<String,String> attrs) {
+    /**
+     * Updates Peer properties using the given attributes parameters
+     *
+     * @param attrs
+     *            attributes map with which to update the peer
+     */
+    public void updateAttributes(Map<String, String> attrs) {
         long time = System.currentTimeMillis();
         if (!attrs.equals(ro_attrs)) {
             assert attrs.get(ATTR_ID).equals(rw_attrs.get(ATTR_ID));
@@ -104,6 +124,9 @@ public class AbstractPeer extends TransientPeer {
         }
     }
 
+    /**
+     * Sends a "peerAdded" event to the TCF Channel
+     */
     private void sendPeerAddedEvent() {
         for (LocatorListener l : LocatorService.getListeners()) {
             try {
@@ -123,6 +146,9 @@ public class AbstractPeer extends TransientPeer {
         last_heart_beat_time = System.currentTimeMillis();
     }
 
+    /**
+     * Sends a "PeerRemoved" event to the TCF Channel
+     */
     private void sendPeerRemovedEvent() {
         for (LocatorListener l : LocatorService.getListeners()) {
             try {

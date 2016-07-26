@@ -133,6 +133,9 @@ public class Activator extends Plugin {
                 }
             }
         });
+        /*
+         * Starts the timer_queue and sets the event_queue
+         */
         Protocol.setEventQueue(queue);
         Protocol.invokeLater(new Runnable() {
             public void run() {
