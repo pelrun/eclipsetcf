@@ -17,7 +17,7 @@ package org.eclipse.tcf.protocol;
 public interface IServiceProvider {
 
     /**
-     * Get the local services available in the given channel 
+     * Get the local services available in the given channel
      * @param channel channel
      * @return an array of services
      */

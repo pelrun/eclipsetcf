@@ -177,7 +177,7 @@ public class LocatorService implements ILocator {
     }
 
     /**
-     * Represents a hostname/address item that is used when resolving IP addresses from hostnames. 
+     * Represents a hostname/address item that is used when resolving IP addresses from hostnames.
      * It contains a timestamp of the last time the resolution of hostname -> ip was done.
      * As well as if it the mapping was used in a DATA_RETENTION_PERIOD
      *
@@ -197,7 +197,7 @@ public class LocatorService implements ILocator {
      * Stores Hostname/IP addresses mappings that are used when resolving an IP Address from a hostname
      */
     private static final HashMap<String,AddressCacheItem> addr_cache = new HashMap<String,AddressCacheItem>();
-    
+
     /**
      * Used to request an inmediate prune and update of addr_cache mappings
      */
@@ -207,7 +207,7 @@ public class LocatorService implements ILocator {
      * Socket used to send/receive the packets to/from remote peers
      */
     private DatagramSocket socket;
-    
+
     /**
      * The timestamp of the last received packet from a Locator master.
      * If there is no remote locator master, meaning that this is the locator master, then the value is 0.
@@ -260,12 +260,12 @@ public class LocatorService implements ILocator {
                             AddressCacheItem a = i.next();
                             if (a.time_stamp + DATA_RETENTION_PERIOD * 10 < time) {
                                 /*
-                                 * Remove entries that have not been used in between sucessive runs of this method 
+                                 * Remove entries that have not been used in between sucessive runs of this method
                                  */
                                 if (a.used) {
                                     if (set == null) set = new HashSet<AddressCacheItem>();
                                     set.add(a);
-                                } 
+                                }
                                 else {
                                     i.remove();
                                 }
@@ -441,7 +441,7 @@ public class LocatorService implements ILocator {
     }
 
     /**
-     * LocatorService constructor used in {@code createLocalInstace} 
+     * LocatorService constructor used in {@code createLocalInstace}
      */
     public LocatorService() {
         try {
@@ -464,7 +464,6 @@ public class LocatorService implements ILocator {
                 socket = createSocket(true);
                 if (TRACE_DISCOVERY) {
                     LoggingUtil.trace("Became a slave agent (bound to port " + socket.getLocalPort() + ")");
-                    
                 }
             }
             input_thread.setName("TCF Locator Receiver");
@@ -523,7 +522,7 @@ public class LocatorService implements ILocator {
     }
 
     /**
-     * Creates an error report using the given TCF error code, and msg parameters 
+     * Creates an error report using the given TCF error code, and msg parameters
      * @param code the error code, from the Standard TCF error codes
      * @param msg an error message
      * @return return a map representation of the error report
@@ -538,11 +537,11 @@ public class LocatorService implements ILocator {
 
     /**
      * Handles all command messages received through the channel
-     *  
+     *
      * @param channel the channel through which the commands are received/sent
      * @param token handle associated with the command
      * @param name command name
-     * @param data command arguments in byte array format 
+     * @param data command arguments in byte array format
      */
     private void command(final AbstractChannel channel, final IToken token, String name, byte[] data) {
         try {
@@ -612,7 +611,7 @@ public class LocatorService implements ILocator {
      * If there's such an entry, it returns the address.
      * If there isn't such an entry it constructs an AddressCacheItem entry and adds it to the addr_cache.
      * Marks the given AddressCacheItem's used field as true.
-     * 
+     *
      * @param host Host in Hostname format
      * @return IP Address of the Host
      */
@@ -644,7 +643,7 @@ public class LocatorService implements ILocator {
     }
 
     /**
-     * Refreshes the Subnetworks lists for slaves 
+     * Refreshes the Subnetworks lists for slaves
      * @param nets Subnetwork lists
      */
     private void refresh_timer(HashSet<SubNet> nets) {
@@ -700,7 +699,7 @@ public class LocatorService implements ILocator {
     }
 
     /**
-     * Add a slaves with the given Address, port number and timestamp to the array of slaves, and return it 
+     * Add a slaves with the given Address, port number and timestamp to the array of slaves, and return it
      * @param addr IP Address of the slave
      * @param port Port of the slave
      * @param timestamp timestamp at which the last packet was received
@@ -758,7 +757,7 @@ public class LocatorService implements ILocator {
     }
 
     /**
-     * Finds all subnetworks, adds them to the {@code subnet} set and returns it. 
+     * Finds all subnetworks, adds them to the {@code subnet} set and returns it.
      * @return set of SubNets
      */
     private HashSet<SubNet> getSubNetList() {
@@ -820,7 +819,7 @@ public class LocatorService implements ILocator {
     }
 
     /**
-     * Finds and adds Subnetworks to the 
+     * Finds and adds Subnetworks to the
      * @param set
      * @throws Exception
      */
@@ -927,7 +926,7 @@ public class LocatorService implements ILocator {
     };
 
     /**
-     * Sends a Datagram packet of the given length to the Peer in the given subnet, with the given address and port 
+     * Sends a Datagram packet of the given length to the Peer in the given subnet, with the given address and port
      * @param subnet the subnet on which the the peer address is located
      * @param size the datagram packet size
      * @param addr the peer's IP address
@@ -1032,7 +1031,7 @@ public class LocatorService implements ILocator {
     }
 
     /**
-     * 
+     *
      * @param peer
      * @param addr
      * @param port
@@ -1084,11 +1083,11 @@ public class LocatorService implements ILocator {
     }
 
     /**
-     * Sends a packet to 
+     * Sends a packet to
      * @param addr IP address of the slave/peer
      * @param port port number of the slave/peer
      * @param sl slave to which the packet is going to be sent to
-     * @param time 
+     * @param time
      */
     private void sendAll(InetAddress addr, int port, Slave sl, long time) {
         for (SubNet subnet : subnets) subnet.send_all_ok = false;
@@ -1186,7 +1185,7 @@ public class LocatorService implements ILocator {
      * Handles packets received during the auto discovery.
      * It verifies the packet is indeed a TCF packet, and handles it depending on the auto-configuration command and responses codes e.g: CONF_PEER_INFO,
      * CONF_REQ_INFO, etc..
-     * 
+     *
      * @param p packet received
      */
     private void handleDatagramPacket(InputPacket p) {
@@ -1285,7 +1284,7 @@ public class LocatorService implements ILocator {
     }
 
     /**
-     * Handles a CONF_REQ_INFO packet received from the given slave, at the given time 
+     * Handles a CONF_REQ_INFO packet received from the given slave, at the given time
      * It sendsAll
      * @param p packet received
      * @param sl slave
@@ -1477,7 +1476,7 @@ public class LocatorService implements ILocator {
     /**
      * Convenience variant that takes a DatagramPacket for specifying
      * the target address and port.
-     * 
+     *
      * @param received false if the packet was sent, otherwise it was received
      * @param type a string specifying the type of packet, e.g., "CONF_PEER_INFO"
      * @param attrs a set of attributes relevant to the type of packet (typically a peer's attributes)

@@ -984,7 +984,7 @@ public abstract class AbstractChannel implements IChannel {
 
     /**
      * Send a command's progress response. Used for commands that can deliver partial results.
-     * @param token token associated with this command/response 
+     * @param token token associated with this command/response
      * @param results array of bytes containing the data of the message
      */
     public void sendProgress(IToken token, byte[] results) {
@@ -1207,7 +1207,7 @@ public abstract class AbstractChannel implements IChannel {
     }
 
     /**
-     * 
+     *
      * @throws IOException
      */
     private void sendCongestionLevel() throws IOException {
