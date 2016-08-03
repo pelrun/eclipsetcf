@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2015 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2016 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -81,6 +81,8 @@ public class TCFBreakpointsModel {
         ATTR_CONTEXT_QUERY = ITCFConstants.ID_TCF_DEBUG_MODEL + '.' + IBreakpoints.PROP_CONTEXT_QUERY,
         ATTR_LINE_OFFSET   = ITCFConstants.ID_TCF_DEBUG_MODEL + '.' + IBreakpoints.PROP_LINE_OFFSET,
         ATTR_SKIP_PROLOGUE = ITCFConstants.ID_TCF_DEBUG_MODEL + '.' + IBreakpoints.PROP_SKIP_PROLOGUE,
+        ATTR_CT_INP        = ITCFConstants.ID_TCF_DEBUG_MODEL + '.' + IBreakpoints.PROP_CT_INP,
+        ATTR_CT_OUT        = ITCFConstants.ID_TCF_DEBUG_MODEL + '.' + IBreakpoints.PROP_CT_OUT,
         ATTR_EVENT_TYPE    = "org.eclipse.cdt.debug.core.eventbreakpoint_event_id",
         ATTR_EVENT_ARGS    = "org.eclipse.cdt.debug.core.eventbreakpoint_event_arg",
         ATTR_TYPE          = "org.eclipse.cdt.debug.core.breakpointType",

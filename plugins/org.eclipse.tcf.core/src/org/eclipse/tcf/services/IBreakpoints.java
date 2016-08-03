@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2015 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2016 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -75,6 +75,20 @@ public interface IBreakpoints extends IService {
     static final String
         PROP_LINE_OFFSET = "LineOffset";          // Number - max number of lines breakpoint is allowed
                                                   // to be moved in case of inexact line info match
+
+    /**
+     * Breakpoints service can control cross trigger matrix - if the target hardware has one.
+     * If a breakpoint has cross trigger attributes, planting of the breakpoint enables routing of
+     * CrossTriggerInp signals to CrossTriggerOut signals. If CrossTriggerOut array includes
+     * CPU stop request, any CrossTriggerInp signal also stops software execution. In such case,
+     * breakpoint attributes like Condition or StopGroup have same meaning as for regular breakpoint.
+     * Values of cross trigger attributes are arrays of signal IDs. Signal ID can be either Number or String.
+     * Mapping of signal IDs to hardware depends on the target.
+     * @since 1.5
+     */
+    static final String
+        PROP_CT_INP = "CrossTriggerInp",          // Array - Cross trigger inputs
+        PROP_CT_OUT = "CrossTriggerOut";          // Array - Cross trigger outputs
 
     /**
      * @deprecated
@@ -165,6 +179,9 @@ public interface IBreakpoints extends IService {
     /** @since 1.3 */
     static final String
         CAPABILITY_SKIP_PROLOGUE = "SkipPrologue";      // Boolean
+    /** @since 1.5 */
+    static final String
+        CAPABILITY_CROSS_TRIGGER = "CrossTrigger";      // Boolean
 
     /**
      * @deprecated

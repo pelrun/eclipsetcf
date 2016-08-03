@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2015 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2016 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -200,6 +200,23 @@ public class TCFModelPresentation implements IDebugModelPresentation {
                     bf.append(attr_names[i + 1]);
                     bf.append(": ");
                     bf.append(s);
+                    bf.append(']');
+                }
+                String ct_inp = marker.getAttribute(TCFBreakpointsModel.ATTR_CT_INP, null);
+                String ct_out = marker.getAttribute(TCFBreakpointsModel.ATTR_CT_OUT, null);
+                if (ct_inp != null || ct_out != null) {
+                    bf.append("[cross trigger:");
+                    if (ct_inp != null) {
+                        if (ct_inp.startsWith("JSON:")) ct_inp = ct_inp.substring(5);
+                        bf.append(" in ");
+                        bf.append(ct_inp);
+                    }
+                    if (ct_out != null) {
+                        if (ct_out.startsWith("JSON:")) ct_out = ct_out.substring(5);
+                        if (ct_inp != null) bf.append(',');
+                        bf.append(" out ");
+                        bf.append(ct_out);
+                    }
                     bf.append(']');
                 }
                 if (bf.length() == 0) {
