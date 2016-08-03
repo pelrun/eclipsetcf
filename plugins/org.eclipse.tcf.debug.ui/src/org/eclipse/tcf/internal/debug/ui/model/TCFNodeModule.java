@@ -194,6 +194,8 @@ public class TCFNodeModule extends TCFNode implements IDetailsProvider {
             }
             bf.append('\n');
         }
+        String query = r.getContextQuery();
+        if (query != null) bf.append("Context query: ", SWT.BOLD).append(query).append('\n');
         bf.append("Flags: ", SWT.BOLD).append(getFlagsLabel(r.getFlags())).append('\n');
         return true;
     }
