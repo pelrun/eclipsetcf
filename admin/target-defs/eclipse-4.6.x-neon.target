@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?pde version="3.8"?><target name="Eclipse 4.6.x (Neon)" sequenceNumber="83">
+<?pde version="3.8"?><target name="Eclipse 4.6.x (Neon)" sequenceNumber="94">
 <locations>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
 <unit id="org.apache.log4j.source" version="1.2.15.v201012070815"/>
 <unit id="org.hamcrest.core" version="1.3.0.v201303031735"/>
 <unit id="org.apache.log4j" version="1.2.15.v201012070815"/>
-<unit id="org.hamcrest.library.source" version="1.3.0.v201305281000"/>
-<unit id="org.hamcrest.library" version="1.3.0.v201305281000"/>
-<unit id="org.eclipse.swtbot.ide.feature.group" version="2.3.0.201506081302"/>
-<unit id="org.eclipse.swtbot.eclipse.feature.group" version="2.3.0.201506081302"/>
-<unit id="org.eclipse.swtbot.feature.group" version="2.3.0.201506081302"/>
-<unit id="org.eclipse.swtbot.forms.feature.group" version="2.3.0.201506081302"/>
+<unit id="org.hamcrest.library.source" version="1.3.0.v201505072020"/>
+<unit id="org.hamcrest.library" version="1.3.0.v201505072020"/>
+<unit id="org.eclipse.swtbot.ide.feature.group" version="2.4.0.201604200752"/>
+<unit id="org.eclipse.swtbot.eclipse.feature.group" version="2.4.0.201604200752"/>
+<unit id="org.eclipse.swtbot.feature.group" version="2.4.0.201604200752"/>
+<unit id="org.eclipse.swtbot.forms.feature.group" version="2.4.0.201604200752"/>
 <unit id="org.hamcrest.core.source" version="1.3.0.v201303031735"/>
 <repository location="http://download.eclipse.org/technology/swtbot/releases/latest"/>
 </location>
@@ -23,18 +23,14 @@
 <repository location="http://archive.eclipse.org/tm/updates/rxtx"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.sdk.ide" version="4.6.0.I20160317-0200"/>
-<unit id="org.eclipse.test.feature.group" version="3.7.100.v20160315-2119"/>
-<repository location="http://download.eclipse.org/eclipse/updates/4.6milestones"/>
+<unit id="org.eclipse.sdk.ide" version="4.6.0.I20160606-1100"/>
+<unit id="org.eclipse.test.feature.group" version="3.7.100.v20160503-1715"/>
+<repository location="http://download.eclipse.org/eclipse/updates/4.6"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
 <unit id="org.eclipse.remote.feature.group" version="2.0.0.201507010000"/>
 <unit id="org.eclipse.remote.source.feature.group" version="2.0.0.201507010000"/>
 <repository location="http://download.eclipse.org/tools/ptp/builds/remote/2.0.0"/>
-</location>
-<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.tm.terminal.sdk.feature.feature.group" version="4.0.0.201506040610"/>
-<repository location="http://download.eclipse.org/tm/terminal/updates/4.0"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
 <unit id="com.google.gson" version="2.2.4.v201311231704"/>
@@ -44,19 +40,35 @@
 <repository location="http://download.eclipse.org/tools/orbit/downloads/drops/R20160520211859/repository"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.pde.feature.group" version="3.12.0.v20160128-2000"/>
-<unit id="org.eclipse.emf.sdk.feature.group" version="2.12.0.v20160201-0859"/>
-<unit id="org.eclipse.egit.feature.group" version="4.2.0.201601211800-r"/>
-<unit id="org.eclipse.jgit.feature.group" version="4.2.0.201601211800-r"/>
+<unit id="org.eclipse.pde.feature.group" version="3.12.0.v20160606-1100"/>
+<unit id="org.eclipse.emf.sdk.feature.group" version="2.12.0.v20160526-0356"/>
+<unit id="org.eclipse.egit.feature.group" version="4.4.0.201606070830-r"/>
+<unit id="org.eclipse.jgit.feature.group" version="4.4.0.201606070830-r"/>
 <repository location="http://download.eclipse.org/releases/neon"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.cdt.sdk.feature.group" version="9.0.0.201603221804"/>
-<repository location="http://download.eclipse.org/tools/cdt/builds/neon/milestones"/>
+<unit id="org.eclipse.cdt.sdk.feature.group" version="9.0.1.201607151550"/>
+<repository location="http://download.eclipse.org/tools/cdt/releases/9.0"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.launchbar.feature.group" version="2.0.0.201603160402"/>
-<repository location="http://download.eclipse.org/tools/cdt/launchbar/neon.m6"/>
+<unit id="org.eclipse.launchbar.feature.group" version="2.0.0.201606032238"/>
+<repository location="http://download.eclipse.org/tools/cdt/launchbar/neon.rc4"/>
+</location>
+<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
+<unit id="org.eclipse.tm.terminal.connector.ssh.sdk.feature.feature.group" version="4.1.0.201606052351"/>
+<unit id="org.eclipse.tm.terminal.connector.local.sdk.feature.feature.group" version="4.1.0.201606052351"/>
+<unit id="org.eclipse.tm.terminal.connector.telnet.sdk.feature.feature.group" version="4.1.0.201606052351"/>
+<unit id="org.eclipse.tm.terminal.control.sdk.feature.feature.group" version="4.1.0.201606052351"/>
+<unit id="org.eclipse.tm.terminal.sdk.feature.feature.group" version="4.1.0.201606052351"/>
+<unit id="org.eclipse.tm.terminal.view.sdk.feature.feature.group" version="4.1.0.201606052351"/>
+<unit id="org.eclipse.tm.terminal.connector.serial.sdk.feature.feature.group" version="4.1.0.201606052351"/>
+<repository location="http://download.eclipse.org/tm/terminal/updates/4.1milestones"/>
+</location>
+<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
+<unit id="org.eclipse.rse.terminals.source.feature.group" version="3.8.0.201603211627"/>
+<unit id="org.eclipse.rse.sdk.feature.group" version="3.7.1.201603211627"/>
+<unit id="org.eclipse.rse.terminals.feature.group" version="3.8.0.201603211627"/>
+<repository location="http://download.eclipse.org/tm/updates/4.1milestones"/>
 </location>
 </locations>
 </target>

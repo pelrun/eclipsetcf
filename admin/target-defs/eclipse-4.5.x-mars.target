@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?pde version="3.8"?><target name="Eclipse 4.5.x (Mars)" sequenceNumber="69">
+<?pde version="3.8"?><target name="Eclipse 4.5.x (Mars)" sequenceNumber="71">
 <locations>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
 <unit id="org.apache.log4j.source" version="1.2.15.v201012070815"/>
 <unit id="org.hamcrest.core" version="1.3.0.v201303031735"/>
 <unit id="org.apache.log4j" version="1.2.15.v201012070815"/>
-<unit id="org.hamcrest.library.source" version="1.3.0.v201305281000"/>
-<unit id="org.hamcrest.library" version="1.3.0.v201305281000"/>
-<unit id="org.eclipse.swtbot.ide.feature.group" version="2.3.0.201506081302"/>
-<unit id="org.eclipse.swtbot.eclipse.feature.group" version="2.3.0.201506081302"/>
-<unit id="org.eclipse.swtbot.feature.group" version="2.3.0.201506081302"/>
-<unit id="org.eclipse.swtbot.forms.feature.group" version="2.3.0.201506081302"/>
+<unit id="org.hamcrest.library.source" version="1.3.0.v201505072020"/>
+<unit id="org.hamcrest.library" version="1.3.0.v201505072020"/>
+<unit id="org.eclipse.swtbot.ide.feature.group" version="2.4.0.201604200752"/>
+<unit id="org.eclipse.swtbot.eclipse.feature.group" version="2.4.0.201604200752"/>
+<unit id="org.eclipse.swtbot.feature.group" version="2.4.0.201604200752"/>
+<unit id="org.eclipse.swtbot.forms.feature.group" version="2.4.0.201604200752"/>
 <unit id="org.hamcrest.core.source" version="1.3.0.v201303031735"/>
 <repository location="http://download.eclipse.org/technology/swtbot/releases/latest"/>
 </location>
@@ -32,13 +32,13 @@
 <repository location="http://archive.eclipse.org/tm/updates/rxtx"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.sdk.ide" version="4.5.0.I20150603-2000"/>
+<unit id="org.eclipse.sdk.ide" version="4.5.2.M20160212-1500"/>
 <unit id="org.eclipse.test.feature.group" version="3.7.0.v20150428-2048"/>
 <repository location="http://download.eclipse.org/eclipse/updates/4.5"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.pde.feature.group" version="3.11.0.v20150603-2000"/>
-<unit id="org.eclipse.emf.sdk.feature.group" version="2.11.0.v20150601-0402"/>
+<unit id="org.eclipse.pde.feature.group" version="3.11.2.v20160212-1500"/>
+<unit id="org.eclipse.emf.sdk.feature.group" version="2.11.2.v20160208-0841"/>
 <repository location="http://download.eclipse.org/releases/mars"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
