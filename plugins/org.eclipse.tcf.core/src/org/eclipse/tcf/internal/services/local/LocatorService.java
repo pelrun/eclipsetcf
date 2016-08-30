@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2013 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2016 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -38,6 +38,7 @@ import org.eclipse.tcf.internal.core.LoggingUtil;
 import org.eclipse.tcf.internal.core.RemotePeer;
 import org.eclipse.tcf.internal.core.ServiceManager;
 import org.eclipse.tcf.core.AbstractChannel;
+import org.eclipse.tcf.core.UserDefPeer;
 import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IErrorReport;
 import org.eclipse.tcf.protocol.IPeer;
@@ -1019,9 +1020,10 @@ public class LocatorService implements ILocator {
     }
 
     /**
-     * Sends a Peer Request to the given Address and Port  on all subnets
-     * @param addr IP Address of the Peer
-     * @param port Port number of the Peer
+     * Sends a Peer Request to the given address and port.
+     * If address is null, broadcast on all subnets.
+     * @param addr - IP address to send the request, or null
+     * @param port - IP port number to send the request
      */
     private void sendPeersRequest(InetAddress addr, int port) {
         out_buf[4] = CONF_REQ_INFO;
@@ -1031,12 +1033,14 @@ public class LocatorService implements ILocator {
     }
 
     /**
-     *
-     * @param peer
-     * @param addr
-     * @param port
+     * Send peer info to the given address and port.
+     * If address is null, broadcast on all subnets.
+     * @param peer - a peer info to send
+     * @param addr - IP address to send the info, or null
+     * @param port - IP port number to send the info
      */
     private void sendPeerInfo(IPeer peer, InetAddress addr, int port) {
+        if (peer instanceof UserDefPeer) return;
         Map<String,String> attrs = peer.getAttributes();
         InetAddress peer_addr = getInetAddress(attrs.get(IPeer.ATTR_IP_HOST));
         if (peer_addr == null) return;
@@ -1183,7 +1187,8 @@ public class LocatorService implements ILocator {
 
     /**
      * Handles packets received during the auto discovery.
-     * It verifies the packet is indeed a TCF packet, and handles it depending on the auto-configuration command and responses codes e.g: CONF_PEER_INFO,
+     * It verifies the packet is indeed a TCF packet, and handles it depending on the auto-configuration command
+     * and responses codes e.g: CONF_PEER_INFO,
      * CONF_REQ_INFO, etc..
      *
      * @param p packet received

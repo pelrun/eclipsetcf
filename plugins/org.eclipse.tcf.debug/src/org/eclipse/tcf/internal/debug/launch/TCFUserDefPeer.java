@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2011 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2016 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -22,7 +22,7 @@ import java.util.Map;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.tcf.internal.debug.Activator;
-import org.eclipse.tcf.core.AbstractPeer;
+import org.eclipse.tcf.core.UserDefPeer;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 
@@ -32,7 +32,7 @@ import org.eclipse.tcf.protocol.Protocol;
  * they exist until explicitly deleted by user.
  * Eclipse plug-in state storage is used to keep the configuration data.
  */
-public class TCFUserDefPeer extends AbstractPeer {
+public class TCFUserDefPeer extends UserDefPeer {
 
     public TCFUserDefPeer(Map<String, String> attrs) {
         super(attrs);
