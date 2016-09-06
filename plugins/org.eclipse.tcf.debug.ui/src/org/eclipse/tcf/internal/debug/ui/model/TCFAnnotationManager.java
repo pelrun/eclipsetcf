@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2015 Wind River Systems, Inc. and others.
+ * Copyright (c) 2008, 2016 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -43,7 +43,6 @@ import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.graphics.Device;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.tcf.debug.ui.ITCFAnnotationProvider;
 import org.eclipse.tcf.internal.debug.launch.TCFSourceLookupDirector;
@@ -91,7 +90,7 @@ public class TCFAnnotationManager {
         final String bp_id;
         final BigInteger addr;
         final ILineNumbers.CodeArea area;
-        final Image image;
+        final String image;
         final String text;
         final String type;
         final int hash_code;
@@ -101,7 +100,7 @@ public class TCFAnnotationManager {
         IBreakpoint breakpoint;
 
         TCFAnnotation(String ctx, String bp_id, BigInteger addr,
-                ILineNumbers.CodeArea area, Image image, String text, String type) {
+                ILineNumbers.CodeArea area, String image, String text, String type) {
             super(type, false, text);
             this.ctx = ctx;
             this.bp_id = bp_id;
@@ -111,10 +110,6 @@ public class TCFAnnotationManager {
             this.text = text;
             this.type = type;
             hash_code = image.hashCode() + text.hashCode() + type.hashCode();
-        }
-
-        protected Image getImage() {
-            return image;
         }
 
         void dispose() {
@@ -468,7 +463,7 @@ public class TCFAnnotationManager {
         ILineNumbers.CodeArea area = getBreakpointCodeArea(launch, id);
         if (area != null) {
             TCFAnnotation a = new TCFAnnotation(ctx, id, null, area,
-                    ImageCache.getImage(ImageCache.IMG_BREAKPOINT_ERROR),
+                    ImageCache.IMG_BREAKPOINT_ERROR,
                     "Cannot plant breakpoint: " + error,
                     TYPE_BP_INSTANCE);
             set.add(a);
@@ -719,7 +714,7 @@ public class TCFAnnotationManager {
                                     if (addr != null) location = " at 0x" + addr.toString(16);
                                     if (org_area == null) org_area = area;
                                     TCFAnnotation a = new TCFAnnotation(memory.id, id, addr, org_area,
-                                            ImageCache.getImage(ImageCache.IMG_BREAKPOINT_ERROR),
+                                            ImageCache.IMG_BREAKPOINT_ERROR,
                                             bp_name + " failed to plant" + location + ": " + error,
                                             TYPE_BP_INSTANCE);
                                     set.add(a);
@@ -727,14 +722,14 @@ public class TCFAnnotationManager {
                                 else if (area != null && addr != null) {
                                     String location = " planted at 0x" + addr.toString(16) + ", line " + area.start_line;
                                     TCFAnnotation a = new TCFAnnotation(memory.id, id, addr, area,
-                                            ImageCache.getImage(ImageCache.IMG_BREAKPOINT_INSTALLED),
+                                            ImageCache.IMG_BREAKPOINT_INSTALLED,
                                             bp_name + location,
                                             TYPE_BP_INSTANCE);
                                     a.breakpoint = bp;
                                     set.add(a);
                                     if (isLineAdjusted(area, org_area)) {
                                         TCFAnnotation b = new TCFAnnotation(memory.id, id, null, org_area,
-                                                ImageCache.getImage(ImageCache.IMG_BREAKPOINT_WARNING),
+                                                ImageCache.IMG_BREAKPOINT_WARNING,
                                                 "Breakpoint location is adjusted: " + location,
                                                 TYPE_BP_INSTANCE);
                                         set.add(b);
@@ -743,7 +738,7 @@ public class TCFAnnotationManager {
                                 error = (String)m.get(IBreakpoints.INSTANCE_CONDITION_ERROR);
                                 if (error != null) {
                                     TCFAnnotation a = new TCFAnnotation(memory.id, id, addr, org_area,
-                                            ImageCache.getImage(ImageCache.IMG_BREAKPOINT_ERROR),
+                                            ImageCache.IMG_BREAKPOINT_ERROR,
                                             bp_name + " failed to evaluate condition: " + error,
                                             TYPE_BP_INSTANCE);
                                     set.add(a);
@@ -773,13 +768,13 @@ public class TCFAnnotationManager {
                         addr_str += ", line: " + line_data.area.start_line;
                         if (frame.getFrameNo() == 0) {
                             a = new TCFAnnotation(line_data.context_id, null, null, line_data.area,
-                                    DebugUITools.getImage(IDebugUIConstants.IMG_OBJS_INSTRUCTION_POINTER_TOP),
+                                    ImageCache.IMG_INSTRUCTION_POINTER_TOP,
                                     "Current Instruction Pointer" + addr_str,
                                     TYPE_TOP_FRAME);
                         }
                         else {
                             a = new TCFAnnotation(line_data.context_id, null, null, line_data.area,
-                                    DebugUITools.getImage(IDebugUIConstants.IMG_OBJS_INSTRUCTION_POINTER),
+                                    ImageCache.IMG_INSTRUCTION_POINTER,
                                     "Call Stack Frame" + addr_str,
                                     TYPE_STACK_FRAME);
                         }
@@ -792,7 +787,7 @@ public class TCFAnnotationManager {
                     TCFSourceRef line_data = line_cache.getData();
                     if (line_data != null && line_data.area != null) {
                         TCFAnnotation a = new TCFAnnotation(line_data.context_id, null, null, line_data.area,
-                                DebugUITools.getImage(IDebugUIConstants.IMG_OBJS_INSTRUCTION_POINTER),
+                                ImageCache.IMG_INSTRUCTION_POINTER,
                                 "Last Instruction Pointer position",
                                 TYPE_STACK_FRAME);
                         set.add(a);

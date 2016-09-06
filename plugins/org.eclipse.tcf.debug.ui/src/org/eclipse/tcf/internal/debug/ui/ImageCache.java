@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2014 Wind River Systems, Inc. and others.
+ * Copyright (c) 2008, 2016 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -18,6 +18,8 @@ import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.debug.ui.DebugUITools;
+import org.eclipse.debug.ui.IDebugUIConstants;
 import org.eclipse.jface.resource.CompositeImageDescriptor;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.graphics.Image;
@@ -27,6 +29,9 @@ import org.eclipse.ui.PlatformUI;
 import org.osgi.framework.Bundle;
 
 public class ImageCache {
+
+    /* Image ID prefix to indicate common Debug UI images */
+    private static final String DebugUI = "DebugUI:";
 
     public static final String
         IMG_TCF = "icons/tcf",
@@ -77,7 +82,10 @@ public class ImageCache {
         IMG_BREAKPOINT_OVERLAY = "icons/brkp_ovr",
 
         IMG_FOLDER = "icons/full/obj16/fldr_obj",
-        IMG_FILE = "icons/full/obj16/file_obj";
+        IMG_FILE = "icons/full/obj16/file_obj",
+
+        IMG_INSTRUCTION_POINTER_TOP = DebugUI + IDebugUIConstants.IMG_OBJS_INSTRUCTION_POINTER_TOP,
+        IMG_INSTRUCTION_POINTER = DebugUI + IDebugUIConstants.IMG_OBJS_INSTRUCTION_POINTER;
 
     private static final Map<String,ImageDescriptor> desc_cache = new HashMap<String,ImageDescriptor>();
     private static final Map<ImageDescriptor,Image> image_cache = new HashMap<ImageDescriptor,Image>();
@@ -88,36 +96,41 @@ public class ImageCache {
         if (name == null) return null;
         ImageDescriptor descriptor = desc_cache.get(name);
         if (descriptor == null) {
-            String[] ext = { "png", "gif" };
-            for (String e : ext) {
-                IPath path = new Path(name).removeFileExtension().addFileExtension(e);
-                Bundle bundle = Platform.getBundle(Activator.PLUGIN_ID);
-                if (bundle != null) {
-                    URL url = FileLocator.find(bundle, path, null);
-                    if (url != null) {
-                        descriptor = ImageDescriptor.createFromURL(url);
-                        if (descriptor != null) break;
-                    }
-                }
-                bundle = Platform.getBundle("org.eclipse.debug.ui");
-                if (bundle != null) {
-                    URL url = FileLocator.find(bundle, path, null);
-                    if (url != null) {
-                        descriptor = ImageDescriptor.createFromURL(url);
-                        if (descriptor != null) break;
-                    }
-                }
-                bundle = Platform.getBundle("org.eclipse.cdt.debug.ui");
-                if (bundle != null) {
-                    URL url = FileLocator.find(bundle, path, null);
-                    if (url != null) {
-                        descriptor = ImageDescriptor.createFromURL(url);
-                        if (descriptor != null) break;
-                    }
-                }
+            if (name.startsWith(DebugUI)) {
+                descriptor = DebugUITools.getImageDescriptor(name.substring(DebugUI.length()));
             }
-            if (descriptor == null) {
-                descriptor = PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(name);
+            else {
+                String[] ext = { "png", "gif" };
+                for (String e : ext) {
+                    IPath path = new Path(name).removeFileExtension().addFileExtension(e);
+                    Bundle bundle = Platform.getBundle(Activator.PLUGIN_ID);
+                    if (bundle != null) {
+                        URL url = FileLocator.find(bundle, path, null);
+                        if (url != null) {
+                            descriptor = ImageDescriptor.createFromURL(url);
+                            if (descriptor != null) break;
+                        }
+                    }
+                    bundle = Platform.getBundle("org.eclipse.debug.ui");
+                    if (bundle != null) {
+                        URL url = FileLocator.find(bundle, path, null);
+                        if (url != null) {
+                            descriptor = ImageDescriptor.createFromURL(url);
+                            if (descriptor != null) break;
+                        }
+                    }
+                    bundle = Platform.getBundle("org.eclipse.cdt.debug.ui");
+                    if (bundle != null) {
+                        URL url = FileLocator.find(bundle, path, null);
+                        if (url != null) {
+                            descriptor = ImageDescriptor.createFromURL(url);
+                            if (descriptor != null) break;
+                        }
+                    }
+                }
+                if (descriptor == null) {
+                    descriptor = PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(name);
+                }
             }
             if (descriptor == null) {
                 descriptor = ImageDescriptor.getMissingImageDescriptor();
