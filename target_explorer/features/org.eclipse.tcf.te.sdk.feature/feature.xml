@@ -2,7 +2,7 @@
 <feature
       id="org.eclipse.tcf.te.sdk.feature"
       label="%featureName"
-      version="1.4.0.qualifier"
+      version="1.5.0.qualifier"
       provider-name="%providerName"
       license-feature="org.eclipse.license"
       license-feature-version="1.0.1.qualifier">
@@ -25,7 +25,7 @@
 
    <requires>
       <import plugin="com.google.gson.source" version="2.2.4" match="greaterOrEqual"/>
-      <import feature="org.eclipse.tcf.te.feature" version="1.4.0" match="greaterOrEqual"/>
+      <import feature="org.eclipse.tcf.te.feature" version="1.5.0" match="greaterOrEqual"/>
       <import feature="org.eclipse.tm.terminal.sdk.feature" version="4.0.0" match="greaterOrEqual"/>
    </requires>
 

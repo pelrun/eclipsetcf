@@ -18,8 +18,8 @@ if year > 2016:
 
 copyright = span  # @ReservedAssignment
 
-version = '1.4'
-release = '1.4'
+version = '1.5'
+release = '1.5'
 
 exclude_patterns = ['_build', 'globals.rst']
 
