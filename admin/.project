@@ -8,4 +8,36 @@
 	</buildSpec>
 	<natures>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>CONTRIBUTING</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/CONTRIBUTING</locationURI>
+		</link>
+		<link>
+			<name>CodeStyle.xml</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/CodeStyle.xml</locationURI>
+		</link>
+		<link>
+			<name>master.gitignore</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/.gitignore</locationURI>
+		</link>
+		<link>
+			<name>master.mailmap</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/.mailmap</locationURI>
+		</link>
+		<link>
+			<name>pom.xml</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/pom.xml</locationURI>
+		</link>
+		<link>
+			<name>readme.txt</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/readme.txt</locationURI>
+		</link>
+	</linkedResources>
 </projectDescription>

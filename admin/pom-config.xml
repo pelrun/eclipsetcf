@@ -53,7 +53,7 @@
 		<tycho.scmUrl>scm:git:git://git.eclipse.org/gitroot/tcf/org.eclipse.tcf.git</tycho.scmUrl>
 
 		<!-- P2 repository URL's -->
-		<!-- Default: Eclipse 3.8.x (Juno), CDT 8.3.0 (Kepler), TM 4.0 (Mars) -->
+		<!-- Default: Eclipse 3.8.x (Juno), CDT 8.3.0 (Kepler), TM 4.0 + Remote 2.0 (Mars) -->
 		<platform-site>http://download.eclipse.org/eclipse/updates/3.8</platform-site>
 		<license-site>http://download.eclipse.org/cbi/updates/license</license-site>
         <cdt-site>http://download.eclipse.org/tools/cdt/releases/kepler</cdt-site>
@@ -172,9 +172,31 @@
 			
 			<properties>
 		        <platform-site>http://download.eclipse.org/eclipse/updates/4.6</platform-site>
-                <cdt-site>http://download.eclipse.org/tools/cdt/releases/9.0</cdt-site>
+                <cdt-site>http://download.eclipse.org/tools/cdt/builds/neon/milestones</cdt-site>
                 <cdt-launchbar-site>http://download.eclipse.org/tools/cdt/launchbar/neon.rc4</cdt-launchbar-site>
 				<terminal-site>http://download.eclipse.org/tm/terminal/updates/4.1</terminal-site>
+				<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20160520211859/repository</orbit-site>
+            </properties>
+
+			<repositories>
+		        <repository>
+		            <id>cdt-launchbar</id>
+		            <url>${cdt-launchbar-site}</url>
+		            <layout>p2</layout>
+		        </repository>	
+			</repositories>
+		</profile>
+
+	    <profile>
+		    <!-- Eclipse 4.7 (Oxygen), CDT 9.1.0 (Neon) -->
+		    <id>oxygen</id>
+			
+			<properties>
+		        <platform-site>http://download.eclipse.org/eclipse/updates/4.7milestones</platform-site>
+                <cdt-site>http://download.eclipse.org/tools/cdt/builds/neon/milestones</cdt-site>
+                <cdt-launchbar-site>http://download.eclipse.org/tools/cdt/launchbar/neon.rc4</cdt-launchbar-site>
+                <ptp-remote-site>http://download.eclipse.org/tools/ptp/builds/remote/oxygen/milestones</ptp-remote-site>
+				<terminal-site>http://download.eclipse.org/tm/terminal/updates/4.2milestones</terminal-site>
 				<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20160520211859/repository</orbit-site>
             </properties>
 
