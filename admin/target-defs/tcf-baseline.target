@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?pde version="3.8"?><target name="tcf-baseline" sequenceNumber="1">
+<locations>
+<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
+<unit id="org.eclipse.tcf" version="0.0.0"/>
+<unit id="org.eclipse.tcf.cdt.ui" version="0.0.0"/>
+<unit id="org.eclipse.tcf.core" version="0.0.0"/>
+<unit id="org.eclipse.tcf.debug" version="0.0.0"/>
+<unit id="org.eclipse.tcf.debug.ui" version="0.0.0"/>
+<unit id="org.eclipse.tcf.rse" version="0.0.0"/>
+<repository location="http://download.eclipse.org/tools/tcf/releases/1.4"/>
+</location>
+<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
+<repository location="http://download.eclipse.org/releases/neon"/>
+</location>
+<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
+<repository location="http://download.eclipse.org/tools/cdt/launchbar/neon.rc4/"/>
+</location>
+</locations>
+</target>
