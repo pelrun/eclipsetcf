@@ -258,6 +258,14 @@ public class ProcessLauncher extends PlatformObject implements IProcessLauncher 
 	@Override
 	public void cancel() {
 		if (activeToken != null && (callback == null || !callback.isDone())) {
+			/*
+			* Bug 502218 - Target Explorer: AssertionFailedException when ProcessLauncher dispose.
+			* Mark callback done, and set status as status.Cancel, when ProcesLauncher.cancel() called.
+			*/
+			if (callback != null) {
+				callback.done(this, Status.CANCEL_STATUS);
+			}
+
 			final IToken token = activeToken;
 			activeToken = null;
 	    	Protocol.invokeLater(new Runnable() {
