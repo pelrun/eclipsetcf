@@ -49,6 +49,7 @@ import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
@@ -58,6 +59,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
@@ -108,6 +110,8 @@ public class MemoryMapWidget {
         "Context query", //$NON-NLS-1$
     };
 
+    private final Display display;
+
     private TCFModel model;
     private IChannel channel;
     private TCFNode selection;
@@ -115,7 +119,6 @@ public class MemoryMapWidget {
     private Tree map_table;
     private TreeViewer table_viewer;
     private Runnable update_map_buttons;
-    private final IMemoryMap.MemoryMapListener listener = new MemoryMapListener();
     private final Map<String, ArrayList<IMemoryMap.MemoryRegion>> org_maps = new HashMap<String, ArrayList<IMemoryMap.MemoryRegion>>();
     private final Map<String, ArrayList<IMemoryMap.MemoryRegion>> cur_maps = new HashMap<String, ArrayList<IMemoryMap.MemoryRegion>>();
     private final ArrayList<IMemoryMap.MemoryRegion> target_map = new ArrayList<IMemoryMap.MemoryRegion>();
@@ -127,6 +130,8 @@ public class MemoryMapWidget {
     private String selected_mem_map_id;
     private final ArrayList<ModifyListener> modify_listeners = new ArrayList<ModifyListener>();
     private Color color_error;
+    private boolean editing;
+    private boolean changed;
     private boolean disposed;
 
     private final ITreeContentProvider content_provider = new ITreeContentProvider() {
@@ -202,6 +207,7 @@ public class MemoryMapWidget {
         }
     };
 
+    private final MapLabelProvider label_provider = new MapLabelProvider();
     private class MapLabelProvider extends LabelProvider implements ITableLabelProvider, ITableColorProvider, ITableFontProvider {
 
         public Image getColumnImage(Object element, int column) {
@@ -269,9 +275,9 @@ public class MemoryMapWidget {
             if (r.getProperties().get(IMemoryMap.PROP_ID) != null) {
                 String fnm = r.getFileName();
                 if (fnm != null && loaded_files.contains(fnm)) {
-                    return map_table.getDisplay().getSystemColor(SWT.COLOR_DARK_GREEN);
+                    return display.getSystemColor(SWT.COLOR_DARK_GREEN);
                 }
-                return map_table.getDisplay().getSystemColor(SWT.COLOR_DARK_BLUE);
+                return display.getSystemColor(SWT.COLOR_DARK_BLUE);
             }
 
             String file_info = getSymbolFileInfo(r);
@@ -305,41 +311,34 @@ public class MemoryMapWidget {
         }
     }
 
-    private class MemoryMapListener implements IMemoryMap.MemoryMapListener {
-
+    private final IMemoryMap.MemoryMapListener listener = new IMemoryMap.MemoryMapListener() {
         @Override
-        public void changed(String context_id) {
-            // If the widget is already disposed but the listener is still
-            // invoked,
-            // remove the listener itself from the memory map service.
-            if (disposed) {
-                if (channel != null) {
-                    IMemoryMap svc = channel.getRemoteService(IMemoryMap.class);
-                    if (svc != null) svc.removeListener(this);
+        public void changed(final String context_id) {
+            asyncExec(new Runnable() {
+                @Override
+                public void run() {
+                    if (disposed) return;
+                    if (mem_ctx == null) return;
+                    if (mem_ctx.getID() == null) return;
+                    if (!mem_ctx.getID().equals(context_id)) return;
+                    if (editing) {
+                        changed = true;
+                    }
+                    else if (cfg != null) {
+                        loadData(cfg);
+                    }
                 }
-                return;
-            }
-
-            if (mem_ctx != null && mem_ctx.getID() != null && mem_ctx.getID().equals(context_id)) {
-                if (cfg != null && PlatformUI.getWorkbench().getDisplay() != null && !PlatformUI.getWorkbench().getDisplay().isDisposed()) {
-                    final ILaunchConfiguration lc = cfg;
-                    PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (!disposed) loadData(lc);
-                        }
-                    });
-                }
-            }
+            });
         }
-    }
+    };
 
     public MemoryMapWidget(Composite composite, TCFNode node) {
+        display = composite.getDisplay();
         setTCFNode(node);
         createContextText(composite);
         createMemoryMapTable(composite);
 
-        color_error = new Color(composite.getDisplay(), ColorCache.rgb_error);
+        color_error = new Color(display, ColorCache.rgb_error);
     }
 
     /**
@@ -356,34 +355,28 @@ public class MemoryMapWidget {
 
         // Remove the memory map listener
         if (channel != null) {
-            // Asynchronous execution. Make a copy of the current channel
-            // reference.
-            final IChannel c = channel;
-            Protocol.invokeLater(new Runnable() {
+            Protocol.invokeAndWait(new Runnable() {
                 @Override
                 public void run() {
-                    IMemoryMap svc = c.getRemoteService(IMemoryMap.class);
+                    IMemoryMap svc = channel.getRemoteService(IMemoryMap.class);
                     if (svc != null) svc.removeListener(listener);
                 }
             });
         }
+        model = null;
+        channel = null;
+        selection = null;
     }
 
     public boolean setTCFNode(TCFNode node) {
-        if (node == null && selection == null || node != null && node.equals(selection)) {
-            return false;
-        }
+        if (node == selection) return false;
 
-        // Remove the memory map listener from the current channel
-        // before setting the variable to the new channel
-        if (channel != null && channel.getState() == IChannel.STATE_OPEN) {
-            // Asynchronous execution. Make a copy of the current channel
-            // reference.
-            final IChannel c = channel;
-            Protocol.invokeLater(new Runnable() {
+        // Remove the memory map listener
+        if (channel != null) {
+            Protocol.invokeAndWait(new Runnable() {
                 @Override
                 public void run() {
-                    IMemoryMap svc = c.getRemoteService(IMemoryMap.class);
+                    IMemoryMap svc = channel.getRemoteService(IMemoryMap.class);
                     if (svc != null) svc.removeListener(listener);
                 }
             });
@@ -395,14 +388,11 @@ public class MemoryMapWidget {
             selection = node;
 
             // Register the memory map listener
-            if (channel != null && channel.getState() == IChannel.STATE_OPEN) {
-                // Asynchronous execution. Make a copy of the current channel
-                // reference.
-                final IChannel c = channel;
-                Protocol.invokeLater(new Runnable() {
+            if (channel != null) {
+                Protocol.invokeAndWait(new Runnable() {
                     @Override
                     public void run() {
-                        IMemoryMap svc = c.getRemoteService(IMemoryMap.class);
+                        IMemoryMap svc = channel.getRemoteService(IMemoryMap.class);
                         if (svc != null) svc.addListener(listener);
                     }
                 });
@@ -469,9 +459,15 @@ public class MemoryMapWidget {
         map_table.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetDefaultSelected(SelectionEvent e) {
-                IMemoryMap.MemoryRegion r = (IMemoryMap.MemoryRegion)((IStructuredSelection)table_viewer.getSelection()).getFirstElement();
+                final IMemoryMap.MemoryRegion r = (IMemoryMap.MemoryRegion)((IStructuredSelection)table_viewer.getSelection()).getFirstElement();
                 if (r == null) return;
-                editRegion(r);
+                // Async exec is used to workaround exception in jface
+                asyncExec(new Runnable() {
+                    @Override
+                    public void run() {
+                        editRegion(r);
+                    }
+                });
             }
 
             @Override
@@ -484,7 +480,7 @@ public class MemoryMapWidget {
         table_viewer.setUseHashlookup(true);
         table_viewer.setColumnProperties(column_names);
         table_viewer.setContentProvider(content_provider);
-        table_viewer.setLabelProvider(new MapLabelProvider());
+        table_viewer.setLabelProvider(label_provider);
 
         map_table.pack();
 
@@ -590,13 +586,13 @@ public class MemoryMapWidget {
                     if (item != null && item.getData("_TOOLTIP") instanceof String) { //$NON-NLS-1$
                         if (tip != null && !tip.isDisposed()) tip.dispose();
                         tip = new Shell(table.getShell(), SWT.ON_TOP | SWT.NO_FOCUS | SWT.TOOL);
-                        tip.setBackground(table.getDisplay().getSystemColor(SWT.COLOR_INFO_BACKGROUND));
+                        tip.setBackground(display.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
                         FillLayout layout = new FillLayout();
                         layout.marginWidth = 2;
                         tip.setLayout(layout);
                         label = new Label(tip, SWT.NONE);
-                        label.setForeground(table.getDisplay().getSystemColor(SWT.COLOR_INFO_FOREGROUND));
-                        label.setBackground(table.getDisplay().getSystemColor(SWT.COLOR_INFO_BACKGROUND));
+                        label.setForeground(display.getSystemColor(SWT.COLOR_INFO_FOREGROUND));
+                        label.setBackground(display.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
                         label.setData("_TABLEITEM", item); //$NON-NLS-1$
                         label.setText((String) item.getData("_TOOLTIP")); //$NON-NLS-1$
                         label.addListener(SWT.MouseExit, labelListener);
@@ -742,22 +738,32 @@ public class MemoryMapWidget {
     }
 
     private void editRegion(IMemoryMap.MemoryRegion r) {
-        String id = ctx_text.getText();
-        if (id == null || id.length() == 0) return;
-        Map<String, Object> props = r.getProperties();
-        boolean enable_editing = props.get(IMemoryMap.PROP_ID) != null;
-        if (enable_editing) props = new HashMap<String, Object>(props);
-        Image image = ImageCache.getImage(ImageCache.IMG_MEMORY_MAP);
-        if (new MemoryMapItemDialog(map_table.getShell(), image, props, enable_editing).open() == Window.OK && enable_editing) {
-            ArrayList<IMemoryMap.MemoryRegion> lst = cur_maps.get(id);
-            if (lst != null) {
-                for (int n = 0; n < lst.size(); n++) {
-                    if (lst.get(n) == r) {
-                        lst.set(n, new TCFMemoryRegion(props));
-                        table_viewer.refresh();
-                        notifyModifyListeners();
+        try {
+            editing = true;
+            String id = ctx_text.getText();
+            if (id == null || id.length() == 0) return;
+            Map<String, Object> props = r.getProperties();
+            boolean enable_editing = props.get(IMemoryMap.PROP_ID) != null;
+            if (enable_editing) props = new HashMap<String, Object>(props);
+            Image image = ImageCache.getImage(ImageCache.IMG_MEMORY_MAP);
+            if (new MemoryMapItemDialog(map_table.getShell(), image, props, enable_editing).open() == Window.OK && enable_editing) {
+                ArrayList<IMemoryMap.MemoryRegion> lst = cur_maps.get(id);
+                if (lst != null) {
+                    for (int n = 0; n < lst.size(); n++) {
+                        if (lst.get(n) == r) {
+                            lst.set(n, new TCFMemoryRegion(props));
+                            table_viewer.refresh();
+                            notifyModifyListeners();
+                        }
                     }
                 }
+            }
+        }
+        finally {
+            editing = false;
+            if (changed) {
+                loadData(cfg);
+                changed = false;
             }
         }
     }
@@ -914,9 +920,8 @@ public class MemoryMapWidget {
             }.get();
         }
         catch (Exception x) {
-            if (channel.getState() != IChannel.STATE_OPEN) return null;
-            // Don't log error. This is expected if the selected node has no
-            // containing memory context
+            // if (channel.getState() != IChannel.STATE_OPEN) return null;
+            // Don't log error. This is expected if the selected node has no containing memory context
             // Activator.log("Cannot get selected memory node", x);
             return null;
         }
@@ -1164,6 +1169,13 @@ public class MemoryMapWidget {
     private void notifyModifyListeners() {
         for (ModifyListener l : modify_listeners) {
             l.modifyText(null);
+        }
+    }
+
+    private void asyncExec(Runnable r) {
+        synchronized (Device.class) {
+            if (display.isDisposed()) return;
+            display.asyncExec(r);
         }
     }
 }
