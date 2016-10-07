@@ -18,6 +18,7 @@ import java.util.Map;
  * they exist until explicitly deleted by user.
  *
  * User defined peers info is not broadcasted over TCF discovery protocol.
+ * @since 1.5
  */
 public class UserDefPeer extends AbstractPeer {
 
