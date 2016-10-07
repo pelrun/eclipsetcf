@@ -331,4 +331,19 @@ public class TCFConnection implements
 		}
 		return TCFFileStore.toURI(this, path.toString());
 	}
+
+	@Override
+	public String getPassphrase() {
+		return null;
+	}
+
+	@Override
+	public String getPassword() {
+		return null;
+	}
+
+	@Override
+	public boolean usePassword() {
+		return false;
+	}
 }
