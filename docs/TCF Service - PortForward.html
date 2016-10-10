@@ -1,0 +1,268 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html;
+      charset=windows-1252">
+    <title>Target Communication Framework Services - PortForward</title>
+  </head>
+  <body lang="EN-US">
+    <h1>Target Communication Framework Services - PortForward</h1>
+    <ul>
+      <li><a href="#VersionHistory">Version History</a> </li>
+      <li><a href="#Overview">Overview</a> </li>
+      <li><a href="#Cmds">Commands</a>
+        <ul>
+          <li><a href="#CmdGetConfig">getConfig</a> </li>
+          <li><a href="#CmdList">list</a></li>
+          <li><a href="#cmdGetCapabilities">getCapabilities</a><br>
+          </li>
+          <li><a href="#CmdCreate">create</a> </li>
+          <li><a href="#CmdDelete">delete</a></li>
+        </ul>
+      </li>
+      <li><a href="#Events">Events</a> </li>
+    </ul>
+    <h1>PortForward Service</h1>
+    <h2><a name="VersionHistory">Version History</a></h2>
+    <table border="1" cellpadding="8" height="124" width="298">
+      <tbody>
+        <tr>
+          <th>Version </th>
+          <th>Date </th>
+          <th>Change<br>
+          </th>
+        </tr>
+        <tr>
+          <td>0.1 </td>
+          <td>2016-07-10 </td>
+          <td>Initial contribution </td>
+        </tr>
+      </tbody>
+    </table>
+    <h2><a name="Overview">Overview</a></h2>
+    <p>PortForward service is an interface to provide ability to connect
+      a TCF stream to a device port (TCP port, UDP port, serial line...)<br>
+    </p>
+    <p>The service supports: </p>
+    <ul>
+      <li> Ability to create and delete port configurations<br>
+      </li>
+      <li>Ability to connect to or disconnect from previously created
+        GDB Remote connections.</li>
+      <li>Ability to list created ports configuration and display
+        details of those ports configuration<br>
+      </li>
+    </ul>
+    <p>When a PortForward creation command is receive, the connection is
+      established to the specified device port and when the connection
+      is established two TCF streams are created and allow to read and
+      write to the port. Any data written by the client to the
+      "OuptutStream" is automatically written to the device port and any
+      data read from the device port is automatically sent to the
+      "InputStream". Reading and writing to/from TCF streams is done
+      using the TCF <b>"Streams"</b> service. The PortFoward
+      configuration is not persistent, when the connection to the device
+      port is lost or if the channel is closed, the PortForward
+      configuration is automatically removed and has to be created again
+      if you want to re-instantiate the connection.<br>
+    </p>
+    <p>Command are encoded as zero terminated <a
+        href="TCF%20Specification.html#JSON">JSON</a> strings.</p>
+    <p>The service uses standard format for error reports, see <a
+        href="TCF%20Services.html#ErrorFormat">Error Report Format</a>.</p>
+    <h2><a name="Cmds">Commands</a></h2>
+    <h3><a name="CmdGetConfig">getConfig</a></h3>
+    <pre><b><font color="#333399" face="Courier New" size="2">
+C • <i>&lt;token&gt;</i> • PortForward • getConfig • </font></b><b><font><b><font color="#333399" face="Courier New" size="2"><i>&lt;string: Port Forward ID&gt;</i></font></b></font></b><b><font color="#333399" face="Courier New" size="2"> •
+</font></b></pre>
+    <p>The command retrieves information for given Port Forward
+      configuration ID.</p>
+    <p>Reply:</p>
+    <b><font color="#333399" face="Courier New" size="2"> R • <i>&lt;token&gt;</i>
+        • <i>&lt;error report&gt;</i> • <i>&lt;Port Forward
+          properties&gt;</i> • <i>&lt;</i></font></b><b><font><i><b><font
+              color="#333399" face="Courier New" size="2"><i>port
+                forward properties</i></font></b></i></font></b><b><font
+        color="#333399" face="Courier New" size="2"><i>&gt;</i> </font></b>
+    <p>Port Forward properties consists of a list of status properties.</p>
+    <p>Predefined properties are:<br>
+    </p>
+    <ul>
+      <li><code><b><font color="#333399" face="Courier New" size="2">"ID"
+
+
+
+
+
+
+              : <i>&lt;string&gt;</i></font></b><font color="#333399"
+            face="Courier New" size="2"> - </font></code><code><font
+            color="#333399" face="Courier New" size="2">Gdb Remote
+            connection </font></code><code><font color="#333399"
+            face="Courier New" size="2">ID</font></code> </li>
+      <li><code><b><font color="#333399" face="Courier New" size="2">"InputStream"
+
+
+
+
+
+              : <i>&lt;string&gt;</i></font></b><font color="#333399"
+            face="Courier New" size="2"> - TCF stream used for port
+            input (reading from port)</font></code> </li>
+      <li><code><b><font color="#333399" face="Courier New" size="2">"OutputStream"
+
+
+
+
+
+              : <i>&lt;string&gt;</i></font></b><font color="#333399"
+            face="Courier New" size="2"> - </font></code><code><font
+            color="#333399" face="Courier New" size="2">TCF stream used
+            for port input (writing to port)</font></code></li>
+      <li><code><b><font color="#333399" face="Courier New" size="2">"Verbose"
+
+
+
+
+
+              : <i>&lt;boolean&gt;</i></font></b><font color="#333399"
+            face="Courier New" size="2"> - Indicate if messages should
+            be printed on console</font></code></li>
+      <li><code><b><font color="#333399" face="Courier New" size="2">"ClientData"
+
+
+
+
+
+              : <i>&lt;string&gt;</i></font></b><font color="#333399"
+            face="Courier New" size="2"> - Port client data string as
+            specified when port was created</font></code></li>
+      <li><code><b><font color="#333399" face="Courier New" size="2">"Port"
+
+
+
+
+
+              : <i>&lt;string&gt;</i></font></b><font color="#333399"
+            face="Courier New" size="2"> - Port configuration string</font></code></li>
+      <li><code><b><font color="#333399" face="Courier New" size="2">"Params"
+
+
+
+
+
+              : <i>&lt;string&gt;</i></font></b><font color="#333399"
+            face="Courier New" size="2"> - Port configuration parameters
+            string</font></code></li>
+    </ul>
+    <h3><a name="CmdList">list</a></h3>
+    <b><font color="#333399" face="Courier New" size="2"> C • <i>&lt;token&gt;</i>
+        • PortForward • list• </font></b>
+    <p>The command list available Port Forward configurations<br>
+    </p>
+    <p>Reply:</p>
+    <pre><b><font><b><font color="#333399" face="Courier New" size="2">
+<i>&lt;array of Port Forward</i></font></b></font></b><b><font><b><font><i><b><font><b><font color="#333399" face="Courier New" size="2"><i> </i></font></b></font></b></i></font></b></font></b><b><font><b><font color="#333399" face="Courier New" size="2"><i>IDs&gt;</i>
+    &#8658; null
+    &#8658; [ ]
+    &#8658; [ <i>&lt;Port Forwards ID list&gt;</i> ]
+
+<i>&lt;</i></font></b></font></b><b><font><b><font><i><b><font><b><font color="#333399" face="Courier New" size="2"><i>Port Forwards </i></font></b></font></b></i></font></b></font></b><b><font><b><font color="#333399" face="Courier New" size="2"><i>ID list&gt;</i>
+    &#8658; <i>&lt;string: </i></font></b></font></b><b><font><b><font><i><b><font><b><font color="#333399" face="Courier New" size="2"><i>Port Forward ID</i></font></b></font></b></i></font></b></font></b><b><font><b><font color="#333399" face="Courier New" size="2"><i>&gt;</i>
+    &#8658; </font></b></font></b><b><font><b><font><i><b><font><b><font color="#333399" face="Courier New" size="2"><i>Port Forward ID</i></font></b></font></b></i></font></b></font></b><b><font><b><font color="#333399" face="Courier New" size="2"><i> list&gt;</i> , <i>&lt;string: </i></font></b></font></b><b><font><b><font><i><b><font><b><font color="#333399" face="Courier New" size="2"><i><b><font><b><font><i><b><font><b><font color="#333399" face="Courier New" size="2"><i>Port Forward</i></font></b></font></b></i></font></b></font></b> </i></font></b></font></b></i></font></b></font></b><b><font><b><font color="#333399" face="Courier New" size="2"><i>ID&gt;</i></font></b></font></b><b><font color="#333399" face="Courier New" size="2">
+</font></b></pre>
+    <h3><a name="CmdCreate">create</a></h3>
+    <pre><b><font color="#333399" face="Courier New" size="2">
+C • <i>&lt;token&gt;</i> • PortForward • create</font></b><b><font color="#333399" face="Courier New" size="2"> • </font></b><b><font><b><font color="#333399" face="Courier New" size="2"><i>&lt;Port Forward configuration&gt;</i> •</font></b></font></b><b><font color="#333399" face="Courier New" size="2"><br></font></b><b><font><b><font color="#333399" face="Courier New" size="2"><i><br>&lt;</i></font></b></font></b><b><font><b><font><i><b><font><b><font color="#333399" face="Courier New" size="2"><i><b><font><b><font color="#333399" face="Courier New" size="2"><i>Port Forward</i></font></b></font></b> configuration</i></font></b></font></b></i></font></b></font></b><b><font><b><font color="#333399" face="Courier New" size="2"><i>&gt;</i>
+    &#8658; <i>&lt;object&gt;</i></font></b></font></b><b><font color="#333399" face="Courier New" size="2"> <br></font></b></pre>
+    <p>The command adds a Port Forward connection with specified properties. The connection to the device port is done automatically when the "create" command is issued; reply is sent only when the connection to the port is established or when an error was detected. If <br>
+    </p>
+    <p>Predefined properties are:</p>
+    <ul>
+      <li><code><b><font color="#333399" face="Courier New" size="2">"ID"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+              : <i>&lt;string&gt;</i></font></b><font color="#333399" face="Courier New" size="2"> - Port Forward ID (this parameter is mandatory)</font></code> </li>
+      <li><code><b><font color="#333399" face="Courier New" size="2">"Port"
+              : <i>&lt;string&gt;</i></font></b><font color="#333399" face="Courier New" size="2"> - device port to access. This configuration is device specified and described below</font></code><code><font color="#333399" face="Courier New" size="2"> (this parameter is mandatory)</font></code> </li>
+      <li><code><b><font color="#333399" face="Courier New" size="2">"Verbose"
+              : <i>&lt;boolean&gt; </i></font></b><font color="#333399" face="Courier New" size="2">- Indicate if Port Forward server must display message in the console when port is accessed (opened, closed...). Default to false.</font></code> </li><li><code><b><font color="#333399" face="Courier New" size="2">"ClientData"
+
+
+              : <i>&lt;string&gt;</i></font></b><font color="#333399" face="Courier New" size="2"> - Port client data string; this can be specified to any value by the client and will be returned when asking information about the port. It is not interpreted by the service.<br></font></code></li><li><font color="#333399" face="Courier New" size="2"><code><code><b><font color="#333399" face="Courier New" size="2">"Params"
+              : <i>&lt;string&gt;</i></font></b><font color="#333399" face="Courier New" size="2"> - Port configuration parameters (used only for serial line).<br></font></code></code></font></li></ul><br>The following syntax is supported for the port forward "<font color="#333399"><b>Config</b></font>" string:<br><ul><li><font color="#333399"><b>"tcp:&lt;host name or IP&gt;:&lt;port number&gt;"</b> - <code>Establish a connection to TCP port </code><code>&lt;port number&gt; on host &lt;host name or IP&gt;. If &lt;host name or IP&gt; is not specified, then </code><code>loop back</code><code> address will be used. &lt;port number&gt; is mandatory.</code></font> <br></li><li><font color="#333399"><b>"udp:&lt;host name or IP&gt;:&lt;port number&gt;"</b> - <code>Establish a connection to UDP port </code><code>&lt;port number&gt; on host &lt;host name or IP&gt;. If &lt;host name or IP&gt; is not specified, then </code><code>loop back</code><code> address will be used. &lt;port number&gt; is mandatory.</code></font></li><li><font color="#333399"><b>"serial:&lt;serial device&gt;"</b> - <code>Establish a connect to specified serial device (e.g. COM1, /dev/ttyS0).</code></font></li></ul><br>The following syntax is supported for the port forward "<font color="#333399"><b>Params</b></font>" string when specified device is a serial line (unused in other cases):<br><br><b><font color="#333399">"&lt;baud rate&gt;:&lt;data bits&gt;:&lt;parity&gt;:&lt;stop bits&gt;:&lt;flow control&gt;"</font></b><br><ul><li><b><font color="#333399">&lt;baud rate&gt;</font></b>: serial line baud rate (default to 115200 if not specified)</li><li><b><font color="#333399">&lt;data bits&gt;</font></b>: number of data bits (default to 8 if not specified)</li><li><b><font color="#333399">&lt;parity&gt;</font></b>: can be one of <b><font color="#333399">"O"</font></b> or <b><font color="#333399">"o"</font></b> for odd parity, <b><font color="#333399">"E"</font></b> or <b><font color="#333399">"e"</font></b> for even parity, <b><font color="#333399">"N"</font></b> or <b><font color="#333399">"n" </font></b>for no parity, <b><font color="#333399">"M"</font></b> or <b><font color="#333399">"m"</font></b> for mark parity, <b><font color="#333399">"S"</font></b> or <b><font color="#333399">"s"</font></b> for space parity. Default to no parity if not specified.</li><li><b><font color="#333399">&lt;stop bits&gt;</font></b>: number of stop bits (default to 1 if not specified)</li><li><b><font color="#333399">&lt;flow control&gt;</font></b>: can be one of <b><font color="#333399">"N"</font></b> or <b><font color="#333399">"n"</font></b> for no flow control, <b><font color="#333399">"S"</font></b> or <b><font color="#333399">"s"</font></b> for XON/XOFF, <b><font color="#333399">"R"</font></b> or <b><font color="#333399">"r" </font></b>for RTS/CTS, <b><font color="#333399">"D"</font></b> or <b><font color="#333399">"d"</font></b> for DTR/DSR. Default to no flow control if not specified.</li></ul> "<font color="#333399"><b>Params</b></font>" string can be of the form: <br><blockquote><code><b>"9600"</b> - Only specify baud rate, keep default for everything else<br></code><code><b>":7"</b> - Only specify number of data bits</code><code>, keep default for everything else<br></code><code><b>"::::S"</b> - Set flow control to XON/XOFF,</code><code> keep default for everything else<br></code><code><code><b>"9600:8:N:1:S"</b> - set barud rate to 9600, 8 data bits, no parity, 1 stop bit and space parity<br></code></code><br></blockquote><div align="left"><p>Reply:</p>
+    <b><font color="#333399" face="Courier New" size="2"> R • <i>&lt;token&gt;</i>
+        • <i>&lt;error report&gt;</i> • </font></b><b><font color="#333399" face="Courier New" size="2"><i>&lt;</i></font></b><b><font><i><b><font color="#333399" face="Courier New" size="2"><i>port
+properties</i></font></b></i></font></b><b><font color="#333399" face="Courier New" size="2"><i>&gt;</i></font></b><b><font color="#333399" face="Courier New" size="2"> •</font></b><br><pre><b><font color="#333399" face="Courier New" size="2"><i>&lt;port properties&gt;</i>
+    &#8658; null
+    &#8658; <i>&lt;object&gt;<br></i></font></b></pre><p>Port properties are the same as returned by the <a href="#CmdGetConfig">getConfig</a> command.
+</p></div><h3><a name="CmdDelete">delete</a></h3>
+    <pre><b><font color="#333399" face="Courier New" size="2">
+C • <i>&lt;token&gt;</i> • PortForward •</font></b><b><font color="#333399" face="Courier New" size="2"> delete • <i>&lt;string: PortForward</i></font></b><b><font><b><font><i><b><font><b><font color="#333399" face="Courier New" size="2"><i> </i></font></b></font></b></i></font></b></font></b><b><font color="#333399" face="Courier New" size="2"><i>ID&gt;</i> •</font></b><b><font color="#333399" face="Courier New" size="2"><br><br></font></b></pre>
+    <p>The command deletes a previously created Port Foward connection.<b><font color="#333399" face="Courier New" size="2"><br>
+        </font></b></p>
+    <p> </p>
+    <p>Reply:</p>
+    <pre><b><font color="#333399" face="Courier New" size="2">
+R • <i>&lt;token&gt;</i> • <i>&lt;error report&gt;</i> •<br><br></font></b></pre>
+    <h3><a name="cmdGetCapabilities"></a>getCapabilities</h3>
+    <pre><b><font color="#333399" face="Courier New" size="2">
+C • <i>&lt;token&gt;</i> • </font></b><b><font color="#333399" face="Courier New" size="2">PortForward </font></b><b><font color="#333399" face="Courier New" size="2">• getCapabilities • <i>&lt;string: PortForward ID&gt;</i> •
+</font></b>
+</pre>
+    <p>This command retrieves PortForward service capabilities to clients so
+      they can adjust to different implementations of the service. Currently, only a null ("") PortForward ID is supported.<br></p>
+    <p>Reply:</p>
+    <b><font color="#333399" face="Courier New" size="2"> R • <i>&lt;token&gt;</i>
+        • <i>&lt;error report&gt;</i> • <i>&lt;service
+          capabilities&gt;</i> • <i><br>
+          <br>
+          &lt;service capabilities&gt;</i> <br>
+        &nbsp;&nbsp;&nbsp; &#8658; <i>&lt;object&gt;</i> </font></b>
+    <p>Service capabilities consist of a list of properties. All
+      properties are optional. Tools and targets can define additional
+      properties. Predefined properties are:</p>
+    <ul>
+      
+      <li><code><b><font color="#333399" face="Courier New" size="2">"TCP"
+
+
+              : <i>&lt;boolean&gt;</i></font></b></code> - if true, TCP Port Forward connections are supported</li><li><code><b><font color="#333399" face="Courier New" size="2">"UDP"
+
+
+              : <i>&lt;boolean&gt;</i></font></b></code> - if true, UDPPort Forward connections are supported</li><li><code><b><font color="#333399" face="Courier New" size="2">"Serial"
+
+
+              : <i>&lt;boolean&gt;</i></font></b></code> - if true, serial Port Forward connections are supported</li>
+      </ul><b><font color="#333399" face="Courier New" size="2">
+
+</font></b>
+    <h2><a name="Events">Events</a></h2>
+    <p>PortForward service events are sent to notify clients about PortFoward configurations created ordeleted. The purpose of
+      these events is to let all clients know about PortForward
+      connections that were created by other clients.</p>
+    <pre><b><font color="#333399" face="Courier New" size="2">
+E • </font></b><b><font><b><font color="#333399" face="Courier New" size="2">PortForward </font></b></font></b><b><font color="#333399" face="Courier New" size="2">• configAdded • <i>&lt;</i></font></b><b><font><b><font><i><b><font><b><font color="#333399" face="Courier New" size="2"><i>PortForward connection properties</i></font></b></font></b></i></font></b></font></b><b><font color="#333399" face="Courier New" size="2"><i>&gt;</i> •<br></font></b><b><font color="#333399" face="Courier New" size="2">E • </font></b><b><font><b><font color="#333399" face="Courier New" size="2">PortForward </font></b></font></b><b><font color="#333399" face="Courier New" size="2">• configRemoved • <i>&lt;PortForward</i></font></b><b><font><b><font><i><b><font><b><font color="#333399" face="Courier New" size="2"><i> connection ID</i></font></b></font></b></i></font></b></font></b><b><font color="#333399" face="Courier New" size="2"><i>&gt;</i> •</font></b><b><font color="#333399" face="Courier New" size="2">
+</font></b></pre>
+    <dl>
+    </dl><dl><dt><b>configAdded</b></dt><dd>Is sent when a new PortForward connection is created and established.The
+        configAdded event contains the same information as returned by
+        the getConfig command. Note that the event is sent only when the connection to the device port has been established.</dd><dt><b>configRemoved</b></dt><dd>Is sent when a PortForward connection is removed.</dd>
+      </dl><br>
+      <dl>
+    </dl>
+  
+
+</body></html>

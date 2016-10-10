@@ -1,0 +1,290 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html;
+      charset=windows-1252">
+    <title>Target Communication Framework Services - PortForward</title>
+  </head>
+  <body lang="EN-US">
+    <h1>Target Communication Framework Services - PortServer</h1>
+    <ul>
+      <li><a href="#VersionHistory">Version History</a> </li>
+      <li><a href="#Overview">Overview</a> </li>
+      <li><a href="#Cmds">Commands</a>
+        <ul>
+          <li><a href="#CmdGetConfig">getConfig</a> </li>
+          <li><a href="#CmdList">list</a></li>
+          <li><a href="#cmdGetCapabilities">getCapabilities</a><br>
+          </li>
+          <li><a href="#CmdCreate">create</a> </li>
+          <li><a href="#CmdDelete">delete</a></li>
+        </ul>
+      </li>
+      <li><a href="#Events">Events</a> </li>
+    </ul>
+    <h1>PortServer Service</h1>
+    <h2><a name="VersionHistory">Version History</a></h2>
+    <table border="1" cellpadding="8" height="124" width="298">
+      <tbody>
+        <tr>
+          <th>Version </th>
+          <th>Date </th>
+          <th>Change<br>
+          </th>
+        </tr>
+        <tr>
+          <td>0.1 </td>
+          <td>2016-07-10 </td>
+          <td>Initial contribution </td>
+        </tr>
+      </tbody>
+    </table>
+    <h2><a name="Overview">Overview</a></h2>
+    <p>PortServer service provides ability to create a TCP/UDP port
+      server on the TCF peer host to connect to a local TCP/UDP/serial
+      port. The PortServer service is built on top of the PortForward
+      service; when a port server is created, the TCF channel used to
+      transmit the command will be the one used to send the PortForward
+      commands.<br>
+    </p>
+    <p>When a TCF client connect to a TCF peer and create a port server,
+      the TCF peer will create a local TCP or UDP server (depending on
+      the parameters) and will use the PortForward service to link this
+      port to the corresponding port on the TCF client (the one that has
+      sent the PortServer command). At this point, all the data that is
+      written to the port server will be sent to the port opened by
+      PortForward service and vice-versa. In case of a TCP server, the
+      PortForward command will be sent to the TCF client only when a
+      connection request is sent to the server (unless the AutoConnect
+      parameter is set); in case of a UDP server it is sent as soon as
+      the PortServer is created.<br>
+    </p>
+    <p>If the PortServer service is processed by a value-add, then the
+      PortForward commands are not sent to the TCF client (the one that
+      has issued the request) but instead are sent to the TCF peers (the
+      one connected to through the value-add).<br>
+    </p>
+    <p>Command are encoded as zero terminated <a
+        href="TCF%20Specification.html#JSON">JSON</a> strings.</p>
+    <p>The service uses standard format for error reports, see <a
+        href="TCF%20Services.html#ErrorFormat">Error Report Format</a>.</p>
+    <h2><a name="Cmds">Commands</a></h2>
+    <h3><a name="CmdGetConfig">getConfig</a></h3>
+    <b><font color="#333399" face="Courier New" size="2">
+        C • <i>&lt;token&gt;</i> • PortServer • getConfig • </font></b><b><font><b><font
+            color="#333399" face="Courier New" size="2"><i>&lt;string:
+              Port ServerID&gt;</i></font></b></font></b><b><font
+        color="#333399" face="Courier New" size="2"> •
+      </font></b>
+    <p>The command retrieves information for given Port Server
+      configuration ID.</p>
+    <p>Reply:</p>
+    <b><font color="#333399" face="Courier New" size="2"> R • <i>&lt;token&gt;</i>
+        • <i>&lt;error report&gt;</i> • <i>&lt;Port Server
+          properties&gt;</i> • <i>&lt;</i></font></b><b><font><i><b><font
+              color="#333399" face="Courier New" size="2"><i>port
+                server properties</i></font></b></i></font></b><b><font
+        color="#333399" face="Courier New" size="2"><i>&gt;</i> </font></b>
+    <p>Port Forward properties consists of a list of status properties.</p>
+    <p>Predefined properties are:<br>
+    </p>
+    <ul>
+      <li><code><b><font color="#333399" face="Courier New" size="2">"ID"
+
+
+
+
+
+
+              : <i>&lt;string&gt;</i></font></b><font color="#333399"
+            face="Courier New" size="2"> - Port Server </font></code><code></code><code><font
+            color="#333399" face="Courier New" size="2">ID</font></code>
+      </li>
+      <li><code><b><font color="#333399" face="Courier New" size="2">"Verbose"
+
+
+
+
+
+              : <i>&lt;boolean&gt;</i></font></b><font color="#333399"
+            face="Courier New" size="2"> - Indicate if messages should
+            be printed on console</font></code></li>
+      <li><code><b><font color="#333399" face="Courier New" size="2">"ClientData"
+
+
+
+
+
+              : <i>&lt;string&gt;</i></font></b><font color="#333399"
+            face="Courier New" size="2"> - Port client data string as
+            specified when port was created</font></code></li>
+      <li><code><b><font color="#333399" face="Courier New" size="2">"Port"
+
+
+
+
+
+              : <i>&lt;string&gt;</i></font></b><font color="#333399"
+            face="Courier New" size="2"> - Port configuration string</font></code></li>
+      <li><code><b><font color="#333399" face="Courier New" size="2">"Params"
+
+
+
+
+
+              : <i>&lt;string&gt;</i></font></b><font color="#333399"
+            face="Courier New" size="2"> - Port configuration parameters
+            string</font></code></li>
+      <li><code><b><font color="#333399" face="Courier New" size="2">"AutoConnect"
+
+
+
+
+
+              : <i>&lt;string&gt;</i></font></b><font color="#333399"
+            face="Courier New" size="2"> - Indicate if Port Server
+            should create the port configuration automatically or wait
+            for a connection. This parameter is forced to true for a UDP
+            port server and it is recommended to keep it to its default
+            (false) for a TCP port unless you understand exactly what
+            you are doing. This parameter should not be really exposed
+            but is there for completeness. If AutoConnect is set to
+            true, we will accept only one concurrent connection to the
+            port server.<br>
+          </font></code></li>
+      <li><code><b><font color="#333399" face="Courier New" size="2">"AutoConnectPeriod"
+
+
+
+
+
+              : <i>&lt;integer&gt;</i></font></b><font color="#333399"
+            face="Courier New" size="2"> - If AutoConnect parameter is
+            set, indicate the period in seconds to retry the port
+            connection if the connection has failed or has been
+            disconnected. Default to 3s.</font></code></li>
+      <li><code><b><font color="#333399" face="Courier New" size="2">"UdpPort"
+
+
+
+
+
+              : <i>&lt;integer&gt;</i></font></b><font color="#333399"
+            face="Courier New" size="2"> - Allocated port server port
+            number in case it is a UDP port server</font></code></li>
+      <li><code><b><font color="#333399" face="Courier New" size="2">"TcpPort"
+
+
+
+
+
+              : <i>&lt;integer&gt;</i></font></b><font color="#333399"
+            face="Courier New" size="2"> - Allocated port server port
+            number in case it is a TCP port server</font></code></li>
+    </ul>
+    <h3><a name="CmdList">list</a></h3>
+    <b><font color="#333399" face="Courier New" size="2"> C • <i>&lt;token&gt;</i>
+        • PortServer • list• </font></b>
+    <p>The command list available Port Server IDs<br>
+    </p>
+    <p>Reply:</p>
+    <pre><b><font><b><font color="#333399" face="Courier New" size="2">
+<i>&lt;array of Port Server </i></font></b></font></b><b><font><b><font color="#333399" face="Courier New" size="2"><i>IDs&gt;</i>
+    &#8658; null
+    &#8658; [ ]
+    &#8658; [ <i>&lt;Port Servers ID list&gt;</i> ]
+
+<i>&lt;</i></font></b></font></b><b><font><b><font><i><b><font><b><font color="#333399" face="Courier New" size="2"><i>Port Servers </i></font></b></font></b></i></font></b></font></b><b><font><b><font color="#333399" face="Courier New" size="2"><i>ID list&gt;</i>
+    &#8658; <i>&lt;string: </i></font></b></font></b><b><font><b><font><i><b><font><b><font color="#333399" face="Courier New" size="2"><i>Port Forward ID</i></font></b></font></b></i></font></b></font></b><b><font><b><font color="#333399" face="Courier New" size="2"><i>&gt;</i>
+    &#8658; </font></b></font></b><b><font><b><font><i><b><font><b><font color="#333399" face="Courier New" size="2"><i>&lt;Port Server ID</i></font></b></font></b></i></font></b></font></b><b><font><b><font color="#333399" face="Courier New" size="2"><i> list&gt;</i> , <i>&lt;string: </i></font></b></font></b><b><font><b><font><i><b><font><b><font color="#333399" face="Courier New" size="2"><i><b><font><b><font><i><b><font><b><font color="#333399" face="Courier New" size="2"><i>Port Server </i></font></b></font></b></i></font></b></font></b></i></font></b></font></b></i></font></b></font></b><b><font><b><font color="#333399" face="Courier New" size="2"><i>ID&gt;</i></font></b></font></b><b><font color="#333399" face="Courier New" size="2">
+</font></b></pre>
+    <h3><a name="CmdCreate">create</a></h3>
+    <pre><b><font color="#333399" face="Courier New" size="2">
+C • <i>&lt;token&gt;</i> • </font></b><b><font color="#333399" face="Courier New" size="2"><b><font color="#333399" face="Courier New" size="2">PortServer</font></b> • create</font></b><b><font color="#333399" face="Courier New" size="2"> • </font></b><b><font><b><font color="#333399" face="Courier New" size="2"><i>&lt;Port Server configuration&gt;</i> •</font></b></font></b><b><font color="#333399" face="Courier New" size="2"><br></font></b><b><font><b><font color="#333399" face="Courier New" size="2"><i><br>&lt;</i></font></b></font></b><b><font><b><font><i><b><font><b><font color="#333399" face="Courier New" size="2"><i><b><font><b><font color="#333399" face="Courier New" size="2"><i>Port Server </i></font></b></font></b>configuration</i></font></b></font></b></i></font></b></font></b><b><font><b><font color="#333399" face="Courier New" size="2"><i>&gt;</i>
+    &#8658; <i>&lt;object&gt;</i></font></b></font></b><b><font color="#333399" face="Courier New" size="2"> <br></font></b></pre>
+    <p>The command creates a Port Server with specified properties. <br>
+    </p>
+    <p>Predefined properties are:</p>
+    <ul>
+      <li><code><b><font color="#333399" face="Courier New" size="2">"ID"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+              : <i>&lt;string&gt;</i></font></b><font color="#333399" face="Courier New" size="2"> - Port Server ID (this parameter is mandatory)</font></code> </li>
+      <li><code><b><font color="#333399" face="Courier New" size="2">"Port"
+              : <i>&lt;string&gt;</i></font></b><font color="#333399" face="Courier New" size="2"> - device port to access. Refer to PortForward service documentation for more information.</font></code><code><font color="#333399" face="Courier New" size="2"></font></code> </li>
+      <li><code><b><font color="#333399" face="Courier New" size="2">"Verbose"
+              : <i>&lt;boolean&gt; </i></font></b><font color="#333399" face="Courier New" size="2">- Indicate if a message must be displayed in the console when port is accessed (opened, closed...). Default to false.</font></code> </li><li><code><b><font color="#333399" face="Courier New" size="2">"ClientData"
+
+
+              : <i>&lt;string&gt;</i></font></b><font color="#333399" face="Courier New" size="2"> - Port client data string; this can be specified to any value by the client and will be returned when asking information about the port. It is not interpreted by the service.<br></font></code></li><li><font color="#333399" face="Courier New" size="2"><code><code><b><font color="#333399" face="Courier New" size="2">"Params"
+              : <i>&lt;string&gt;</i></font></b><font color="#333399" face="Courier New" size="2"> - Port configuration parameters. </font></code></code></font><code><font color="#333399" face="Courier New" size="2">Refer to PortForward service documentation for more information.</font></code></li><li><code><b><font color="#333399" face="Courier New" size="2">"AutoConnect"
+
+
+
+
+              : <i>&lt;string&gt;</i></font></b><font color="#333399" face="Courier New" size="2">
+ - Indicates if the created port server should setup the port configuration 
+automatically or wait for a local connection. This parameter is forced to true
+ for a UDP port server and it is recommended to keep it to its default 
+(false) for a TCP port unless you understand exactly what you are doing.
+ This parameter should not be really exposed but is there for 
+completeness. If AutoConnect is set to true, we will accept only one 
+concurrent connection to the port server.<br>
+</font></code></li><li><code><b><font color="#333399" face="Courier New" size="2">"AutoConnectPeriod"
+
+
+
+
+              : <i>&lt;integer&gt;</i></font></b><font color="#333399" face="Courier New" size="2">
+ - If AutoConnect parameter is set, indicates the period in seconds we 
+should try to try to connect again if the connection has failed or if we
+ have been disconnected. Default to 3s.</font></code></li></ul><div align="left"><p>Reply:</p>
+    <b><font color="#333399" face="Courier New" size="2"> R • <i>&lt;token&gt;</i>
+        • <i>&lt;error report&gt;</i> • </font></b><b><font color="#333399" face="Courier New" size="2"><i>&lt;</i></font></b><b><font><i><b><font color="#333399" face="Courier New" size="2"><i>port
+server properties</i></font></b></i></font></b><b><font color="#333399" face="Courier New" size="2"><i>&gt;</i></font></b><b><font color="#333399" face="Courier New" size="2"> •</font></b><br><pre><b><font color="#333399" face="Courier New" size="2"><i>&lt;port server properties&gt;</i>
+    &#8658; null
+    &#8658; <i>&lt;object&gt;<br></i></font></b></pre><p>Port properties are the same as returned by the <a href="#CmdGetConfig">getConfig</a> command.
+</p></div><h3><a name="CmdDelete">delete</a></h3>
+    <pre><b><font color="#333399" face="Courier New" size="2">
+C • <i>&lt;token&gt;</i> • </font></b><b><font color="#333399" face="Courier New" size="2"><b><font color="#333399" face="Courier New" size="2">PortServer</font></b> •</font></b><b><font color="#333399" face="Courier New" size="2"> delete • <i>&lt;string: </i></font></b><b><font color="#333399" face="Courier New" size="2">PortServer </font></b><b><font color="#333399" face="Courier New" size="2"><i>ID&gt;</i> •</font></b><b><font color="#333399" face="Courier New" size="2"><br><br></font></b></pre>
+    <p>The command deletes a previously created Port Foward connection.<b><font color="#333399" face="Courier New" size="2"><br>
+        </font></b></p>
+    <p> </p>
+    <p>Reply:</p>
+    <pre><b><font color="#333399" face="Courier New" size="2">
+R • <i>&lt;token&gt;</i> • <i>&lt;error report&gt;</i> •<br><br></font></b></pre>
+    <h3><a name="cmdGetCapabilities"></a>getCapabilities</h3>
+    <pre><b><font color="#333399" face="Courier New" size="2">
+C • <i>&lt;token&gt;</i> • </font></b><b><font color="#333399" face="Courier New" size="2">PortServer </font></b><b><font color="#333399" face="Courier New" size="2">• getCapabilities • <i>&lt;string: </i></font></b><b><font color="#333399" face="Courier New" size="2"><i><b><font color="#333399" face="Courier New" size="2">PortServer </font></b>ID&gt;</i> •
+</font></b>
+</pre>
+    <p>This command retrieves PortServer service capabilities to clients so
+      they can adjust to different implementations of the service. Currently, only a null ("") PortServer ID is supported.<br></p>
+    <p>Reply:</p>
+    <b><font color="#333399" face="Courier New" size="2"> R • <i>&lt;token&gt;</i>
+        • <i>&lt;error report&gt;</i> • <i>&lt;service
+          capabilities&gt;</i> • <i><br>
+          <br>
+          &lt;service capabilities&gt;</i> <br>
+        &nbsp;&nbsp;&nbsp; &#8658; <i>&lt;object&gt;</i> </font></b>
+    <p>Service capabilities consist of a list of properties. All
+      properties are optional. Tools and targets can define additional
+      properties. No predefined properties exist yet.</p><h2><a name="Events">Events</a></h2>
+    <p>PortServer service does not currently have any event<br></p>
+      <dl>
+    </dl>
+  
+
+</body></html>
