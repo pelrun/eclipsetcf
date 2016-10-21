@@ -365,6 +365,23 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
             });
             return;
         }
+        if (sym_func3 == null) {
+            srv_diag.getSymbol(process_id, "tcf_test_func3", new IDiagnostics.DoneGetSymbol() {
+                public void doneGetSymbol(IToken token, Throwable error, IDiagnostics.ISymbol symbol) {
+                    if (error != null) {
+                        exit(error);
+                    }
+                    else if (symbol == null) {
+                        exit(new Exception("Symbol must not be null: tcf_test_func3"));
+                    }
+                    else {
+                        sym_func3 = symbol;
+                        runTest();
+                    }
+                }
+            });
+            return;
+        }
         if (thread_id == null) {
             srv_rc.getChildren(process_id, new IRunControl.DoneGetChildren() {
                 public void doneGetChildren(IToken token, Exception error, String[] ids) {
@@ -374,28 +391,9 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                     else if (ids == null || ids.length == 0) {
                         exit(new Exception("Test process has no threads"));
                     }
-                    else if (ids.length != 1) {
-                        exit(new Exception("Test process has too many threads"));
-                    }
                     else {
                         thread_id = ids[0];
-                        runTest();
-                    }
-                }
-            });
-            return;
-        }
-        if (thread_ctx == null) {
-            srv_rc.getContext(thread_id, new IRunControl.DoneGetContext() {
-                public void doneGetContext(IToken token, Exception error, IRunControl.RunControlContext ctx) {
-                    if (error != null) {
-                        exit(error);
-                    }
-                    else if (ctx == null || !ctx.hasState()) {
-                        exit(new Exception("Invalid thread context"));
-                    }
-                    else {
-                        thread_ctx = ctx;
+                        thread_ctx = test_rc.getContext(thread_id);
                         runTest();
                     }
                 }
@@ -418,23 +416,6 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                     }
                     else {
                         suspended_pc = pc;
-                        runTest();
-                    }
-                }
-            });
-            return;
-        }
-        if (sym_func3 == null) {
-            srv_diag.getSymbol(process_id, "tcf_test_func3", new IDiagnostics.DoneGetSymbol() {
-                public void doneGetSymbol(IToken token, Throwable error, IDiagnostics.ISymbol symbol) {
-                    if (error != null) {
-                        exit(error);
-                    }
-                    else if (symbol == null) {
-                        exit(new Exception("Symbol must not be null: tcf_test_func3"));
-                    }
-                    else {
-                        sym_func3 = symbol;
                         runTest();
                     }
                 }
