@@ -163,7 +163,7 @@
                 <cdt-site>http://download.eclipse.org/tools/cdt/releases/8.7</cdt-site>
                 <orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20160221192158/repository</orbit-site>
             </properties>
-			
+
 		</profile>
 
 		<profile>
@@ -176,18 +176,10 @@
 				<terminal-site>http://download.eclipse.org/tm/terminal/updates/4.1</terminal-site>
 				<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20160520211859/repository</orbit-site>
 			</properties>
-
-			<repositories>
-				<repository>
-					<id>cdt-launchbar</id>
-					<url>${cdt-launchbar-site}</url>
-					<layout>p2</layout>
-				</repository>
-			</repositories>
 		</profile>
 
 		<profile>
-			<!-- Eclipse 4.7 (Oxygen), CDT 9.1.0 (Neon) -->
+			<!-- Eclipse 4.7 (Oxygen), CDT 9.1.0 (Neon 1) -->
 			<id>oxygen</id>
 
 			<properties>
