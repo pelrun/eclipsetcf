@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2015 Wind River Systems, Inc. and others.
+ * Copyright (c) 2008, 2016 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -85,8 +85,10 @@ public class TCFChildrenSubExpressions extends TCFChildren {
     TCFNodeExpression getField(String field_id, boolean deref) {
         assert field_id != null;
         for (TCFNode n : getNodes()) {
-            TCFNodeExpression e = (TCFNodeExpression)n;
-            if (field_id.equals(e.getFieldID()) && e.isDeref() == deref) return e;
+            if (n instanceof TCFNodeExpression) {
+                TCFNodeExpression e = (TCFNodeExpression)n;
+                if (field_id.equals(e.getFieldID()) && e.isDeref() == deref) return e;
+            }
         }
         if (isValid()) return null;
         TCFNodeExpression e = new TCFNodeExpression(node, null, field_id, null, null, -1, deref);
@@ -243,8 +245,10 @@ public class TCFChildrenSubExpressions extends TCFChildren {
     private TCFNodeExpression findReg(String reg_id) {
         assert reg_id != null;
         for (TCFNode n : getNodes()) {
-            TCFNodeExpression e = (TCFNodeExpression)n;
-            if (reg_id.equals(e.getRegisterID())) return e;
+            if (n instanceof TCFNodeExpression) {
+                TCFNodeExpression e = (TCFNodeExpression)n;
+                if (reg_id.equals(e.getRegisterID())) return e;
+            }
         }
         return null;
     }
@@ -264,8 +268,10 @@ public class TCFChildrenSubExpressions extends TCFChildren {
     private TCFNodeExpression findIndex(int index, boolean deref) {
         assert index >= 0;
         for (TCFNode n : getNodes()) {
-            TCFNodeExpression e = (TCFNodeExpression)n;
-            if (e.getIndex() == index && e.isDeref() == deref) return e;
+            if (n instanceof TCFNodeExpression) {
+                TCFNodeExpression e = (TCFNodeExpression)n;
+                if (e.getIndex() == index && e.isDeref() == deref) return e;
+            }
         }
         return null;
     }
@@ -273,8 +279,10 @@ public class TCFChildrenSubExpressions extends TCFChildren {
     private TCFNodeArrayPartition findPartition(int offs, int size) {
         assert offs >= 0;
         for (TCFNode n : getNodes()) {
-            TCFNodeArrayPartition e = (TCFNodeArrayPartition)n;
-            if (e.getOffset() == offs && e.getSize() == size) return e;
+            if (n instanceof TCFNodeArrayPartition) {
+                TCFNodeArrayPartition e = (TCFNodeArrayPartition)n;
+                if (e.getOffset() == offs && e.getSize() == size) return e;
+            }
         }
         return null;
     }
