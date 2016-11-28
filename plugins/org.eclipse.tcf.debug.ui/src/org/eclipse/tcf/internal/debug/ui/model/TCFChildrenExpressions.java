@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2008, 2016 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -37,12 +37,10 @@ public class TCFChildrenExpressions extends TCFChildren {
         for (TCFNode n : getNodes()) ((TCFNodeExpression)n).onMemoryMapChanged();
     }
 
-    private TCFNodeExpression findScript(String text, IExpression e) {
+    private TCFNodeExpression findScript(IExpression e) {
         for (TCFNode n : getNodes()) {
             TCFNodeExpression node = (TCFNodeExpression)n;
-            if (text.equals(node.getScript()) &&
-                (node.getPlatformExpression() == null || node.getPlatformExpression().equals(e)) )
-            {
+            if (e == node.getPlatformExpression() && e.getExpressionText().equals(node.getScript())) {
                 return node;
             }
         }
@@ -62,16 +60,14 @@ public class TCFChildrenExpressions extends TCFChildren {
         int cnt = 0;
         HashMap<String,TCFNode> data = new HashMap<String,TCFNode>();
         for (final IExpression e : node.model.getExpressionManager().getExpressions()) {
-            String text = e.getExpressionText();
-            TCFNodeExpression n = findScript(text, e);
-            if (n == null) add(n = new TCFNodeExpression(node, text, null, null, null, -1, false));
-            n.setPlatformExpression(e);
+            TCFNodeExpression n = findScript(e);
+            if (n == null) add(n = new TCFNodeExpression(node, null, e, null, null, null, -1, false));
             n.setSortPosition(cnt++);
             if (e instanceof IWatchExpression) n.setEnabled(((IWatchExpression)e).isEnabled());
             data.put(n.id, n);
         }
         TCFNodeExpression n = findEmpty();
-        if (n == null) add(n = new TCFNodeExpression(node, null, null, null, null, -1, false));
+        if (n == null) add(n = new TCFNodeExpression(node, null, null, null, null, null, -1, false));
         n.setSortPosition(cnt++);
         data.put(n.id, n);
         set(null, null, data);

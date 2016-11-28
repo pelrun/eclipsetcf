@@ -91,7 +91,7 @@ public class TCFChildrenSubExpressions extends TCFChildren {
             }
         }
         if (isValid()) return null;
-        TCFNodeExpression e = new TCFNodeExpression(node, null, field_id, null, null, -1, deref);
+        TCFNodeExpression e = new TCFNodeExpression(node, null, null, field_id, null, null, -1, deref);
         add(e);
         return e;
     }
@@ -258,7 +258,7 @@ public class TCFChildrenSubExpressions extends TCFChildren {
         if (!reg_children.validate(this)) return false;
         for (TCFNode subnode : reg_children.toArray()) {
             TCFNodeExpression n = findReg(subnode.id);
-            if (n == null) add(n = new TCFNodeExpression(node, null, null, null, subnode.id, -1, false));
+            if (n == null) add(n = new TCFNodeExpression(node, null, null, null, null, subnode.id, -1, false));
             n.setSortPosition(map.size());
             map.put(n.id, n);
         }
@@ -312,7 +312,7 @@ public class TCFChildrenSubExpressions extends TCFChildren {
                     HashMap<String,TCFNode> data = new HashMap<String,TCFNode>();
                     for (String s : c.getData()) {
                         TCFNodeExpression n = findScript(s);
-                        if (n == null) n = new TCFNodeExpression(node, s, null, null, null, -1, false);
+                        if (n == null) n = new TCFNodeExpression(node, s, null, null, null, null, -1, false);
                         n.setSortPosition(i++);
                         data.put(n.id, n);
                     }
@@ -355,7 +355,7 @@ public class TCFChildrenSubExpressions extends TCFChildren {
             if (size <= 100) {
                 for (int i = offs; i < offs + size; i++) {
                     TCFNodeExpression n = findIndex(i, false);
-                    if (n == null) n = new TCFNodeExpression(node, null, null, null, null, i, false);
+                    if (n == null) n = new TCFNodeExpression(node, null, null, null, null, null, i, false);
                     n.setSortPosition(i);
                     data.put(n.id, n);
                 }
@@ -387,7 +387,7 @@ public class TCFChildrenSubExpressions extends TCFChildren {
                         }
                         else {
                             TCFNodeExpression n = findIndex(0, true);
-                            if (n == null) n = new TCFNodeExpression(node, null, null, null, null, 0, true);
+                            if (n == null) n = new TCFNodeExpression(node, null, null, null, null, null, 0, true);
                             n.setSortPosition(0);
                             data.put(n.id, n);
                         }

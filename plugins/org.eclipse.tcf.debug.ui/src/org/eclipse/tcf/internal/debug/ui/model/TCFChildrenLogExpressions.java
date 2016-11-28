@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2011, 2016 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -57,7 +57,7 @@ public class TCFChildrenLogExpressions extends TCFChildren {
         for (String script : scripts) {
             TCFNodeExpression expression_node = findScript(script);
             if (expression_node == null) {
-                add(expression_node = new TCFNodeExpression(node, script, null, null, null, -1, false));
+                add(expression_node = new TCFNodeExpression(node, script, null, null, null, null, -1, false));
             }
             data.put(expression_node.id, expression_node);
         }

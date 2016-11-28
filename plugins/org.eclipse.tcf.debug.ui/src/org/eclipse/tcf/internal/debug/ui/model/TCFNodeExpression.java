@@ -19,11 +19,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.eclipse.core.runtime.IAdaptable;
-import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.IExpressionManager;
-import org.eclipse.debug.core.ILaunch;
-import org.eclipse.debug.core.model.IDebugElement;
 import org.eclipse.debug.core.model.IExpression;
 import org.eclipse.debug.core.model.IWatchExpression;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IChildrenCountUpdate;
@@ -33,7 +29,6 @@ import org.eclipse.debug.internal.ui.viewers.model.provisional.IHasChildrenUpdat
 import org.eclipse.debug.internal.ui.viewers.model.provisional.ILabelUpdate;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IModelDelta;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IPresentationContext;
-import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.debug.ui.IDebugModelPresentation;
 import org.eclipse.debug.ui.IDebugUIConstants;
 import org.eclipse.jface.viewers.CellEditor;
@@ -66,10 +61,11 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
     // TODO: enable Change Value user command
 
     private final String script;
-    private final int index;
-    private final boolean deref;
+    private final IExpression platform_expression;
     private final String field_id;
     private final String reg_id;
+    private final int index;
+    private final boolean deref;
     private final TCFData<String> base_text;
     private final TCFData<IExpressions.Expression> var_expression;
     private final TCFData<IExpressions.Expression> rem_expression;
@@ -86,7 +82,6 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
     private IExpressions.Value next_value;
     private byte[] parent_value;
     private String remote_expression_id;
-    private IExpression platform_expression;
     private Object update_generation;
 
     private static int expr_cnt;
@@ -100,11 +95,18 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
         }
     };
 
-    TCFNodeExpression(final TCFNode parent, final String script,
+    TCFNodeExpression(final TCFNode parent, String expression_script, IExpression platform_expression,
             final String field_id, final String var_id, final String reg_id,
             final int index, final boolean deref) {
         super(parent, var_id != null ? var_id : "Expr" + expr_cnt++);
-        this.script = script;
+        if (platform_expression == null) {
+            this.script = expression_script;
+            this.platform_expression = null;
+        }
+        else {
+            this.script = platform_expression.getExpressionText();
+            this.platform_expression = platform_expression;
+        }
         this.field_id = field_id;
         this.reg_id = reg_id;
         this.index = index;
@@ -805,10 +807,6 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
 
     public IExpression getPlatformExpression() {
         return platform_expression;
-    }
-
-    void setPlatformExpression(IExpression expression) {
-        this.platform_expression = expression;
     }
 
     String getFieldID() {
@@ -2205,33 +2203,16 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                     public void run() {
                         try {
                             if (TCFColumnPresentationExpression.COL_NAME.equals(property)) {
-                                if (node.is_empty) {
-                                    if (value instanceof String) {
-                                        final String s = ((String)value).trim();
-                                        if (s.length() > 0) {
-                                            node.model.getDisplay().asyncExec(new Runnable() {
-                                                public void run() {
-                                                    IWatchExpression expression = DebugPlugin.getDefault().getExpressionManager().newWatchExpression(s);
-                                                    DebugPlugin.getDefault().getExpressionManager().addExpression(expression);
-                                                    IAdaptable object = DebugUITools.getDebugContext();
-                                                    IDebugElement context = null;
-                                                    if (object instanceof IDebugElement) {
-                                                        context = (IDebugElement)object;
-                                                    }
-                                                    else if (object instanceof ILaunch) {
-                                                        context = ((ILaunch)object).getDebugTarget();
-                                                    }
-                                                    expression.setExpressionContext(context);
-                                                }
-                                            });
-                                        }
+                                if (value instanceof String) {
+                                    String s = ((String)value).trim();
+                                    IExpressionManager m = node.model.getExpressionManager();
+                                    if (node.is_empty) {
+                                        if (s.length() > 0) m.addExpression(m.newWatchExpression(s));
                                     }
-                                }
-                                else if (!node.script.equals(value)) {
-                                    IExpressionManager m = DebugPlugin.getDefault().getExpressionManager();
-                                    m.removeExpression(node.platform_expression);
-                                    IExpression e = m.newWatchExpression((String)value);
-                                    m.addExpression(e);
+                                    else if (node.platform_expression != null && !s.equals(node.script)) {
+                                        m.removeExpression(node.platform_expression);
+                                        if (s.length() > 0) m.addExpression(m.newWatchExpression(s));
+                                    }
                                 }
                                 done(Boolean.TRUE);
                                 return;
@@ -2357,7 +2338,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
     @SuppressWarnings("rawtypes")
     @Override
     public Object getAdapter(Class adapter) {
-        if (script != null) {
+        if (platform_expression != null) {
             if (adapter == IExpression.class) {
                 return platform_expression;
             }
