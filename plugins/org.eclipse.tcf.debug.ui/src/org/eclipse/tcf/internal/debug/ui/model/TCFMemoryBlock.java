@@ -866,6 +866,7 @@ class TCFMemoryBlock extends PlatformObject implements IMemoryBlockExtension, IM
                                     IMemoryRenderingSite memory_view = (IMemoryRenderingSite)part;
                                     for (String pane_id : pane_ids) {
                                         IMemoryRenderingContainer container = memory_view.getContainer(pane_id);
+                                        if (container == null) continue;
                                         IMemoryRendering[] renderings = container.getRenderings();
                                         for (IMemoryRendering rendering : renderings) {
                                             Element xml_block = mb_to_xml.get(rendering.getMemoryBlock());
