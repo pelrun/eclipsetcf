@@ -2139,7 +2139,9 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                                     StyledStringBuffer bf = node.getPrettyExpression(this);
                                     if (bf == null) return;
                                     String s = bf.toString();
-                                    done(s.startsWith("0x") || TCFNumberFormat.isValidDecNumber(true, s) == null);
+                                    done(s.startsWith("0x") ||
+                                            s.startsWith("'") && s.endsWith("'") ||
+                                            TCFNumberFormat.isValidDecNumber(true, s) == null);
                                     return;
                                 }
                             }
@@ -2275,6 +2277,36 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                                         String s = input.substring(2);
                                         error = TCFNumberFormat.isValidHexNumber(s);
                                         if (error == null) bf = TCFNumberFormat.toByteArray(s, 16, false, size, signed, big_endian);
+                                    }
+                                    else if (input.startsWith("'") && input.endsWith("'")) {
+                                        String s = input.substring(1, input.length() - 1);
+                                        int l = s.length();
+                                        int i = 0;
+                                        int n = 0;
+                                        if (i < l) {
+                                            char ch = s.charAt(i++);
+                                            if (ch == '\\' && i < l) {
+                                                ch = s.charAt(i++);
+                                                switch (ch) {
+                                                case 'r': n = '\r'; break;
+                                                case 'n': n = '\n'; break;
+                                                case 'b': n = '\b'; break;
+                                                case 't': n = '\t'; break;
+                                                case 'f': n = '\f'; break;
+                                                default:
+                                                    while (ch >= '0' && ch <= '7') {
+                                                        n = n * 8 + (ch - '0');
+                                                        if (i >= l) break;
+                                                        ch = s.charAt(i++);
+                                                    }
+                                                }
+                                            }
+                                            else {
+                                                n = ch;
+                                            }
+                                        }
+                                        if (i < l) throw new Exception("Invalid character literal: " + value);
+                                        bf = TCFNumberFormat.toByteArray(Integer.toString(n), 10, false, size, signed, big_endian);
                                     }
                                     else if (bin_scale != null) {
                                         int n = bin_scale.intValue();
