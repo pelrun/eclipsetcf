@@ -174,6 +174,7 @@
 				<platform-site>http://download.eclipse.org/eclipse/updates/4.6</platform-site>
 				<cdt-site>http://download.eclipse.org/tools/cdt/releases/9.1</cdt-site>
 				<cdt-launchbar-site>http://download.eclipse.org/tools/cdt/launchbar/neon.rc4</cdt-launchbar-site>
+				<ptp-remote-site>http://download.eclipse.org/tools/ptp/builds/remote/2.1.0</ptp-remote-site>
 				<terminal-site>http://download.eclipse.org/tm/terminal/updates/4.1</terminal-site>
 				<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20160520211859/repository</orbit-site>
 			</properties>
@@ -195,7 +196,11 @@
 				<platform-site>http://download.eclipse.org/eclipse/updates/4.7milestones</platform-site>
 				<cdt-site>http://download.eclipse.org/tools/cdt/builds/9.2/nightly</cdt-site>
 				<cdt-launchbar-site>https://hudson.eclipse.org/cdt/job/launchbar-master/lastSuccessfulBuild/artifact/repo/target/repository</cdt-launchbar-site>
+				<!--
 				<ptp-remote-site>http://download.eclipse.org/tools/ptp/builds/remote/oxygen/milestones</ptp-remote-site>
+				2.1.1 is really Neon.2, but necessary to fix broken 4.7-tests
+				-->
+				<ptp-remote-site>http://download.eclipse.org/tools/ptp/builds/remote/2.1.1</ptp-remote-site>
 				<terminal-site>http://download.eclipse.org/tm/terminal/updates/4.2milestones</terminal-site>
 				<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20160520211859/repository</orbit-site>
 			</properties>
@@ -251,6 +256,11 @@
 							<environment>
 								<os>win32</os>
 								<ws>win32</ws>
+								<arch>x86_64</arch>
+							</environment>
+							<environment>
+								<os>macosx</os>
+								<ws>cocoa</ws>
 								<arch>x86_64</arch>
 							</environment>
 						</environments>
