@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2013 Wind River Systems, Inc. and others.
+ * Copyright (c) 2008, 2017 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -154,9 +154,12 @@ public class Main {
                 runTestSuite(getPeer(args));
             }
         });
-        Protocol.invokeLater(10 * 60 * 1000, new Runnable() {
+        String to_env = System.getenv().get("TCF_TEST_TIMEOUT");
+        if (to_env == null) to_env = "10";
+        final long to_min = Long.parseLong(to_env);
+        Protocol.invokeLater(to_min * 60 * 1000, new Runnable() {
             public void run() {
-                System.err.println("Error: timeout - test's not finished in 10 min");
+                System.err.println("Error: timeout - test has not finished in " + to_min + " min");
                 System.exit(5);
             }
         });
