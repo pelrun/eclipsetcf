@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2016 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2017 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -75,6 +75,10 @@ public interface IBreakpoints extends IService {
     static final String
         PROP_LINE_OFFSET = "LineOffset";          // Number - max number of lines breakpoint is allowed
                                                   // to be moved in case of inexact line info match
+    /** @since 1.5 */
+    static final String
+        PROP_SERVICE = "Service";                 // String - name of a service that owns the breakpoint.
+                                                  // User breakpoints don't have this attribute.
 
     /**
      * Breakpoints service can control cross trigger matrix - if the target hardware has one.

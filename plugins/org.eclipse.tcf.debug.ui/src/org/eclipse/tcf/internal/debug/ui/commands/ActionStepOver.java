@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2015 Wind River Systems, Inc. and others.
+ * Copyright (c) 2010, 2017 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -225,6 +225,7 @@ public class ActionStepOver extends TCFAction implements IRunControl.RunControlL
                 bp.put(IBreakpoints.PROP_LOCATION, addr.toString());
                 bp.put(IBreakpoints.PROP_CONDITION, "$thread==\"" + ctx_data.getID() + "\"");
                 bp.put(IBreakpoints.PROP_ENABLED, Boolean.TRUE);
+                bp.put(IBreakpoints.PROP_SERVICE, IRunControl.NAME);
                 bps.add(bp, new IBreakpoints.DoneCommand() {
                     public void doneCommand(IToken token, Exception error) {
                         if (error != null) exit(error);

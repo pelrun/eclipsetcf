@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2015 Wind River Systems, Inc. and others.
+ * Copyright (c) 2010, 2017 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -292,7 +292,7 @@ public class TCFSuspendResumeAdapter implements ISuspendResume, IRunToLine,
                 }
 //                properties.put(IBreakpoints.PROP_CONTEXTIDS, new String[] { contextId });
                 properties.put(IBreakpoints.PROP_ENABLED, Boolean.TRUE);
-//                properties.put(IBreakpoints.PROP_TEMPORARY, Boolean.TRUE);
+                properties.put(IBreakpoints.PROP_SERVICE, IRunControl.NAME);
                 final String breakpointId = TCFAction.STEP_BREAKPOINT_PREFIX + contextId;
                 properties.put(IBreakpoints.PROP_ID, breakpointId);
                 breakpoints.add(properties, new IBreakpoints.DoneCommand() {

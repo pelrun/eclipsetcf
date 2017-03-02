@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Xilinx, Inc. and others.
+ * Copyright (c) 2015, 2017 Xilinx, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -108,6 +108,7 @@ public class TCFStepIntoSelectionHandler implements IDebugCommandHandler {
                     }
                     properties.put(IBreakpoints.PROP_CONTEXT_IDS, new String[] { l.node.getID() });
                     properties.put(IBreakpoints.PROP_ENABLED, Boolean.TRUE);
+                    properties.put(IBreakpoints.PROP_SERVICE, IRunControl.NAME);
                     bp_id = TCFAction.STEP_BREAKPOINT_PREFIX + l.node.getID();
                     properties.put(IBreakpoints.PROP_ID, bp_id);
                     breakpoints.add(properties, new IBreakpoints.DoneCommand() {
