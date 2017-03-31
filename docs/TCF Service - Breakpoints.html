@@ -181,8 +181,12 @@ A breakpoint service implementation may not change the properties set by the cli
     <dd>This property contains an array of contexts names (such as a process/thread name) for which this breakpoint should be installed.
     </li>
 
-    <li><dt><code><b><font face="Courier New" size=2 color=#333399><a name='propExecPaths'>"ExecutablePaths"</a> : <i>&lt;string&gt;</i></font></b></code>
+    <li><dt><code><b><font face="Courier New" size=2 color=#333399><a name='propExecPaths'>"ExecPaths"</a> : <i>&lt;string&gt;</i></font></b></code>
     <dd>This property contains all the target executable paths for which this breakpoint should be installed.
+    </li>
+
+    <li><dt><code><b><font face="Courier New" size="2" color=#333399><a name='propContextQuery'> "ContextQuery" </a> : <i>&lt;string&gt;</i></font></b></code>
+    <dd>This property contains a context query expression. The breakpoint is installed in a context if the expression is evaluted to "true" for that context.
     </li>
 
     <li><dt><code><b><font face="Courier New" size=2 color=#333399><a name='propLocation'> "Location" </a> : <i>&lt;string&gt;</i></font></b></code>
@@ -608,6 +612,7 @@ E &bull; Breakpoints &bull; contextRemoved &bull; <i>&lt;array of breakpoint IDs
         PROP_CONTEXTNAMES = "ContextNames",       // Array
         PROP_CONTEXTIDS = "ContextIds",           // Array
         PROP_EXECUTABLEPATHS = "ExecPaths",       // Array
+        PROP_LOCATION = "ContextQuery",           // String
         PROP_LOCATION = "Location",               // String
         PROP_SIZE = "Size",                       // Number
         PROP_ACCESSMODE = "AccessMode",           // Number
