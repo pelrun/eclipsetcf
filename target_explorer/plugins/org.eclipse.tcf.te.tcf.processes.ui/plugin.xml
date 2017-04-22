@@ -239,7 +239,7 @@
          </command>
          <command
                commandId="org.eclipse.tcf.te.launch.command.terminate"
-               icon="platform:/plugin/org.eclipse.debug.ui/icons/full/elcl16/terminate_co.gif"
+               icon="icons/elcl16/terminate_co.png"
                id="org.eclipse.tcf.te.launch.menu.terminate"
                label="%command.terminate.label"
                mnemonic="%command.terminate.mnemonic"
@@ -388,7 +388,7 @@
          </command>
          <command
                commandId="org.eclipse.tcf.te.launch.command.terminate"
-               icon="platform:/plugin/org.eclipse.debug.ui/icons/full/elcl16/terminate_co.gif"
+               icon="icons/elcl16/terminate_co.png"
                id="org.eclipse.tcf.te.launch.menu.terminate"
                label="%command.terminate.label"
                style="push"

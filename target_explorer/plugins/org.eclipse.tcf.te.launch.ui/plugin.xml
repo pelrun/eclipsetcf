@@ -580,12 +580,12 @@
    <extension point="org.eclipse.ui.commandImages">
       <image
             commandId="org.eclipse.tcf.te.ui.launch.command.run"
-            icon="platform:/plugin/org.eclipse.debug.ui/icons/full/etool16/run_exc.gif"
-            disabledIcon="platform:/plugin/org.eclipse.debug.ui/icons/full/dtool16/run_exc.gif"/>
+            icon="icons/etool16/run_exc.png"
+            disabledIcon="icons/dtool16/run_exc.png"/>
       <image
             commandId="org.eclipse.tcf.te.ui.launch.command.debug"
-            icon="platform:/plugin/org.eclipse.debug.ui/icons/full/etool16/debug_exc.gif"
-            disabledIcon="platform:/plugin/org.eclipse.debug.ui/icons/full/dtool16/debug_exc.gif"/>
+            icon="icons/etool16/debug_exc.png"
+            disabledIcon="icons/dtool16/debug_exc.png"/>
       <image
             commandId="org.eclipse.tcf.te.launch.command.attach"
             disabledIcon="icons/dlcl16/attach.gif"

@@ -321,7 +321,7 @@
             locationURI="popup:#CEditorContext?after=group.debug">
          <command
                commandId="org.eclipse.tcf.cdt.ui.add_watchpoint"
-               icon="platform:/plugin/org.eclipse.cdt.debug.ui/icons/elcl16/watchpoint_co.gif"
+               icon="icons/elcl16/watchpoint_co.gif"
                id="org.eclipse.tcf.cdt.ui.add_watchpoint.editor"
                label="%item.addWatchpoint.name"
                style="push">
@@ -343,7 +343,7 @@
          <action
                class="org.eclipse.cdt.debug.internal.ui.actions.AddWatchpointOnVariableActionDelegate"
                enablesFor="1"
-               icon="platform:/plugin/org.eclipse.cdt.debug.ui/icons/elcl16/watchpoint_co.gif"
+               icon="icons/elcl16/watchpoint_co.gif"
                id="org.eclipse.tcf.cdt.ui.actions.AddWatchpointOnVariable"
                label="%action.addWatchpoint.label"
                menubarPath="additions"/>
