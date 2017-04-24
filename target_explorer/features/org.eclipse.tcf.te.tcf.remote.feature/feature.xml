@@ -31,7 +31,7 @@
       <import plugin="org.eclipse.remote.ui" version="2.0.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.ui" version="3.8.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.ui.ide" version="3.8.1" match="greaterOrEqual"/>
-      <import feature="org.eclipse.remote" version="2.0" match="compatible"/>
+      <import feature="org.eclipse.remote" version="2.0" match="greaterOrEqual"/>
       <import feature="org.eclipse.tcf.te.tcf.core.feature" version="1.5.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.tcf.te.tcf.locator" version="1.5.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.tcf.te.runtime" version="1.5.0" match="greaterOrEqual"/>
