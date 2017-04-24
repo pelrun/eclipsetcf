@@ -17,16 +17,22 @@ import java.util.List;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.URIUtil;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.osgi.service.datalocation.Location;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.tcf.te.runtime.callback.Callback;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IFSTreeNode;
 import org.eclipse.tcf.te.tcf.filesystem.core.interfaces.runtime.IRuntimeModel;
 import org.eclipse.tcf.te.tcf.filesystem.ui.activator.UIPlugin;
-import org.eclipse.tcf.te.tcf.filesystem.ui.internal.operations.UiExecutor;
 import org.eclipse.tcf.te.tcf.filesystem.ui.nls.Messages;
 import org.eclipse.ui.handlers.HandlerUtil;
 /**
@@ -42,7 +48,7 @@ public class DownloadFilesHandler extends AbstractHandler {
 		dlg.setText(Messages.DownloadFilesHandler_folderDlg_text);
 		dlg.setMessage(Messages.DownloadFilesHandler_folderDlg_message);
 
-		String destination = dlg.open();
+		final String destination = dlg.open();
 		if (destination == null)
 			return null;
 
@@ -52,7 +58,23 @@ public class DownloadFilesHandler extends AbstractHandler {
 		IStructuredSelection selection = (IStructuredSelection) HandlerUtil.getCurrentSelection(event);
 		List<IFSTreeNode> nodes = selection.toList();
 		IRuntimeModel peer = nodes.get(0).getRuntimeModel();
-		UiExecutor.execute(peer.operationDownload(nodes, destinationFile, new MoveCopyCallback()));
+		peer.operationDownload(nodes, destinationFile, new MoveCopyCallback()).runInUserJob(new Callback() {
+			@Override
+			protected void internalDone(Object caller, IStatus status) {
+				if (status.isOK()) {
+					IContainer container = ResourcesPlugin.getWorkspace().getRoot().getContainerForLocation(new Path(destination));
+					if (container != null) {
+						try {
+							container.refreshLocal(IResource.DEPTH_ONE, null);
+						}
+						catch (CoreException e) {
+							e.printStackTrace();
+						}
+					}
+				}
+			}
+		});
+
 		return null;
 	}
 
