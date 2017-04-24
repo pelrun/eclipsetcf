@@ -2136,11 +2136,13 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                                     return;
                                 }
                                 if (TCFColumnPresentationExpression.COL_VALUE.equals(property)) {
+                                    IExpressions.Value eval = node.value.getData();
                                     StyledStringBuffer bf = node.getPrettyExpression(this);
                                     if (bf == null) return;
                                     String s = bf.toString();
                                     done(s.startsWith("0x") ||
                                             s.startsWith("'") && s.endsWith("'") ||
+                                            eval != null && eval.getTypeClass() == ISymbols.TypeClass.enumeration ||
                                             TCFNumberFormat.isValidDecNumber(true, s) == null);
                                     return;
                                 }
@@ -2224,15 +2226,20 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                             if (exp != null && exp.canAssign()) {
                                 byte[] bf = null;
                                 int size = exp.getSize();
+                                boolean is_enum = false;
                                 boolean is_float = false;
                                 boolean big_endian = false;
                                 boolean signed = false;
+                                if (!node.type.validate(this)) return;
                                 if (!node.value.validate(this)) return;
                                 IExpressions.Value eval = node.value.getData();
                                 Number bin_scale = null;
                                 Number dec_scale = null;
                                 if (eval != null) {
                                     switch(eval.getTypeClass()) {
+                                    case enumeration:
+                                        is_enum = true;
+                                        break;
                                     case real:
                                         is_float = true;
                                         signed = true;
@@ -2246,8 +2253,8 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                                     big_endian = eval.isBigEndian();
                                     size = eval.getValue().length;
                                 }
-                                String input = (String)value;
                                 String error = null;
+                                String input = ((String)value).trim();
                                 if (TCFColumnPresentationExpression.COL_HEX_VALUE.equals(property)) {
                                     if (input.startsWith("0x")) input = input.substring(2);
                                     error = TCFNumberFormat.isValidHexNumber(input);
@@ -2323,7 +2330,31 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                                     }
                                     else {
                                         error = TCFNumberFormat.isValidDecNumber(is_float, input);
-                                        if (error == null) bf = TCFNumberFormat.toByteArray(input, 10, is_float, size, signed, big_endian);
+                                        if (error == null) {
+                                            bf = TCFNumberFormat.toByteArray(input, 10, is_float, size, signed, big_endian);
+                                        }
+                                        else if (is_enum) {
+                                            TCFModel model = node.model;
+                                            ISymbols.Symbol type_data = node.type.getData();
+                                            TCFDataCache<String[]> type_children_cache = model.getSymbolChildrenCache(type_data.getID());
+                                            if (!type_children_cache.validate(this)) return;
+                                            String[] type_children_data = type_children_cache.getData();
+                                            if (type_children_data != null) {
+                                                for (String const_id : type_children_data) {
+                                                    TCFDataCache<ISymbols.Symbol> const_cache = model.getSymbolInfoCache(const_id);
+                                                    if (!const_cache.validate(this)) return;
+                                                    ISymbols.Symbol const_data = const_cache.getData();
+                                                    if (const_data != null && input.equals(const_data.getName()) && const_data.getValue() != null) {
+                                                        bf = const_data.getValue();
+                                                        error = null;
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                            if (error != null && (input.length() == 0 || input.charAt(0) < '0' || input.charAt(0) > '9')) {
+                                                error = "Expected enumerator name or integer number";
+                                            }
+                                        }
                                     }
                                 }
                                 if (error != null) throw new Exception("Invalid value: " + value, new Exception(error));
