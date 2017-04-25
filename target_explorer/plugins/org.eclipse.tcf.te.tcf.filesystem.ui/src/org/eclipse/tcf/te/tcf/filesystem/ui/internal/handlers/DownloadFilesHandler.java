@@ -22,7 +22,6 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.URIUtil;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -52,7 +51,7 @@ public class DownloadFilesHandler extends AbstractHandler {
 		if (destination == null)
 			return null;
 
-		File destinationFile = new File(destination);
+		final File destinationFile = new File(destination);
 		saveFilterPath(destinationFile);
 
 		IStructuredSelection selection = (IStructuredSelection) HandlerUtil.getCurrentSelection(event);
@@ -61,8 +60,7 @@ public class DownloadFilesHandler extends AbstractHandler {
 		peer.operationDownload(nodes, destinationFile, new MoveCopyCallback()).runInUserJob(new Callback() {
 			@Override
 			protected void internalDone(Object caller, IStatus status) {
-				if (status.isOK()) {
-					IContainer container = ResourcesPlugin.getWorkspace().getRoot().getContainerForLocation(new Path(destination));
+				for (IContainer container : ResourcesPlugin.getWorkspace().getRoot().findContainersForLocationURI(destinationFile.toURI())) {
 					if (container != null) {
 						try {
 							container.refreshLocal(IResource.DEPTH_ONE, null);
