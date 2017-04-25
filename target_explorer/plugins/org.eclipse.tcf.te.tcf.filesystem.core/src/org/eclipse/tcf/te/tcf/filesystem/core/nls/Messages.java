@@ -92,6 +92,7 @@ public class Messages extends NLS {
 	public static String OpCopy_Copying;
 	public static String OpCopy_CannotCopyFile;
 	public static String OpCopy_CopyingFile;
+	public static String OpCopy_DownloadingFile;
 	public static String OpCopy_error_noDirectory;
 	public static String OpCopy_error_noFile;
 

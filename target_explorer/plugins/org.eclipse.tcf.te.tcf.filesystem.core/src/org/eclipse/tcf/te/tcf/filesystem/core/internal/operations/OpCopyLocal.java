@@ -134,6 +134,6 @@ public class OpCopyLocal extends OpCopyBase<File> {
 
 	@Override
     public String getName() {
-	    return Messages.OpCopy_CopyingFile;
+	    return Messages.OpCopy_DownloadingFile;
     }
 }
