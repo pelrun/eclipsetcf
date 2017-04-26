@@ -44,6 +44,7 @@ public class MoveCopyCallback implements IConfirmCallback {
 	@Override
 	public int confirms(Object object) {
 		final boolean isDirectory = isDirectory(object);
+		final String path = getAbsolutePath(object);
 		final String name = getName(object);
 		final int[] results = new int[1];
 		Display display = PlatformUI.getWorkbench().getDisplay();
@@ -52,7 +53,7 @@ public class MoveCopyCallback implements IConfirmCallback {
 			public void run() {
 				Shell parent = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
 				String title = isDirectory ? Messages.FSOperation_ConfirmFolderReplaceTitle : Messages.FSOperation_ConfirmFileReplace;
-				String message = NLS.bind(isDirectory ? Messages.FSOperation_ConfirmFolderReplaceMessage : Messages.FSOperation_ConfirmFileReplaceMessage, name);
+				String message = NLS.bind(isDirectory ? Messages.FSOperation_ConfirmFolderReplaceMessage : Messages.FSOperation_ConfirmFileReplaceMessage, path, name);
 				final Image titleImage = UIPlugin.getImage(ImageConsts.REPLACE_FOLDER_CONFIRM);
 				MessageDialog qDialog = new MessageDialog(parent, title, null, message, MessageDialog.QUESTION, new String[] { Messages.FSOperation_ConfirmDialogYes, Messages.FSOperation_ConfirmDialogYesToAll, Messages.FSOperation_ConfirmDialogNo, Messages.FSOperation_ConfirmDialogCancel }, 0) {
 					@Override
@@ -71,6 +72,14 @@ public class MoveCopyCallback implements IConfirmCallback {
 			return ((IFSTreeNode) object).getName();
 		if (object instanceof File)
 			return ((File) object).getName();
+	    return String.valueOf(object);
+    }
+
+	private String getAbsolutePath(Object object) {
+		if (object instanceof IFSTreeNode)
+			return ((IFSTreeNode) object).getLocation();
+		if (object instanceof File)
+			return ((File) object).getAbsolutePath();
 	    return String.valueOf(object);
     }
 
