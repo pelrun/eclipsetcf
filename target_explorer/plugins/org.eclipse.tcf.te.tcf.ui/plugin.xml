@@ -857,10 +857,25 @@
             contextId="org.eclipse.ui.contexts.window"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
             sequence="M2+F11"/>
-      <key  commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.historyLast"
+      <!-- bug 516908 - M1+M2+F11 == Cmd+Shift+F11 already taken by Debug:Run Last on OSX -->
+      <key
+            commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.historyLast"
             contextId="org.eclipse.ui.contexts.window"
+            platform="win32"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
             sequence="M1+M2+F11"/>
+      <key
+            commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.historyLast"
+            contextId="org.eclipse.ui.contexts.window"
+            platform="gtk"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+M2+F11"/>
+      <key
+            commandId="org.eclipse.tcf.te.tcf.ui.toolbar.command.historyLast"
+            contextId="org.eclipse.ui.contexts.window"
+            platform="carbon"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M2+M3+F11"/>
    </extension>
 
 <!-- Command image contributions -->
