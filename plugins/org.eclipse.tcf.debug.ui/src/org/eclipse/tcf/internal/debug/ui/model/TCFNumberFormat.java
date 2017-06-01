@@ -78,7 +78,7 @@ public class TCFNumberFormat {
         boolean sign_extention = false;
         if (!fp) {
             BigInteger n = new BigInteger(s, radix);
-            sign_extention =  n.signum() < 0;
+            sign_extention = n.signum() < 0;
             bf = n.toByteArray();
         }
         else if (size == 4) {
@@ -188,7 +188,8 @@ public class TCFNumberFormat {
         }
         byte[] rs = new byte[size];
         if (rs.length > bf.length && sign_extention) {
-            for (int i = bf.length; i < rs.length; i++) rs[i] = (byte)0xff;
+            // It is easier to fill all bytes instead of checking big_endian
+            for (int i = 0; i < rs.length; i++) rs[i] = (byte)0xff;
         }
         for (int i = 0; i < bf.length; i++) {
             // i == 0 -> least significant byte
