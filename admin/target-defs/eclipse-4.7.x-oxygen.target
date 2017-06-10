@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?pde version="3.8"?><target name="Eclipse 4.7.x (Oxygen)" sequenceNumber="19">
+<?pde version="3.8"?><target name="Eclipse 4.7.x (Oxygen)" sequenceNumber="20">
 <locations>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
 <unit id="org.apache.log4j" version="1.2.15.v201012070815"/>
@@ -36,7 +36,7 @@
 <unit id="org.eclipse.egit.feature.group" version="4.8.0.201705170830-rc1"/>
 <unit id="org.eclipse.emf.sdk.feature.group" version="2.13.0.v20170504-0807"/>
 <unit id="org.eclipse.jgit.feature.group" version="4.8.0.201705170830-rc1"/>
-<unit id="org.eclipse.pde.feature.group" version="3.13.0.v20170524-2000"/>
+<unit id="org.eclipse.pde.feature.group" version="3.13.0.v20170608-0925"/>
 <repository location="http://download.eclipse.org/staging/oxygen"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
@@ -48,9 +48,9 @@
 <repository location="https://hudson.eclipse.org/cdt/job/launchbar-master/lastSuccessfulBuild/artifact/repo/target/repository"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.rse.sdk.feature.group" version="3.7.2.201610260947"/>
-<unit id="org.eclipse.rse.terminals.feature.group" version="3.8.0.201610260947"/>
-<unit id="org.eclipse.rse.terminals.source.feature.group" version="3.8.0.201610260947"/>
+<unit id="org.eclipse.rse.sdk.feature.group" version="3.7.3.201704251225"/>
+<unit id="org.eclipse.rse.terminals.feature.group" version="3.8.0.201704251225"/>
+<unit id="org.eclipse.rse.terminals.source.feature.group" version="3.8.0.201704251225"/>
 <repository location="http://download.eclipse.org/tm/updates/4.3milestones"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
