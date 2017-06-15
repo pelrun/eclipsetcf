@@ -1640,7 +1640,7 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
                                 exit(new Exception("Invalid register value size"));
                                 return;
                             }
-                            if (ctx.isWriteable() && !ctx.isWriteOnce()) {
+                            if (ctx.isWriteable() && !ctx.isWriteOnce() && ctx.getMemoryContext() == null) {
                                 cmds.add(ctx.set(value, new IRegisters.DoneSet() {
                                     public void doneSet(IToken token, Exception error) {
                                         cmds.remove(token);
@@ -1689,6 +1689,7 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
                         if (ctx.isReadOnce()) continue;
                         if (ctx.isWriteOnce()) continue;
                         if (ctx.getSize() == 0) continue;
+                        if (ctx.getMemoryContext() != null) continue;
                         int offs = rnd.nextInt(ctx.getSize());
                         int size = rnd.nextInt(ctx.getSize() - offs) + 1;
                         locs.add(new IRegisters.Location(id, offs, size));

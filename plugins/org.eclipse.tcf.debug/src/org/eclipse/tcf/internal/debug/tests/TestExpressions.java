@@ -358,7 +358,10 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                     else {
                         test_ctx = ctx;
                         process_id = test_ctx.getProcessID();
-                        if (test_ctx.hasState()) thread_id = test_ctx_id;
+                        if (test_ctx.hasState()) {
+                            thread_id = test_ctx_id;
+                            thread_ctx = test_ctx;
+                        }
                         runTest();
                     }
                 }
