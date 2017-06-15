@@ -5,10 +5,10 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-        <groupId>org.eclipse.tcf</groupId>
-        <artifactId>org.eclipse.tcf.maven-config</artifactId>
-        <version>1.5.0-SNAPSHOT</version>
-        <relativePath>pom-config.xml</relativePath>
+		<groupId>org.eclipse.tcf</groupId>
+		<artifactId>org.eclipse.tcf.maven-config</artifactId>
+		<version>1.5.0-SNAPSHOT</version>
+		<relativePath>pom-config.xml</relativePath>
 	</parent>
 
 	<groupId>org.eclipse.tcf</groupId>
@@ -37,9 +37,8 @@
 	<profiles>
 		<profile>
 			<id>sign</id>
-			<!-- Uses the new jarsigner from the CBI platform     -->
+			<!-- Uses the new jarsigner from the CBI platform -->
 			<!-- Works only if the build runs at a Eclipse build server -->
-			
 			<build>
 				<plugins>
 					<plugin>
@@ -61,10 +60,9 @@
 				</plugins>
 			</build>
 		</profile>
-		
+
 		<profile>
 			<id>findbugs</id>
- 
 			<build>
 				<plugins>
 					<plugin>
@@ -89,48 +87,47 @@
 				</plugins>
 			</build>
 		</profile>
+
 		<profile>
 			<id>tests</id>
-			
 			<build>
 				<plugins>
-                
-                    <plugin>
-                        <groupId>org.eclipse.tycho</groupId>
-                        <artifactId>target-platform-configuration</artifactId>
-                        <configuration>
-                            <dependency-resolution>
-                                <extraRequirements>
-                                    <!-- product IU under test -->
-                                    <requirement>
-                                        <type>p2-installable-unit</type>
-                                        <id>org.eclipse.platform.ide</id>
-                                        <versionRange>0.0.0</versionRange>
-                                    </requirement>
-                                    <requirement>
-                                        <type>eclipse-feature</type>
-                                        <id>org.eclipse.sdk</id>
-                                        <versionRange>0.0.0</versionRange>
-                                    </requirement>
-                                    <requirement>
-                                        <type>eclipse-feature</type>
-                                        <id>org.eclipse.cdt.platform</id>
-                                        <versionRange>0.0.0</versionRange>
-                                    </requirement>
-                                    <requirement>
-                                        <type>eclipse-feature</type>
-                                        <id>org.eclipse.remote</id>
-                                        <versionRange>0.0.0</versionRange>
-                                    </requirement>
-                                    <requirement>
-                                        <type>eclipse-feature</type>
-                                        <id>org.eclipse.swtbot.eclipse</id>
-                                        <versionRange>0.0.0</versionRange>
-                                    </requirement>
-                                </extraRequirements>
-                            </dependency-resolution>
-                        </configuration>
-                    </plugin>
+					<plugin>
+						<groupId>org.eclipse.tycho</groupId>
+						<artifactId>target-platform-configuration</artifactId>
+						<configuration>
+							<dependency-resolution>
+								<extraRequirements>
+									<!-- product IU under test -->
+									<requirement>
+										<type>p2-installable-unit</type>
+										<id>org.eclipse.platform.ide</id>
+										<versionRange>0.0.0</versionRange>
+									</requirement>
+									<requirement>
+										<type>eclipse-feature</type>
+										<id>org.eclipse.sdk</id>
+										<versionRange>0.0.0</versionRange>
+									</requirement>
+									<requirement>
+										<type>eclipse-feature</type>
+										<id>org.eclipse.cdt.platform</id>
+										<versionRange>0.0.0</versionRange>
+									</requirement>
+									<requirement>
+										<type>eclipse-feature</type>
+										<id>org.eclipse.remote</id>
+										<versionRange>0.0.0</versionRange>
+									</requirement>
+									<requirement>
+										<type>eclipse-feature</type>
+										<id>org.eclipse.swtbot.eclipse</id>
+										<versionRange>0.0.0</versionRange>
+									</requirement>
+								</extraRequirements>
+							</dependency-resolution>
+						</configuration>
+					</plugin>
 					<plugin>
 						<groupId>org.jacoco</groupId>
 						<artifactId>jacoco-maven-plugin</artifactId>
