@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?pde version="3.8"?><target name="Eclipse 4.7.x (Oxygen)" sequenceNumber="22">
+<?pde version="3.8"?><target name="Eclipse 4.7.x (Oxygen)" sequenceNumber="27">
 <locations>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
 <unit id="gnu.io.rxtx.sdk.feature.group" version="2.1.7.4_v20071016-417C7DP1Bh_eEaQJBrHBHg"/>
@@ -10,7 +10,7 @@
 <repository location="http://download.eclipse.org/cbi/updates/license"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.platform.ide" version="4.7.0.I20170608-0530"/>
+<unit id="org.eclipse.platform.ide" version="4.7.0.I20170612-0950"/>
 <unit id="org.eclipse.test.feature.group" version="3.7.200.v20170511-1043"/>
 <repository location="http://download.eclipse.org/eclipse/updates/4.7milestones/"/>
 </location>
@@ -29,13 +29,11 @@
 <repository location="http://download.eclipse.org/technology/swtbot/releases/latest"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.tm.terminal.connector.local.sdk.feature.feature.group" version="4.3.0.201705161105"/>
-<unit id="org.eclipse.tm.terminal.connector.serial.sdk.feature.feature.group" version="4.3.0.201705161105"/>
-<unit id="org.eclipse.tm.terminal.connector.ssh.sdk.feature.feature.group" version="4.3.0.201705161105"/>
-<unit id="org.eclipse.tm.terminal.connector.telnet.sdk.feature.feature.group" version="4.3.0.201705161105"/>
-<unit id="org.eclipse.tm.terminal.control.sdk.feature.feature.group" version="4.3.0.201705161105"/>
-<unit id="org.eclipse.tm.terminal.sdk.feature.feature.group" version="4.3.0.201705161105"/>
-<unit id="org.eclipse.tm.terminal.view.sdk.feature.feature.group" version="4.3.0.201705161105"/>
+<unit id="org.eclipse.tm.terminal.connector.cdtserial.sdk.feature.feature.group" version="4.3.0.201706140544"/>
+<unit id="org.eclipse.tm.terminal.connector.remote.sdk.feature.feature.group" version="4.3.0.201706140544"/>
+<unit id="org.eclipse.tm.terminal.connector.serial.sdk.feature.feature.group" version="4.3.0.201706140544"/>
+<unit id="org.eclipse.tm.terminal.sdk.feature.feature.group" version="4.3.0.201706140544"/>
+<unit id="org.eclipse.tm.terminal.view.rse.sdk.feature.feature.group" version="4.3.0.201706140544"/>
 <repository location="http://download.eclipse.org/tm/terminal/updates/4.3milestones"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
@@ -44,7 +42,7 @@
 <repository location="http://download.eclipse.org/tm/updates/4.3milestones"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.cdt.sdk.feature.group" version="9.3.0.201706051601"/>
+<unit id="org.eclipse.cdt.sdk.feature.group" version="9.3.0.201706122201"/>
 <repository location="http://download.eclipse.org/tools/cdt/builds/oxygen/milestones"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
@@ -58,7 +56,7 @@
 <repository location="http://download.eclipse.org/tools/ptp/builds/remote/oxygen/milestones"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.launchbar.feature.group" version="2.1.1.201705251527"/>
+<unit id="org.eclipse.launchbar.feature.group" version="2.1.1.201706131403"/>
 <repository location="https://hudson.eclipse.org/cdt/job/launchbar-master/lastSuccessfulBuild/artifact/repo/target/repository"/>
 </location>
 </locations>

@@ -36,12 +36,10 @@
 		<maven-resources-version>2.7</maven-resources-version>
 		<maven-antrun-version>1.8</maven-antrun-version>
 		<gmaven-version>1.5</gmaven-version>
-		<!-- Stick to Findbugs 2.5.2 until newer versions are supported by hudson.eclipse.org -->
-		<findbugs-version>2.5.2</findbugs-version>
+		<findbugs-version>3.0.4</findbugs-version>
 		<!-- Check available versions at https://repository.sonatype.org/content/repositories/public/org/jacoco/jacoco-maven-plugin -->
-		<jacoco-version>0.7.4.201502262128</jacoco-version>
-		<!-- Needed by Jacoco, see http://www.eclemma.org/jacoco/trunk/doc/prepare-agent-mojo.html -->
-		<tycho.testArgLine></tycho.testArgLine>
+		<jacoco-version>0.7.9</jacoco-version>
+		<!-- Note: jarsigner-1.1.4 fails with Java 7 so stick to 1.1.2 -->
 		<eclipse-jarsigner-version>1.1.2</eclipse-jarsigner-version>
 
 		<!-- Common global properties -->
@@ -65,8 +63,9 @@
 		<terminal-site>http://download.eclipse.org/tm/terminal/updates/4.0</terminal-site>
 		<remote-site>http://download.eclipse.org/tools/ptp/builds/remote/2.0.0</remote-site>
 		<rxtx-site>http://archive.eclipse.org/tm/updates/rxtx</rxtx-site>
-		<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20150124073747/repository</orbit-site>
-		<swtbot-site>http://download.eclipse.org/technology/swtbot/releases/latest/</swtbot-site>
+		<!--  SWTBot needs JUnit 4.12 which is only in Orbit Mars and newer -->
+		<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20160221192158/repository/</orbit-site>
+		<swtbot-site>http://download.eclipse.org/technology/swtbot/releases/2.5.0/</swtbot-site>
 	</properties>
 
 	<repositories>
@@ -164,8 +163,8 @@
 
 			<properties>
 				<platform-site>http://download.eclipse.org/eclipse/updates/4.5</platform-site>
-				<cdt-site>http://download.eclipse.org/tools/cdt/releases/8.8.1</cdt-site>
 				<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20160221192158/repository</orbit-site>
+				<cdt-site>http://download.eclipse.org/tools/cdt/releases/8.8.1</cdt-site>
 			</properties>
 		</profile>
 
@@ -175,12 +174,12 @@
 
 			<properties>
 				<platform-site>http://download.eclipse.org/eclipse/updates/4.6</platform-site>
+				<orbit-site>http://download.eclipse.org/tools/orbit/R-builds/R20170307180635/repository</orbit-site>
 				<cdt-site>http://download.eclipse.org/tools/cdt/releases/9.2</cdt-site>
 				<cdt-launchbar-site>http://download.eclipse.org/tools/cdt/launchbar/neon.2</cdt-launchbar-site>
 				<remote-site>http://download.eclipse.org/tools/ptp/builds/remote/2.1.1</remote-site>
 				<terminal-site>http://download.eclipse.org/tm/terminal/updates/4.2</terminal-site>
 				<tm-site>http://download.eclipse.org/tm/updates/4.2</tm-site>
-				<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20170307180635/repository</orbit-site>
 			</properties>
 
 			<repositories>
@@ -198,11 +197,13 @@
 
 			<properties>
 				<platform-site>http://download.eclipse.org/eclipse/updates/4.7milestones</platform-site>
+				<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20170516192513/repository</orbit-site>
 				<cdt-site>http://download.eclipse.org/tools/cdt/builds/oxygen/milestones</cdt-site>
 				<cdt-launchbar-site>https://hudson.eclipse.org/cdt/job/launchbar-master/lastSuccessfulBuild/artifact/repo/target/repository</cdt-launchbar-site>
 				<remote-site>http://download.eclipse.org/tools/ptp/builds/remote/oxygen/milestones</remote-site>
 				<terminal-site>http://download.eclipse.org/tm/terminal/updates/4.3milestones</terminal-site>
-				<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20170516192513/repository</orbit-site>
+				<tm-site>http://download.eclipse.org/tm/updates/4.3milestones</tm-site>
+				<swtbot-site>http://download.eclipse.org/technology/swtbot/releases/latest/</swtbot-site>
 			</properties>
 
 			<repositories>
@@ -369,6 +370,28 @@
 					<groupId>org.jacoco</groupId>
 					<artifactId>jacoco-maven-plugin</artifactId>
 					<version>${jacoco-version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-pmd-plugin</artifactId>
+					<version>3.8</version>
+					<configuration>
+						<sourceEncoding>utf-8</sourceEncoding>
+						<minimumTokens>100</minimumTokens>
+						<targetJdk>1.7</targetJdk>
+						<format>xml</format>
+						<failOnViolation>false</failOnViolation>
+						<excludes>
+							<exclude>**/UbcCheck.java</exclude>
+						</excludes>
+					</configuration>
+					<executions>
+						<execution>
+							<goals>
+								<goal>cpd-check</goal>
+							</goals>
+						</execution>
+					</executions>
 				</plugin>
 				
 				<!-- Pack200 and Signing -->
