@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2016 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2017 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -35,6 +35,7 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
 import org.eclipse.tcf.debug.ui.ITCFDebugUIConstants;
 import org.eclipse.tcf.debug.ui.ITCFExecContext;
+import org.eclipse.tcf.internal.debug.actions.TCFAction;
 import org.eclipse.tcf.internal.debug.model.TCFBreakpointsModel;
 import org.eclipse.tcf.internal.debug.model.TCFContextState;
 import org.eclipse.tcf.internal.debug.model.TCFFunctionRef;
@@ -864,6 +865,8 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
     }
 
     private boolean okToHideStack() {
+        TCFAction action = model.getActiveAction(id);
+        if (action != null && action.showRunning()) return true;
         TCFContextState state_data = state.getData();
         if (state_data == null) return true;
         if (!state_data.is_suspended) return true;
@@ -1145,22 +1148,28 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
                 }
                 else if (ctx.hasState()) {
                     // Thread
-                    if (resume_pending && resumed_by_action || model.getActiveAction(id) != null) {
-                        if (!state.validate(done)) return false;
-                        TCFContextState state_data = state.getData();
-                        image_name = ImageCache.IMG_THREAD_UNKNOWN_STATE;
-                        if (state_data != null) {
-                            if (!state_data.is_suspended) {
-                                image_name = addStateName(label, state_data);
-                            }
-                            else {
-                                suspended_by_bp = IRunControl.REASON_BREAKPOINT.equals(state_data.suspend_reason);
-                            }
+                    TCFAction action = model.getActiveAction(id);
+                    if (resume_pending && resumed_by_action || action != null) {
+                        if (action != null && action.showRunning()) {
+                            image_name = ImageCache.IMG_THREAD_RUNNNIG;
                         }
-                        if (resume_pending && last_label != null) {
-                            result.setImageDescriptor(ImageCache.getImageDescriptor(image_name), 0);
-                            result.setLabel(last_label, 0);
-                            return true;
+                        else {
+                            if (!state.validate(done)) return false;
+                            TCFContextState state_data = state.getData();
+                            image_name = ImageCache.IMG_THREAD_UNKNOWN_STATE;
+                            if (state_data != null) {
+                                if (!state_data.is_suspended) {
+                                    image_name = addStateName(label, state_data);
+                                }
+                                else {
+                                    suspended_by_bp = IRunControl.REASON_BREAKPOINT.equals(state_data.suspend_reason);
+                                }
+                            }
+                            if (resume_pending && last_label != null) {
+                                result.setImageDescriptor(ImageCache.getImageDescriptor(image_name), 0);
+                                result.setLabel(last_label, 0);
+                                return true;
+                            }
                         }
                     }
                     else if (resume_pending && last_label != null && last_image != null) {

@@ -10,6 +10,8 @@
  *******************************************************************************/
 package org.eclipse.tcf.internal.cdt.ui.commands;
 
+import java.math.BigInteger;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,10 +20,16 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.commands.IDebugCommandHandler;
 import org.eclipse.debug.core.commands.IDebugCommandRequest;
 import org.eclipse.debug.core.commands.IEnabledStateRequest;
+import org.eclipse.debug.ui.ISourcePresentation;
 import org.eclipse.tcf.internal.cdt.ui.Activator;
 import org.eclipse.tcf.internal.debug.actions.TCFAction;
+import org.eclipse.tcf.internal.debug.launch.TCFSourceLookupDirector;
 import org.eclipse.tcf.internal.debug.model.TCFContextState;
+import org.eclipse.tcf.internal.debug.model.TCFSourceRef;
+import org.eclipse.tcf.internal.debug.ui.model.TCFChildrenStackTrace;
 import org.eclipse.tcf.internal.debug.ui.model.TCFModel;
+import org.eclipse.tcf.internal.debug.ui.model.TCFModelPresentation;
+import org.eclipse.tcf.internal.debug.ui.model.TCFNodeStackFrame;
 import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.protocol.Protocol;
@@ -30,6 +38,7 @@ import org.eclipse.tcf.services.IRunControl;
 import org.eclipse.tcf.services.IRunControl.RunControlContext;
 import org.eclipse.tcf.services.IRunControl.RunControlListener;
 import org.eclipse.tcf.util.TCFDataCache;
+import org.eclipse.ui.IEditorInput;
 
 public class TCFStepIntoSelectionHandler implements IDebugCommandHandler {
 
@@ -81,16 +90,80 @@ public class TCFStepIntoSelectionHandler implements IDebugCommandHandler {
             return true;
         }
 
-        Protocol.invokeLater(new Runnable() {
-            boolean run_to_line_done;
+        new TCFAction(l.node.getModel().getLaunch(), l.node.getID()) {
+            boolean resumed;
             boolean req_done;
+            boolean action_done;
             String bp_id;
             @Override
             public void run() {
-                if (l.node.isDisposed()) {
+                if (aborted || action_done || l.node.isDisposed()) {
                     done(null);
                     return;
                 }
+                TCFDataCache<TCFContextState> state_cache = l.node.getState();
+                if (!state_cache.validate(this)) return;
+                if (state_cache.getError() != null) {
+                    done(state_cache.getError());
+                    return;
+                }
+                TCFContextState state_data = state_cache.getData();
+                if (state_data == null || !state_data.is_suspended) {
+                    done(null);
+                    return;
+                }
+
+                if (resumed) {
+                    assert bp_id != null;
+                    boolean bp_hit = false;
+                    Object ids = state_data.suspend_params.get(IRunControl.STATE_BREAKPOINT_IDS);
+                    if (ids != null) {
+                        @SuppressWarnings("unchecked")
+                        Collection<String> bp_ids = (Collection<String>)ids;
+                        bp_hit = bp_ids.contains(bp_id) && bp_ids.size() == 1;
+                    }
+                    if (!bp_hit) {
+                        done(null);
+                        return;
+                    }
+
+                    TCFChildrenStackTrace stack_trace = l.node.getStackTrace();
+                    if (!stack_trace.validate(this)) return;
+                    TCFNodeStackFrame stack_frame = stack_trace.getTopFrame();
+                    BigInteger addr_data = null;
+                    if (l.target_function != null) {
+                        if (!stack_frame.getStackTraceContext().validate(this)) return;
+                        addr_data = stack_frame.getReturnAddress();
+                        if (addr_data != null && addr_data.compareTo(BigInteger.valueOf(0)) > 0) {
+                            addr_data = addr_data.subtract(BigInteger.valueOf(1));
+                        }
+                    }
+                    else {
+                        TCFDataCache<BigInteger> addr_cache = stack_frame.getAddress();
+                        if (!addr_cache.validate(this)) return;
+                        addr_data = addr_cache.getData();
+                    }
+                    if (addr_data != null) {
+                        TCFDataCache<TCFSourceRef> line_cache = l.node.getLineInfo(addr_data);
+                        if (line_cache != null) {
+                            if (!line_cache.validate(this)) return;
+                            TCFSourceRef line_data = line_cache.getData();
+                            if (line_data != null && line_data.area != null &&
+                                    line_data.area.start_line <= l.text_line && line_data.area.end_line > l.text_line) {
+                                Object source_element = TCFSourceLookupDirector.lookup(l.node.getModel().getLaunch(), line_data.context_id, line_data.area);
+                                if (source_element != null) {
+                                    ISourcePresentation presentation = TCFModelPresentation.getDefault();
+                                    IEditorInput editor_input = presentation.getEditorInput(source_element);
+                                    if (editor_input.equals(l.editor.getEditorInput())) {
+                                        done(null);
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
                 IChannel channel = l.node.getChannel();
                 if (bp_id == null) {
                     IBreakpoints breakpoints = channel.getRemoteService(IBreakpoints.class);
@@ -101,7 +174,7 @@ public class TCFStepIntoSelectionHandler implements IDebugCommandHandler {
                     Map<String, Object> properties = new HashMap<String, Object>();
                     properties.put(IBreakpoints.PROP_FILE, l.text_file);
                     properties.put(IBreakpoints.PROP_LINE, l.text_line);
-                    if (run_to_line_done) {
+                    if (l.target_function != null) {
                         assert l.target_function != null;
                         properties.put(IBreakpoints.PROP_LOCATION, l.target_function.getElementName());
                         properties.put(IBreakpoints.PROP_SKIP_PROLOGUE, true);
@@ -129,17 +202,6 @@ public class TCFStepIntoSelectionHandler implements IDebugCommandHandler {
                     done(new Exception("Cannot resume."));
                     return;
                 }
-                TCFDataCache<TCFContextState> state_cache = l.node.getState();
-                if (!state_cache.validate(this)) return;
-                if (state_cache.getError() != null) {
-                    done(state_cache.getError());
-                    return;
-                }
-                TCFContextState state = state_cache.getData();
-                if (state == null || !state.is_suspended) {
-                    done(null);
-                    return;
-                }
                 TCFDataCache<IRunControl.RunControlContext> ctx_cache = l.node.getRunContext();
                 if (!ctx_cache.validate(this)) return;
                 if (ctx_cache.getError() != null) {
@@ -150,23 +212,7 @@ public class TCFStepIntoSelectionHandler implements IDebugCommandHandler {
                 run_ctrl.addListener(new RunControlListener() {
                     private void suspended() {
                         run_ctrl.removeListener(this);
-                        if (!run_to_line_done) {
-                            run_to_line_done = true;
-                            if (l.target_function != null) {
-                                assert bp_id != null;
-                                IChannel channel = l.node.getChannel();
-                                IBreakpoints breakpoints = channel.getRemoteService(IBreakpoints.class);
-                                breakpoints.remove(new String[] { bp_id }, new IBreakpoints.DoneCommand() {
-                                    public void doneCommand(IToken token, Exception error) {
-                                        if (error != null) done(error);
-                                        else run();
-                                    }
-                                });
-                                bp_id = null;
-                                return;
-                            }
-                        }
-                        done(null);
+                        run();
                     }
                     public void contextSuspended(String context, String pc, String reason, Map<String,Object> params) {
                         if (node_id.equals(context)) {
@@ -200,6 +246,7 @@ public class TCFStepIntoSelectionHandler implements IDebugCommandHandler {
                     public void containerResumed(String[] context_ids) {
                     }
                 });
+                resumed = true;
                 IRunControl.RunControlContext ctx = ctx_cache.getData();
                 ctx.resume(IRunControl.RM_RESUME, 1, new IRunControl.DoneCommand() {
                     public void doneCommand(IToken token, Exception error) {
@@ -213,6 +260,12 @@ public class TCFStepIntoSelectionHandler implements IDebugCommandHandler {
                     }
                 });
             }
+
+            @Override
+            public boolean showRunning() {
+                return true;
+            }
+
             private void done(Throwable e) {
                 if (bp_id != null) {
                     IChannel channel = l.node.getChannel();
@@ -233,8 +286,13 @@ public class TCFStepIntoSelectionHandler implements IDebugCommandHandler {
                     req_done = true;
                     request.done();
                 }
+                if (!action_done) {
+                    action_done = true;
+                    setActionResult(getContextID(), "Step Into Selection");
+                    super.done();
+                }
             }
-        });
+        };
         return true;
     }
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2016 Wind River Systems, Inc. and others.
+ * Copyright (c) 2008, 2017 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -39,6 +39,7 @@ import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tcf.debug.ui.ITCFExpression;
 import org.eclipse.tcf.debug.ui.ITCFPrettyExpressionProvider;
+import org.eclipse.tcf.internal.debug.actions.TCFAction;
 import org.eclipse.tcf.internal.debug.model.TCFContextState;
 import org.eclipse.tcf.internal.debug.ui.Activator;
 import org.eclipse.tcf.internal.debug.ui.ColorCache;
@@ -774,6 +775,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
     }
 
     void onValueChanged() {
+        prev_value = next_value;
         value.reset();
         type.reset();
         type_name.reset();
@@ -887,18 +889,23 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
         // stack trace does not contain expression parent frame.
         // Return null if waiting for cache update.
         if (prev_value == null) return false;
-        if (parent instanceof TCFNodeStackFrame) {
-            TCFNodeExecContext exe = (TCFNodeExecContext)parent.parent;
+        TCFNode p = getRootExpression().parent;
+        if (p instanceof TCFNodeStackFrame) {
+            TCFNodeExecContext exe = (TCFNodeExecContext)p.parent;
+            TCFAction action = model.getActiveAction(exe.id);
+            if (action != null && action.showRunning()) return true;
             TCFDataCache<TCFContextState> state_cache = exe.getState();
             if (!state_cache.validate(done)) return null;
             TCFContextState state = state_cache.getData();
             if (state == null || !state.is_suspended) return true;
             TCFChildrenStackTrace stack_trace_cache = exe.getStackTrace();
             if (!stack_trace_cache.validate(done)) return null;
-            if (stack_trace_cache.getData().get(parent.id) == null) return true;
+            if (stack_trace_cache.getData().get(p.id) == null) return true;
         }
-        else if (parent instanceof TCFNodeExecContext) {
-            TCFNodeExecContext exe = (TCFNodeExecContext)parent;
+        else if (p instanceof TCFNodeExecContext) {
+            TCFNodeExecContext exe = (TCFNodeExecContext)p;
+            TCFAction action = model.getActiveAction(exe.id);
+            if (action != null && action.showRunning()) return true;
             TCFDataCache<TCFContextState> state_cache = exe.getState();
             if (!state_cache.validate(done)) return null;
             TCFContextState state = state_cache.getData();
@@ -910,6 +917,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
     @Override
     void flushAllCaches() {
         prev_value = null;
+        next_value = null;
         super.flushAllCaches();
     }
 

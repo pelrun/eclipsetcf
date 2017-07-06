@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2016 Wind River Systems, Inc. and others.
+ * Copyright (c) 2008, 2017 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -45,6 +45,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.tcf.debug.ui.ITCFAnnotationProvider;
+import org.eclipse.tcf.internal.debug.actions.TCFAction;
 import org.eclipse.tcf.internal.debug.launch.TCFSourceLookupDirector;
 import org.eclipse.tcf.internal.debug.model.ITCFBreakpointListener;
 import org.eclipse.tcf.internal.debug.model.TCFBreakpointsModel;
@@ -447,7 +448,7 @@ public class TCFAnnotationManager {
 
     private ILineNumbers.CodeArea getBreakpointCodeArea(TCFLaunch launch, String id) {
         Map<String,Object> props = launch.getBreakpointsStatus().getProperties(id);
-        if (props != null) {
+        if (props != null && props.get(IBreakpoints.PROP_LOCATION) == null) {
             String file = (String)props.get(IBreakpoints.PROP_FILE);
             Number line = (Number)props.get(IBreakpoints.PROP_LINE);
             if (file != null && line != null) {
@@ -663,18 +664,21 @@ public class TCFAnnotationManager {
                     frame = trace.getTopFrame();
                 }
                 if (thread != null) {
-                    TCFDataCache<IRunControl.RunControlContext> rc_ctx_cache = thread.getRunContext();
-                    if (!rc_ctx_cache.validate(this)) return;
-                    IRunControl.RunControlContext rc_ctx_data = rc_ctx_cache.getData();
-                    if (rc_ctx_data != null) bp_group = rc_ctx_data.getBPGroup();
-                    TCFDataCache<TCFNodeExecContext> mem_cache = thread.getMemoryNode();
-                    if (!mem_cache.validate(this)) return;
-                    memory = mem_cache.getData();
-                    if (bp_group == null && memory != null && rc_ctx_data != null && rc_ctx_data.hasState()) bp_group = memory.id;
-                    last_top_frame = thread.getLastTopFrame();
-                    TCFDataCache<TCFContextState> state_cache = thread.getState();
-                    if (!state_cache.validate(this)) return;
-                    suspended = state_cache.getData() != null && state_cache.getData().is_suspended;
+                    TCFAction action = thread.model.getActiveAction(thread.id);
+                    if (action == null || !action.showRunning()) {
+                        TCFDataCache<IRunControl.RunControlContext> rc_ctx_cache = thread.getRunContext();
+                        if (!rc_ctx_cache.validate(this)) return;
+                        IRunControl.RunControlContext rc_ctx_data = rc_ctx_cache.getData();
+                        if (rc_ctx_data != null) bp_group = rc_ctx_data.getBPGroup();
+                        TCFDataCache<TCFNodeExecContext> mem_cache = thread.getMemoryNode();
+                        if (!mem_cache.validate(this)) return;
+                        memory = mem_cache.getData();
+                        if (bp_group == null && memory != null && rc_ctx_data != null && rc_ctx_data.hasState()) bp_group = memory.id;
+                        last_top_frame = thread.getLastTopFrame();
+                        TCFDataCache<TCFContextState> state_cache = thread.getState();
+                        if (!state_cache.validate(this)) return;
+                        suspended = state_cache.getData() != null && state_cache.getData().is_suspended;
+                    }
                 }
                 Set<TCFAnnotation> set = new LinkedHashSet<TCFAnnotation>();
                 if (memory != null) {

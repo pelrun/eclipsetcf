@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 Xilinx, Inc. and others.
+ * Copyright (c) 2015, 2017 Xilinx, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -170,7 +170,8 @@ class StepIntoSelectionLocation {
             IASTName name = astNames[i];
             if (name.isDefinition()) {
                 astNames[i] = null;
-            } else if (CPPVisitor.findAncestorWithType(name, ICPPASTUsingDeclaration.class) != null) {
+            }
+            else if (CPPVisitor.findAncestorWithType(name, ICPPASTUsingDeclaration.class) != null) {
                 if (usingDeclarations == null)
                     usingDeclarations = new ArrayList<IASTName>(1);
                 usingDeclarations.add(name);
@@ -280,8 +281,7 @@ class StepIntoSelectionLocation {
     }
 
     private boolean areOverlappingNames(IName n1, IName n2) {
-        if (n1 == n2)
-            return true;
+        if (n1 == n2) return true;
 
         IASTFileLocation loc1 = n1.getFileLocation();
         IASTFileLocation loc2 = n2.getFileLocation();
@@ -462,5 +462,4 @@ class StepIntoSelectionLocation {
         IASTTranslationUnit astTranslationUnit = name.getTranslationUnit();
         return astTranslationUnit == null ? null : astTranslationUnit.getOriginatingTranslationUnit();
     }
-
 }

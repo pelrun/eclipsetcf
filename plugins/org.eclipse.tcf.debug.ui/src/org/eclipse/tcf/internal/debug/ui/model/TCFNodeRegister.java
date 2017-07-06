@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2016 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007, 2017 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -36,6 +36,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tcf.debug.ui.ITCFRegister;
+import org.eclipse.tcf.internal.debug.actions.TCFAction;
 import org.eclipse.tcf.internal.debug.model.TCFContextState;
 import org.eclipse.tcf.internal.debug.ui.ColorCache;
 import org.eclipse.tcf.internal.debug.ui.ImageCache;
@@ -219,13 +220,15 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
     private Boolean usePrevValue(Runnable done) {
         // Check if view should show old value.
         // Old value is shown if context is running or
-        // stack trace does not contain expression parent frame.
+        // stack trace does not contain register parent frame.
         // Return null if waiting for cache update.
         if (prev_value == null) return false;
         TCFNode p = parent;
         while (p instanceof TCFNodeRegister) p = p.parent;
         if (p instanceof TCFNodeStackFrame) {
             TCFNodeExecContext exe = (TCFNodeExecContext)p.parent;
+            TCFAction action = model.getActiveAction(exe.id);
+            if (action != null && action.showRunning()) return true;
             TCFDataCache<TCFContextState> state_cache = exe.getState();
             if (!state_cache.validate(done)) return null;
             TCFContextState state = state_cache.getData();
@@ -236,6 +239,8 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
         }
         else if (p instanceof TCFNodeExecContext) {
             TCFNodeExecContext exe = (TCFNodeExecContext)p;
+            TCFAction action = model.getActiveAction(exe.id);
+            if (action != null && action.showRunning()) return true;
             TCFDataCache<IRunControl.RunControlContext> ctx_cache = exe.getRunContext();
             if (!ctx_cache.validate(done)) return null;
             IRunControl.RunControlContext ctx_data = ctx_cache.getData();
@@ -252,6 +257,13 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
             }
         }
         return false;
+    }
+
+    @Override
+    void flushAllCaches() {
+        prev_value = null;
+        next_value = null;
+        super.flushAllCaches();
     }
 
     public boolean getDetailText(StyledStringBuffer bf, Runnable done) {
