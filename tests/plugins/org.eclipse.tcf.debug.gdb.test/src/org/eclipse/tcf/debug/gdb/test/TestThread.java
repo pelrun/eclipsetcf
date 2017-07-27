@@ -10,6 +10,7 @@
  *******************************************************************************/
 package org.eclipse.tcf.debug.gdb.test;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
@@ -19,13 +20,8 @@ import java.util.LinkedList;
 
 class TestThread extends Thread {
 
-    final String gdb;
     final Object sync = new Object();
     final String prompt = "(gdb) ";
-
-    TestThread(String gdb) {
-        this.gdb = gdb;
-    }
 
     class OutputReader extends Thread {
         final InputStream inp;
@@ -33,7 +29,7 @@ class TestThread extends Thread {
         final LinkedList<String> lst = new LinkedList<String>();
 
         OutputReader(InputStream inp) {
-            this.inp = inp;
+            this.inp = new BufferedInputStream(inp);
         }
 
         @Override
@@ -79,8 +75,9 @@ class TestThread extends Thread {
                     System.out.println(std_out.lst.removeFirst());
                     System.out.flush();
                 }
-                if (std_out.buf.length() > 0 && std_out.buf.toString().equals(prompt)) break;
-                sync.wait(500);
+                sync.wait(100);
+                if (std_err.lst.isEmpty() && std_out.lst.isEmpty() &&
+                        std_out.buf.length() > 0 && std_out.buf.toString().equals(prompt)) break;
             }
         }
         while (System.currentTimeMillis() < time + 10000);
@@ -99,8 +96,8 @@ class TestThread extends Thread {
         std_inp.flush();
         System.out.println(c);
         System.out.flush();
-        if (c.startsWith("mon ")) {
-            sleep(2000); // Need to sleep because command output goes to stderr
+        if (c.startsWith("mon ") || c.startsWith("target ")) {
+            sleep(1000); // Need to sleep because command output goes to stderr
         }
         synchronized (sync) {
             for (;;) {
@@ -114,17 +111,26 @@ class TestThread extends Thread {
     @Override
     public void run() {
         try {
+            String gdb = System.getenv().get("TCF_TEST_GDB_EXE");
+            if (gdb == null) gdb = "gdb";
+
+            String port = System.getenv().get("TCF_TEST_GDB_PORT");
+            if (port == null) port = "3000";
+
             BigInteger prev_pc = null;
             prs = Runtime.getRuntime().exec(new String[] {
-                gdb, "-q",
-                "--eval-command=set remotetimeout 1000",
-                "--eval-command=target extended-remote 127.0.0.1:3000"
+                gdb,
+                "-q"
             }, null);
             std_inp = new BufferedWriter(new OutputStreamWriter(prs.getOutputStream()));
             std_out = new OutputReader(prs.getInputStream());
             std_err = new OutputReader(prs.getErrorStream());
             std_out.start();
             std_err.start();
+
+            cmd("set remotetimeout 1000");
+
+            cmd("target extended-remote 127.0.0.1:" + port);
 
             cmd("mon ps");
             if (std_err.lst.size() < 1)

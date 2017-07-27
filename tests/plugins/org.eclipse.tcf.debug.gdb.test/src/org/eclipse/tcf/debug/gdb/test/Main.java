@@ -27,8 +27,6 @@ import org.eclipse.tcf.services.IRunControl;
 
 public class Main {
 
-    private static String gdb;
-
     private static class EventQueue extends Thread implements IEventQueue {
 
         private final LinkedList<Runnable> queue = new LinkedList<Runnable>();
@@ -180,7 +178,7 @@ public class Main {
                 return;
             }
             if (test_thread == null) {
-                new TestThread(gdb).start();
+                new TestThread().start();
                 return;
             }
             exit(new Exception("Internal error"));
@@ -241,8 +239,6 @@ public class Main {
             System.err.println("Missing command line argument - peer identification string");
             System.exit(4);
         }
-        gdb = System.getenv().get("TCF_TEST_GDB");
-        if (gdb == null) gdb = "gdb";
         Protocol.setEventQueue(new EventQueue());
         Protocol.invokeLater(new Runnable() {
             public void run() {
