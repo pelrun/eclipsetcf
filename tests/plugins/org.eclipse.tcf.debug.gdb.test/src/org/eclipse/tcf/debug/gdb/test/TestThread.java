@@ -68,13 +68,12 @@ class TestThread extends Thread {
         do {
             synchronized (sync) {
                 while (!std_err.lst.isEmpty()) {
-                    System.err.println(std_err.lst.removeFirst());
-                    System.err.flush();
+                    System.out.println(std_err.lst.removeFirst());
                 }
                 while (!std_out.lst.isEmpty()) {
                     System.out.println(std_out.lst.removeFirst());
-                    System.out.flush();
                 }
+                System.out.flush();
                 sync.wait(100);
                 if (std_err.lst.isEmpty() && std_out.lst.isEmpty() &&
                         std_out.buf.length() > 0 && std_out.buf.toString().equals(prompt)) break;
@@ -87,6 +86,7 @@ class TestThread extends Thread {
                 std_out.buf.setLength(0);
             }
         }
+        System.out.flush();
     }
 
     void cmd(String c) throws Exception {
@@ -118,10 +118,7 @@ class TestThread extends Thread {
             if (port == null) port = "3000";
 
             BigInteger prev_pc = null;
-            prs = Runtime.getRuntime().exec(new String[] {
-                gdb,
-                "-q"
-            }, null);
+            prs = Runtime.getRuntime().exec(new String[] { gdb, "-q" }, null);
             std_inp = new BufferedWriter(new OutputStreamWriter(prs.getOutputStream()));
             std_out = new OutputReader(prs.getInputStream());
             std_err = new OutputReader(prs.getErrorStream());
@@ -137,6 +134,20 @@ class TestThread extends Thread {
                 throw new Exception("Invalid 'mon ps' reply: cnt < 1");
             if (!std_err.lst.get(0).startsWith("1: "))
                 throw new Exception("Invalid 'mon ps' reply: list");
+
+            cmd("detach");
+            if (std_out.lst.size() < 1)
+                throw new Exception("Invalid 'detach' reply: cnt < 1");
+            if (!std_out.lst.get(0).startsWith("Detaching from program"))
+                throw new Exception("Invalid 'detach' reply");
+
+            cmd("disconnect");
+            if (std_out.lst.size() < 1)
+                throw new Exception("Invalid 'disconnect' reply: cnt < 1");
+            if (!std_out.lst.get(0).startsWith("Ending remote debugging"))
+                throw new Exception("Invalid 'disconnect' reply");
+
+            cmd("target extended-remote 127.0.0.1:" + port);
 
             for (int pass = 0; pass < 10; pass++) {
 
@@ -156,17 +167,75 @@ class TestThread extends Thread {
                 if (!std_out.lst.get(1).startsWith("* 1    process "))
                     throw new Exception("Invalid 'info infer' reply: list");
 
+                String reg_name = null;
+                BigInteger reg_val = null;
                 cmd("info reg");
+                if (std_out.lst.size() < 1)
+                    throw new Exception("Invalid 'info reg' reply: cnt < 1");
+                {
+                    String s0 = std_out.lst.get(0);
+                    int s0i = s0.indexOf(' ');
+                    reg_name = s0.substring(0, s0i);
+                    s0 = s0.substring(s0i);
+                    s0i = s0.indexOf("0x");
+                    s0 = s0.substring(s0i + 2);
+                    s0i = s0.indexOf('\t');
+                    reg_val = new BigInteger(s0.substring(0, s0i), 16);
+                }
 
+                cmd("p/x $" + reg_name);
+                if (std_out.lst.size() < 1)
+                    throw new Exception("Invalid 'p/x' reply: cnt < 1");
+                {
+                    String s0 = std_out.lst.get(0);
+                    int s0i = s0.indexOf("0x");
+                    s0 = s0.substring(s0i + 2);
+                    if (!reg_val.equals(new BigInteger(s0, 16)))
+                        throw new Exception("Invalid 'p/x' reply: value");
+                }
+
+                cmd("set $" + reg_name + " = 0x1234");
+                if (std_out.lst.size() > 0 || std_err.lst.size() > 0)
+                    throw new Exception("Invalid 'set' reply");
+
+                cmd("p/x $" + reg_name);
+                if (std_out.lst.size() < 1)
+                    throw new Exception("Invalid 'p/x' reply: cnt < 1");
+                {
+                    String s0 = std_out.lst.get(0);
+                    int s0i = s0.indexOf("0x");
+                    s0 = s0.substring(s0i + 2);
+                    if (!s0.equals("1234"))
+                        throw new Exception("Invalid 'p/x' reply: value");
+                }
+
+                cmd("set $" + reg_name + " = 0x" + reg_val.toString(16));
+                if (std_out.lst.size() > 0 || std_err.lst.size() > 0)
+                    throw new Exception("Invalid 'set' reply");
+
+                cmd("p/x $" + reg_name);
+                if (std_out.lst.size() < 1)
+                    throw new Exception("Invalid 'p/x' reply: cnt < 1");
+                {
+                    String s0 = std_out.lst.get(0);
+                    int s0i = s0.indexOf("0x");
+                    s0 = s0.substring(s0i + 2);
+                    if (!reg_val.equals(new BigInteger(s0, 16)))
+                        throw new Exception("Invalid 'p/x' reply: value");
+                }
+
+                BigInteger pc = null;
                 cmd("bt");
                 if (std_out.lst.size() < 1)
                     throw new Exception("Invalid 'bt' reply: cnt < 1");
                 if (!std_out.lst.get(0).startsWith("#0  0x"))
                     throw new Exception("Invalid 'bt' reply");
-                String x = std_out.lst.get(0).substring(6);
-                BigInteger pc = new BigInteger(x.substring(0, x.indexOf(' ')), 16);
-                if (prev_pc != null && pc.equals(prev_pc))
-                    throw new Exception("Prev PC = PC: 0x" + pc.toString(16));
+                {
+                    String x = std_out.lst.get(0).substring(6);
+                    pc = new BigInteger(x.substring(0, x.indexOf(' ')), 16);
+                    if (prev_pc != null && pc.equals(prev_pc))
+                        throw new Exception("Prev PC = PC: 0x" + pc.toString(16));
+                }
 
                 cmd("disass /r 0x" + pc.toString(16) + ",+64");
                 if (std_out.lst.size() < 2)
@@ -176,16 +245,47 @@ class TestThread extends Thread {
                 if (!std_out.lst.get(1).startsWith("=> 0x"))
                     throw new Exception("Invalid 'disass' reply: list");
 
+                int infer = 0;
+                cmd("add-infer");
+                if (std_out.lst.size() < 1)
+                    throw new Exception("Invalid 'add-infer' reply: cnt < 1");
+                if (!std_out.lst.get(0).startsWith("Added inferior "))
+                    throw new Exception("Invalid 'add-infer' reply");
+                {
+                    String z = std_out.lst.get(0).substring(15);
+                    infer = Integer.parseInt(z);
+                }
+
+                cmd("infer " + infer);
+                if (std_out.lst.size() < 1)
+                    throw new Exception("Invalid 'infer' reply: cnt < 1");
+                if (!std_out.lst.get(0).startsWith("[Switching to inferior " + infer + " "))
+                    throw new Exception("Invalid 'infer' reply");
+
+                cmd("infer 1");
+                if (std_out.lst.size() < 1)
+                    throw new Exception("Invalid 'infer' reply: cnt < 1");
+                if (!std_out.lst.get(0).startsWith("[Switching to inferior 1 "))
+                    throw new Exception("Invalid 'infer' reply");
+
+                cmd("remove-infer " + infer);
+                if (std_out.lst.size() > 0 || std_err.lst.size() > 0)
+                    throw new Exception("Invalid 'remove-infer' reply");
+
+                int bp = 0;
                 cmd("b *0x" + pc.toString(16));
                 if (std_out.lst.size() < 1)
                     throw new Exception("Invalid 'break' reply: cnt < 1");
                 if (!std_out.lst.get(0).startsWith("Breakpoint "))
                     throw new Exception("Invalid 'break' reply");
-                String y = std_out.lst.get(0).substring(11);
-                int b = Integer.parseInt(y.substring(0, y.indexOf(' ')));
+                {
+                    String y = std_out.lst.get(0).substring(11);
+                    bp = Integer.parseInt(y.substring(0, y.indexOf(' ')));
+                }
 
-                cmd("d " + b);
-
+                cmd("d " + bp);
+                if (std_out.lst.size() > 0 || std_err.lst.size() > 0)
+                    throw new Exception("Invalid 'd' reply");
 
                 if (pass == 0) {
                     cmd("cont");
