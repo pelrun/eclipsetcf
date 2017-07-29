@@ -211,6 +211,7 @@ public class Main {
                 String key = s.substring(i0, i1);
                 String val = s.substring(i2, i3);
                 map.put(key, val);
+                if (key.equals("Host")) TestThread.host = val;
             }
             l.add(map);
         }

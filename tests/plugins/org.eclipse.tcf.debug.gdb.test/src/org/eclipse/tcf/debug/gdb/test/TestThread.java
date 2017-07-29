@@ -20,6 +20,8 @@ import java.util.LinkedList;
 
 class TestThread extends Thread {
 
+    static String host = "127.0.0.1";
+
     final Object sync = new Object();
     final String prompt = "(gdb) ";
 
@@ -127,7 +129,7 @@ class TestThread extends Thread {
 
             cmd("set remotetimeout 1000");
 
-            cmd("target extended-remote 127.0.0.1:" + port);
+            cmd("target extended-remote " + host + ":" + port);
 
             cmd("mon ps");
             if (std_err.lst.size() < 1)
@@ -147,7 +149,7 @@ class TestThread extends Thread {
             if (!std_out.lst.get(0).startsWith("Ending remote debugging"))
                 throw new Exception("Invalid 'disconnect' reply");
 
-            cmd("target extended-remote 127.0.0.1:" + port);
+            cmd("target extended-remote " + host + ":" + port);
 
             for (int pass = 0; pass < 10; pass++) {
 
@@ -224,18 +226,30 @@ class TestThread extends Thread {
                         throw new Exception("Invalid 'p/x' reply: value");
                 }
 
-                BigInteger pc = null;
                 cmd("bt");
                 if (std_out.lst.size() < 1)
                     throw new Exception("Invalid 'bt' reply: cnt < 1");
-                if (!std_out.lst.get(0).startsWith("#0  0x"))
-                    throw new Exception("Invalid 'bt' reply");
+
+                BigInteger pc = null;
+                cmd("info frame");
+                if (std_out.lst.size() < 2)
+                    throw new Exception("Invalid 'info frame' reply: cnt < 2");
+                if (!std_out.lst.get(0).startsWith("Stack level 0"))
+                    throw new Exception("Invalid 'info frame' reply");
                 {
-                    String x = std_out.lst.get(0).substring(6);
-                    pc = new BigInteger(x.substring(0, x.indexOf(' ')), 16);
+                    String x = std_out.lst.get(1).substring(6);
+                    int n = x.indexOf("0x");
+                    x = x.substring(n + 2);
+                    int m1 = x.indexOf(';');
+                    int m2 = x.indexOf(' ');
+                    if (m1 < 0 || m2 < 0)
+                        throw new Exception("Invalid 'info frame' reply");
+                    pc = new BigInteger(x.substring(0, Math.min(m1, m2)), 16);
                     if (prev_pc != null && pc.equals(prev_pc))
                         throw new Exception("Prev PC = PC: 0x" + pc.toString(16));
                 }
+
+                cmd("info locals");
 
                 cmd("disass /r 0x" + pc.toString(16) + ",+64");
                 if (std_out.lst.size() < 2)
