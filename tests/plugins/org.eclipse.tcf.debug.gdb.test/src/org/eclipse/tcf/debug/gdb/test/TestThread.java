@@ -185,6 +185,14 @@ class TestThread extends Thread {
                     reg_val = new BigInteger(s0.substring(0, s0i), 16);
                 }
 
+                cmd("info all-reg");
+                if (std_out.lst.size() == 0 || std_err.lst.size() > 0)
+                    throw new Exception("Invalid 'info all-reg' reply");
+
+                cmd("info float");
+                if (std_out.lst.size() == 0 || std_err.lst.size() > 0)
+                    throw new Exception("Invalid 'info float' reply");
+
                 cmd("p/x $" + reg_name);
                 if (std_out.lst.size() < 1)
                     throw new Exception("Invalid 'p/x' reply: cnt < 1");
