@@ -113,6 +113,10 @@ public class ChainPeerStep extends AbstractPeerStep {
 
 					@Override
 					public void onChannelClosed(Throwable error) {
+						// Clean Logs when closed channels
+						ChannelEvent event = new ChannelEvent(ChainPeerStep.this, channel.get(), ChannelEvent.TYPE_CLOSE, null);
+						EventManager.getInstance().fireEvent(event);
+                    
 						// Remove ourself as listener from the channel
 						channel.get().removeChannelListener(this);
 						// The error is repackaged
