@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2016 Wind River Systems, Inc. and others.
+ * Copyright (c) 2008, 2017 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,6 +10,7 @@
  *******************************************************************************/
 package org.eclipse.tcf.internal.cdt.ui;
 
+import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -269,6 +270,10 @@ public class TCFLaunchContext implements ITCFLaunchContext {
      * @throws CoreException
      */
     public boolean isBinary(IProject project, IPath path) throws CoreException {
+        /* Note: CDT throws an exception if 'path' is not a regular file */
+        if (path == null) return false;
+        File file = path.toFile();
+        if (file == null || !file.isFile()) return false;
         return LaunchUtils.getBinary(project, path) != null;
     }
 
