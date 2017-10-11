@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2015 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2013, 2015, 2017 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -47,6 +47,7 @@ import org.eclipse.tcf.te.tcf.locator.utils.SimulatorUtils;
 public class WaitForReadyStep extends AbstractPeerNodeStep {
 
 	public static final String PARAMETER_NO_TIMEOUT = "noTimeout"; //$NON-NLS-1$
+	public static final String PARAMETER_REPEAT_TIMES = "repeatTimes"; //$NON-NLS-1$
 
 	/**
 	 * Constructor.
@@ -77,16 +78,36 @@ public class WaitForReadyStep extends AbstractPeerNodeStep {
 			catch (Exception e) {
 			}
 		}
-		final boolean noTimeout = paramBool;
+		final boolean noTimeout;
+		final int repeatTimes;
+
+		String repeatTimesParam = System.getProperty(getClass().getSimpleName() + "_" + PARAMETER_REPEAT_TIMES); //$NON-NLS-1$
+		if (repeatTimesParam == null) repeatTimesParam = getParameters().get(PARAMETER_REPEAT_TIMES);
+		int repeatTimesInt = 0;
+		if (repeatTimesParam != null) {
+			try {
+				repeatTimesInt = Integer.parseInt(repeatTimesParam);
+			}
+			catch (Exception e) {
+			}
+		}
+		if (repeatTimesInt > 0) {
+			noTimeout = false;
+			repeatTimes = repeatTimesInt;
+		} else {
+			noTimeout = paramBool;
+			/* Default Value: 10 times (means reconnect try 10 times) */
+			repeatTimes = 10;
+		}
 
 		if (peerNode != null && !Boolean.getBoolean("WaitForReadyStep.skip")) { //$NON-NLS-1$
 			Protocol.invokeLater(new Runnable() {
 				final Runnable thisRunnable = this;
-				// set repeat count to 1 if real target is used
+				// set repeat count to 'repeatTimes' if real target is used
 				int totalWork = getTotalWork(context, data);
 				SimulatorUtils.Result result = SimulatorUtils.getSimulatorService(getActivePeerModelContext(context, data, fullQualifiedId));
 				final boolean isSimulatorRunning = result != null;
-				int refreshCount = isSimulatorRunning ? 0 : totalWork-1;
+				int refreshCount = isSimulatorRunning ? 0 : totalWork-repeatTimes-1;
 				final AtomicReference<Throwable> lastError = new AtomicReference<Throwable>();
 
 				@Override
