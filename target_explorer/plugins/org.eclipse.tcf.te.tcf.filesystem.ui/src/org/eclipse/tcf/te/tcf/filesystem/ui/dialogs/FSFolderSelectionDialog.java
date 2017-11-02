@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011, 2015, 2017 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -214,17 +214,25 @@ public final class FSFolderSelectionDialog extends ElementTreeSelectionDialog {
 	 */
 	@Override
 	protected TreeViewer doCreateTreeViewer(Composite parent, int style) {
-		TreeViewer viewer = super.doCreateTreeViewer(parent, style);
+		final TreeViewer viewer = super.doCreateTreeViewer(parent, style);
 
 		Button refreshAll = new Button(parent, SWT.PUSH);
 		refreshAll.setText(Messages.FSFolderSelectionDialog_RefreshAll_menu);
 		refreshAll.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				refreshModel();
+				refreshModel(viewer);
 			}
 		});
 
+		viewer.getTree().setLinesVisible(false);
+
+		createContextMenuRefresh(viewer);
+
+	    return viewer;
+	}
+
+	public static void createContextMenuRefresh(final TreeViewer viewer) {
 		viewer.getTree().addKeyListener(new KeyAdapter() {
 			/* (non-Javadoc)
 			 * @see org.eclipse.swt.events.KeyAdapter#keyReleased(org.eclipse.swt.events.KeyEvent)
@@ -232,11 +240,10 @@ public final class FSFolderSelectionDialog extends ElementTreeSelectionDialog {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				if (e.keyCode == SWT.F5) {
-					refresh();
+					refresh(viewer);
 				}
 			}
 		});
-		viewer.getTree().setLinesVisible(false);
 
 		MenuManager menuMgr = new MenuManager();
 	    menuMgr.setRemoveAllWhenShown(true);
@@ -246,7 +253,7 @@ public final class FSFolderSelectionDialog extends ElementTreeSelectionDialog {
 	        	IAction action = new Action(Messages.FSFolderSelectionDialog_Refresh_menu, UIPlugin.getImageDescriptor(ImageConsts.REFRESH_IMAGE)) {
 	            	@Override
 	            	public void run() {
-	            	    refresh();
+	            	    refresh(viewer);
 	            	}
 	            };
 	            action.setAccelerator(SWT.F5);
@@ -255,12 +262,10 @@ public final class FSFolderSelectionDialog extends ElementTreeSelectionDialog {
 	    });
 	    Menu menu = menuMgr.createContextMenu(viewer.getControl());
 	    viewer.getControl().setMenu(menu);
-
-	    return viewer;
 	}
 
-	public void refresh() {
-		ISelection sel = getTreeViewer().getSelection();
+	public static void refresh(TreeViewer viewer) {
+		ISelection sel = viewer.getSelection();
 		if (sel instanceof IStructuredSelection && !sel.isEmpty()) {
 			Iterator<Object> it = ((IStructuredSelection)sel).iterator();
 			while (it.hasNext()) {
@@ -269,22 +274,22 @@ public final class FSFolderSelectionDialog extends ElementTreeSelectionDialog {
 					refreshNode((IFSTreeNode)node);
 				}
 				else {
-					refreshModel();
+					refreshModel(viewer);
 					return;
 				}
 			}
 		}
 		else {
-			refreshModel();
+			refreshModel(viewer);
 		}
 	}
 
-	protected void refreshNode(final IFSTreeNode treeNode) {
+	protected static void refreshNode(final IFSTreeNode treeNode) {
 		treeNode.operationRefresh(true).runInJob(null);
 	}
 
-	protected void refreshModel() {
-		Object input = getTreeViewer().getInput();
+	protected static void refreshModel(TreeViewer viewer) {
+		Object input = viewer.getInput();
 		if (input instanceof IPeerNode) {
 			IRuntimeModel rtm = ModelManager.getRuntimeModel((IPeerNode)input);
 			if (rtm != null)
