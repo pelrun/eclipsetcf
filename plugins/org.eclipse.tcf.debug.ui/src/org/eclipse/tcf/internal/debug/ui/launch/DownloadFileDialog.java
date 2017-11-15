@@ -224,7 +224,7 @@ class DownloadFileDialog extends Dialog {
         set_pc_button.setEnabled(true);
 
         osa_button = new Button(composite, SWT.CHECK);
-        osa_button.setText("Enable OS awarennes - the file is an OS kernel");
+        osa_button.setText("Enable OS awareness - the file is an OS kernel");
         gd = new GridData(GridData.FILL_HORIZONTAL);
         gd.horizontalSpan = 3;
         osa_button.setLayoutData(gd);
