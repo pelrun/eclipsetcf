@@ -104,12 +104,16 @@ class Shell(code.InteractiveConsole, protocol.ChannelOpenListener,
 
 
 def interact():
+    shell = Shell()
     try:
         # enable commandline editing if available
-        import readline  # @UnusedImport
+        import readline
     except ImportError:
         pass
-    shell = Shell()
+    else:
+        import rlcompleter
+        readline.set_completer(rlcompleter.Completer(shell.locals).complete)
+        readline.parse_and_bind("tab: complete")
     shell.interact("TCF Shell")
 
 if __name__ == "__main__":
