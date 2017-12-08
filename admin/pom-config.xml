@@ -210,7 +210,7 @@
 			<id>oxygen</id>
 
 			<properties>
-				<platform-site>http://download.eclipse.org/eclipse/updates/4.7milestones</platform-site>
+				<platform-site>http://download.eclipse.org/eclipse/updates/4.7</platform-site>
 				<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20170516192513/repository</orbit-site>
 				<cdt-site>http://download.eclipse.org/tools/cdt/builds/oxygen/milestones</cdt-site>
 				<cdt-launchbar-site>https://hudson.eclipse.org/cdt/job/launchbar-master/lastSuccessfulBuild/artifact/repo/target/repository</cdt-launchbar-site>
