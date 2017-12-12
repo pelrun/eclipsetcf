@@ -21,7 +21,7 @@
    </license>
 
    <url>
-      <update label="%updateSiteName" url="http://download.eclipse.org/releases/luna"/>
+      <update label="%updateSiteName" url="http://download.eclipse.org/releases/photon"/>
    </url>
 
    <requires>

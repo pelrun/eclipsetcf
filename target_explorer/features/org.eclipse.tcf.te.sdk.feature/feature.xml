@@ -20,13 +20,13 @@
    </license>
 
    <url>
-      <update label="%updateSiteName" url="http://download.eclipse.org/releases/luna"/>
+      <update label="%updateSiteName" url="http://download.eclipse.org/releases/photon"/>
    </url>
 
    <requires>
       <import plugin="com.google.gson.source" version="2.2.4" match="greaterOrEqual"/>
       <import feature="org.eclipse.tcf.te.feature" version="1.5.0" match="greaterOrEqual"/>
-      <import feature="org.eclipse.tm.terminal.sdk.feature" version="4.0.0" match="greaterOrEqual"/>
+      <import feature="org.eclipse.tm.terminal.feature" version="4.0.0" match="greaterOrEqual"/>
    </requires>
 
    <plugin
