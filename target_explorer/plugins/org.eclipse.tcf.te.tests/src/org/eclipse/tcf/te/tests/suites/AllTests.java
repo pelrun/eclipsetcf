@@ -9,18 +9,17 @@
  *******************************************************************************/
 package org.eclipse.tcf.te.tests.suites;
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
-
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.tcf.te.tests.concurrent.ConcurrentTestCase;
 import org.eclipse.tcf.te.tests.model.ModelTestCase;
 import org.eclipse.tcf.te.tests.statushandler.StatusHandlerTestCase;
 import org.eclipse.tcf.te.tests.stepper.StepperTests;
 import org.eclipse.tcf.te.tests.tcf.locator.LocatorModelTestCase;
-import org.eclipse.tcf.te.tests.tcf.processes.launcher.ProcessLauncherTestCase;
 import org.eclipse.tcf.te.tests.tcf.processes.model.ProcessModelTestCase;
 import org.eclipse.tcf.te.tests.utils.UtilityTestCase;
+
+import junit.framework.Test;
+import junit.framework.TestSuite;
 
 /**
  * Links all tests together into a single suite.
@@ -71,8 +70,8 @@ public class AllTests {
 		suite.addTest(StepperTests.getTestSuite());
 //		suite.addTest(TcfLaunchTests.getTestSuite());
 		suite.addTest(ProcessModelTestCase.getTestSuite());
-		suite.addTest(ProcessLauncherTestCase.getTestSuite());
+//		suite.addTest(ProcessLauncherTestCase.getTestSuite());
 
-		//AllFileSystemTests.addTests(suite);
+//		AllFileSystemTests.addTests(suite);
 	}
 }
