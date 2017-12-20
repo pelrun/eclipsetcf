@@ -65,7 +65,7 @@
 		<tycho.scmUrl>scm:git:git://git.eclipse.org/gitroot/tcf/org.eclipse.tcf.git</tycho.scmUrl>
 
 		<!-- P2 repository URL's -->
-		<!-- Default: Eclipse 3.8.x (Juno), CDT 8.3.0 (Kepler), TM 4.0 + Remote 2.0 (Mars) -->
+		<!-- Default: Eclipse 3.8.x (Juno), CDT 8.3.0 (Kepler SR2), TM 4.0 + Remote 2.0 (Mars) -->
 		<platform-site>http://download.eclipse.org/eclipse/updates/3.8</platform-site>
 		<license-site>http://download.eclipse.org/cbi/updates/license</license-site>
 		<cdt-site>http://download.eclipse.org/tools/cdt/releases/kepler</cdt-site>
@@ -152,6 +152,15 @@
 
 	<profiles>
 		<profile>
+			<!-- Eclipse 3.8 (Juno), CDT 8.3.0 (Kepler SR2) -->
+			<id>juno</id>
+
+			<properties>
+				<!-- Same as default -->
+			</properties>
+		</profile>
+
+		<profile>
 			<!-- Eclipse 4.3.2 (Kepler SR2), CDT 8.3.0 (Kepler SR2) -->
 			<id>kepler</id>
 
@@ -183,49 +192,60 @@
 		</profile>
 
 		<profile>
-			<!-- Eclipse 4.6.3 (Neon.3), CDT 9.2.1 (Neon.3) -->
+			<!-- Eclipse 4.6.3 (Neon.3), CDT 9.2.2 (Neon.3) -->
 			<id>neon</id>
 
 			<properties>
 				<platform-site>http://download.eclipse.org/eclipse/updates/4.6</platform-site>
-				<orbit-site>http://download.eclipse.org/tools/orbit/R-builds/R20170307180635/repository</orbit-site>
+				<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20170307180635/repository</orbit-site>
 				<cdt-site>http://download.eclipse.org/tools/cdt/releases/9.2</cdt-site>
-				<cdt-launchbar-site>http://download.eclipse.org/tools/cdt/launchbar/neon.2</cdt-launchbar-site>
 				<remote-site>http://download.eclipse.org/tools/ptp/builds/remote/2.1.1</remote-site>
 				<terminal-site>http://download.eclipse.org/tm/terminal/updates/4.2</terminal-site>
 				<tm-site>http://download.eclipse.org/tm/updates/4.2</tm-site>
 				<swtbot-site>http://download.eclipse.org/technology/swtbot/releases/2.5.0</swtbot-site>
 			</properties>
+
+			<!-- Workaround for CDT release problem:
+			 	Missing requirement: org.eclipse.cdt.debug.core 8.1.0.201612061315 requires
+			 	'bundle org.eclipse.launchbar.core 2.0.0' but it could not be found
+			  -->
 			<repositories>
 				<repository>
 					<id>cdt-launchbar</id>
-					<url>${cdt-launchbar-site}</url>
+					<url>http://download.eclipse.org/tools/cdt/launchbar/neon.2</url>
 					<layout>p2</layout>
 				</repository>
 			</repositories>
 		</profile>
 
 		<profile>
-			<!-- Eclipse 4.7 (Oxygen), CDT 9.3 -->
+			<!-- Eclipse 4.7.1 (Oxygen), CDT 9.3 -->
 			<id>oxygen</id>
 
 			<properties>
 				<platform-site>http://download.eclipse.org/eclipse/updates/4.7</platform-site>
 				<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20170516192513/repository</orbit-site>
-				<cdt-site>http://download.eclipse.org/tools/cdt/builds/oxygen/milestones</cdt-site>
-				<cdt-launchbar-site>https://hudson.eclipse.org/cdt/job/launchbar-master/lastSuccessfulBuild/artifact/repo/target/repository</cdt-launchbar-site>
-				<remote-site>http://download.eclipse.org/tools/ptp/builds/remote/oxygen/milestones</remote-site>
+				<cdt-site>http://download.eclipse.org/tools/cdt/releases/9.3</cdt-site>
+				<remote-site>http://download.eclipse.org/tools/ptp/builds/remote/3.0.0</remote-site>
 				<terminal-site>http://download.eclipse.org/tm/terminal/updates/4.3milestones</terminal-site>
 				<tm-site>http://download.eclipse.org/tm/updates/4.3milestones</tm-site>
-				<swtbot-site>http://download.eclipse.org/technology/swtbot/releases/latest/</swtbot-site>
+				<swtbot-site>http://download.eclipse.org/technology/swtbot/releases/2.6.0/</swtbot-site>
 			</properties>
-			<repositories>
-				<repository>
-					<id>cdt-launchbar</id>
-					<url>${cdt-launchbar-site}</url>
-					<layout>p2</layout>
-				</repository>
-			</repositories>
+		</profile>
+
+		<profile>
+			<!-- Eclipse 4.8 (Photon), CDT 9.3 -->
+			<id>photon</id>
+
+			<properties>
+				<platform-site>http://download.eclipse.org/releases/photon</platform-site>
+				<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20170919201930/repository</orbit-site>
+				<cdt-site>http://download.eclipse.org/tools/cdt/releases/9.3</cdt-site>
+				<remote-site>http://download.eclipse.org/tools/ptp/builds/remote/3.0.0</remote-site>
+				<terminal-site>http://download.eclipse.org/tm/terminal/updates/4.3milestones</terminal-site>
+				<tm-site>http://download.eclipse.org/tm/updates/4.3milestones</tm-site>
+				<swtbot-site>http://download.eclipse.org/technology/swtbot/releases/latest</swtbot-site>
+			</properties>
 		</profile>
 	</profiles>
 
@@ -329,7 +349,7 @@
 						<jgit.ignore>pom.xml</jgit.ignore>
 						<jgit.dirtyWorkingTree>ignore</jgit.dirtyWorkingTree>
 						<sourceReferences>
-						    <generate>true</generate>
+							<generate>true</generate>
 						</sourceReferences>
 					</configuration>
 				</plugin>
