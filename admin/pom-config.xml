@@ -234,13 +234,13 @@
 		</profile>
 
 		<profile>
-			<!-- Eclipse 4.8 (Photon), CDT 9.3 -->
+			<!-- Eclipse 4.8 (Photon), CDT 9.4 -->
 			<id>photon</id>
 
 			<properties>
 				<platform-site>http://download.eclipse.org/releases/photon</platform-site>
 				<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20170919201930/repository</orbit-site>
-				<cdt-site>http://download.eclipse.org/tools/cdt/releases/9.3</cdt-site>
+				<cdt-site>http://download.eclipse.org/tools/cdt/builds/9.4</cdt-site>
 				<remote-site>http://download.eclipse.org/tools/ptp/builds/remote/3.0.0</remote-site>
 				<terminal-site>http://download.eclipse.org/tm/terminal/updates/4.3milestones</terminal-site>
 				<tm-site>http://download.eclipse.org/tm/updates/4.3milestones</tm-site>
