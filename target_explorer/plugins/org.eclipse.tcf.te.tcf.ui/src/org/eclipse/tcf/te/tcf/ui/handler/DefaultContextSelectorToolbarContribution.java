@@ -158,7 +158,7 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener, IProperty
 	protected Control createControl(final Composite parent) {
 		panel = new Composite(parent, SWT.NONE);
 		GridLayout layout = new GridLayout();
-		layout.marginHeight = 1; layout.marginWidth = 1;
+		layout.marginHeight = 0; layout.marginWidth = 1;
 		panel.setLayout(layout);
 
 		initThemeColors();
