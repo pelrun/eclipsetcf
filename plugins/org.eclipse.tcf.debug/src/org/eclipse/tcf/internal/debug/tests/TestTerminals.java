@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2011-2018 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -54,6 +54,7 @@ class TestTerminals implements ITCFTest {
     private IToken get_signals_cmd;
     private IToken signal_cmd;
     private boolean signal_sent;
+    private int signal_code;
     private IToken unsubscribe_cmd;
     private boolean unsubscribe_done;
     private boolean exited;
@@ -209,10 +210,22 @@ class TestTerminals implements ITCFTest {
                                     Protocol.invokeLater(100, this);
                                 }
                                 else if (!signal_sent) {
-                                    exit(new Error("Timeout waiting for terminal reply. Context: " + terminal.getID()));
+                                    if (signal_cmd == null) {
+                                        exit(new Error("Timeout waiting for terminal reply. Context: " + terminal.getID()));
+                                    }
+                                    else {
+                                        exit(new Error("Timeout waiting for terminal terminate command. Context: " + terminal.getID()));
+                                    }
                                 }
                                 else if (!exited) {
-                                    exit(new Error("Timeout waiting for 'Terminals.exited' event. Context: " + terminal.getID()));
+                                    if (signal_code == 0) {
+                                        exit(new Error("Timeout waiting for 'Terminals.exited' event after " +
+                                                "Terminals.exit command. Context: " + terminal.getID()));
+                                    }
+                                    else {
+                                        exit(new Error("Timeout waiting for 'Terminals.exited' event after " +
+                                                "Processes.signal(" + signal_code + ") command. Context: " + terminal.getID()));
+                                    }
                                 }
                                 else {
                                     exit(new Error("Timeout waiting for end-of-stream. Context: " + terminal.getID()));
@@ -374,7 +387,7 @@ class TestTerminals implements ITCFTest {
         if (echo_tx.size() < echo_cnt && echo_rx.size() == echo_tx.size()) {
             try {
                 StringBuffer bf = new StringBuffer();
-                for (int i = 0; i < 0x100; i++) {
+                for (int i = 0; i < 0x40; i++) {
                     bf.append((char)('A' + rnd.nextInt('Z' - 'A' + 1)));
                     bf.append((char)('a' + rnd.nextInt('Z' - 'A' + 1)));
                 }
@@ -421,6 +434,7 @@ class TestTerminals implements ITCFTest {
                         }
                     }
                 }
+                signal_code = code;
                 if (code > 0) {
                     signal_cmd = processes.signal(terminal.getProcessID(), code, new IProcesses.DoneCommand() {
                         public void doneCommand(IToken token, Exception error) {
@@ -451,6 +465,7 @@ class TestTerminals implements ITCFTest {
                         }
                     });
                 }
+                time_out = 0;
             }
             return;
         }
