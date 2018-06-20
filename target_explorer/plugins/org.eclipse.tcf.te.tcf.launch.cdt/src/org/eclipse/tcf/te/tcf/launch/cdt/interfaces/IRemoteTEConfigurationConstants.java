@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2006, 2016 PalmSource, Inc. and others.
+ * Copyright (c) 2006, 2018 PalmSource, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,6 +9,7 @@
  * Ewa Matejska    (PalmSource) - Adapted from IGDBServerMILaunchConfigurationConstants
  * Anna Dushistova (MontaVista) - [181517][usability] Specify commands to be run before remote application launch
  * Anna Dushistova (MontaVista) - cloned from IRemoteConnectionConfigurationConstants
+ * Alexandru Dragut             - [535867] Make Path Mapping configurable in TCF Launch config UI
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.launch.cdt.interfaces;
 
@@ -34,6 +35,20 @@ public interface IRemoteTEConfigurationConstants {
 	public static final String ATTR_REMOTE_PATH = DebugPlugin.getUniqueIdentifier() + ".ATTR_TARGET_PATH"; //$NON-NLS-1$
 	public static final String ATTR_SKIP_DOWNLOAD_TO_TARGET = DebugPlugin.getUniqueIdentifier() + ".ATTR_SKIP_DOWNLOAD_TO_TARGET"; //$NON-NLS-1$
 
+	/**
+	 * Launch configuration attribute key. Boolean value to set the auto path mapping property 
+	 * from local object path to remote object path.
+	 * If the attribute is not set, the default value of this attribute is true.
+	 */
+	public static final String ATTR_AUTO_PATH_MAPPING_FROM_LOCAL_TO_REMOTE = DebugPlugin.getUniqueIdentifier() + ".ATTR_AUTO_PATH_MAPPING_FROM_LOCAL_TO_REMOTE"; //$NON-NLS-1$
+
+	/**
+	 * Launch configuration attribute key. Boolean value to set the auto path mapping property 
+	 * from remote object path to local object path.
+	 * If the attribute is not set, the default value of this attribute is true.
+	 */
+	public static final String ATTR_AUTO_PATH_MAPPING_FROM_REMOTE_TO_LOCAL = DebugPlugin.getUniqueIdentifier() + ".ATTR_AUTO_PATH_MAPPING_FROM_REMOTE_TO_LOCAL"; //$NON-NLS-1$
+	
 	/*
 	 * The remote PID to attach to.
 	 */

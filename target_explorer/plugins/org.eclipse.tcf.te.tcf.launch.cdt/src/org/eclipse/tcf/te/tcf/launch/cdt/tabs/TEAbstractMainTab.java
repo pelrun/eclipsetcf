@@ -1,11 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2015, 2018 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
  * Wind River Systems - initial API and implementation
+ * Alexandru Dragut   - [535867] Make Path Mapping configurable in TCF Launch config UI
  *******************************************************************************/
 package org.eclipse.tcf.te.tcf.launch.cdt.tabs;
 
@@ -73,7 +74,7 @@ public abstract class TEAbstractMainTab extends CMainTab {
 	protected Button skipDownloadButton;
 	protected boolean skipDownloadButtonVisible = true;
 
-	protected boolean progTextFireNotification;
+	protected boolean progTextFireNotification = true;
 	protected boolean remoteProgTextFireNotification;
 	protected boolean remoteProgValidation = true;
 
@@ -147,7 +148,6 @@ public abstract class TEAbstractMainTab extends CMainTab {
 				}
 			}
 		});
-		progTextFireNotification = true;
 	}
 
 	/*
@@ -231,8 +231,6 @@ public abstract class TEAbstractMainTab extends CMainTab {
 					updateLaunchConfigurationDialog();
 				}
 			});
-			remoteProgTextFireNotification = true;
-
 			remoteBrowseButton = createPushButton(mainComp, Messages.RemoteCMainTab_Remote_Path_Browse_Button, null);
 			remoteBrowseButton.addSelectionListener(new SelectionAdapter() {
 
@@ -550,7 +548,20 @@ public abstract class TEAbstractMainTab extends CMainTab {
 		catch (CoreException ce) {
 			// Ignore
 		}
-
+		
+		try {
+			progTextFireNotification = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_AUTO_PATH_MAPPING_FROM_LOCAL_TO_REMOTE, true);
+		}
+		catch (CoreException e) {
+			// Ignore
+		}
+		
+		try {
+			remoteProgTextFireNotification = config.getAttribute(IRemoteTEConfigurationConstants.ATTR_AUTO_PATH_MAPPING_FROM_REMOTE_TO_LOCAL, true);
+		}
+		catch (CoreException e) {
+			// Ignore
+		}
 		peerSelector.updateSelectionFrom(remoteConnection);
 		super.initializeFrom(config);
 
@@ -601,6 +612,8 @@ public abstract class TEAbstractMainTab extends CMainTab {
 		config.setAttribute(IRemoteTEConfigurationConstants.ATTR_REMOTE_PID, (String)null);
 		config.setAttribute(IRemoteTEConfigurationConstants.ATTR_SKIP_DOWNLOAD_TO_TARGET, IRemoteTEConfigurationConstants.ATTR_SKIP_DOWNLOAD_TO_TARGET_DEFAULT);
 		config.setAttribute(IRemoteTEConfigurationConstants.ATTR_PRERUN_COMMANDS, (String)null);
+		config.setAttribute(IRemoteTEConfigurationConstants.ATTR_AUTO_PATH_MAPPING_FROM_LOCAL_TO_REMOTE, true);
+		config.setAttribute(IRemoteTEConfigurationConstants.ATTR_AUTO_PATH_MAPPING_FROM_REMOTE_TO_LOCAL, true);
 	}
 
 	protected void showCommandsEditor() {
