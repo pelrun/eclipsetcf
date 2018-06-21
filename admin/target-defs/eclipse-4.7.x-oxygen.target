@@ -34,7 +34,7 @@
 <unit id="org.eclipse.tm.terminal.connector.serial.sdk.feature.feature.group" version="4.3.0.201706140544"/>
 <unit id="org.eclipse.tm.terminal.sdk.feature.feature.group" version="4.3.0.201706140544"/>
 <unit id="org.eclipse.tm.terminal.view.rse.sdk.feature.feature.group" version="4.3.0.201706140544"/>
-<repository location="http://download.eclipse.org/tm/terminal/updates/4.3milestones"/>
+<repository location="http://download.eclipse.org/tm/terminal/updates/4.3"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
 <unit id="org.eclipse.rse.feature.group" version="3.7.3.201704251225"/>

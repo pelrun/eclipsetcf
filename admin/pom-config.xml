@@ -206,9 +206,9 @@
 			</properties>
 
 			<!-- Workaround for CDT release problem:
-			 	Missing requirement: org.eclipse.cdt.debug.core 8.1.0.201612061315 requires
-			 	'bundle org.eclipse.launchbar.core 2.0.0' but it could not be found
-			  -->
+				Missing requirement: org.eclipse.cdt.debug.core 8.1.0.201612061315 requires
+				'bundle org.eclipse.launchbar.core 2.0.0' but it could not be found
+			-->
 			<repositories>
 				<repository>
 					<id>cdt-launchbar</id>
@@ -227,7 +227,7 @@
 				<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20170516192513/repository</orbit-site>
 				<cdt-site>http://download.eclipse.org/tools/cdt/releases/9.3</cdt-site>
 				<remote-site>http://download.eclipse.org/tools/ptp/builds/remote/3.0.0</remote-site>
-				<terminal-site>http://download.eclipse.org/tm/terminal/updates/4.3milestones</terminal-site>
+				<terminal-site>http://download.eclipse.org/tm/terminal/updates/4.3</terminal-site>
 				<tm-site>http://download.eclipse.org/tm/updates/4.3milestones</tm-site>
 				<swtbot-site>http://download.eclipse.org/technology/swtbot/releases/2.6.0/</swtbot-site>
 			</properties>
@@ -470,15 +470,15 @@
 						</execution>
 					</executions>
 				</plugin>
-                <!-- Keep the tycho-p2-plugin after the tycho-pack200b-plugin -->
-                <!-- Tycho p2 metadata generation shall happen _after_ the JAR has been packed. -->
+				<!-- Keep the tycho-p2-plugin after the tycho-pack200b-plugin -->
+				<!-- Tycho p2 metadata generation shall happen _after_ the JAR has been packed. -->
 				<plugin>
 					<groupId>org.eclipse.tycho</groupId>
 					<artifactId>tycho-p2-plugin</artifactId>
 					<version>${tycho-version}</version>
 					<!-- Signing appears to mess with the baseline repository logic.
 					     Disable the baseline repository until we've figured out what is going on. -->
-					<!--					
+					<!--
 					<configuration>
 						<baselineRepositories>
 							<repository>
