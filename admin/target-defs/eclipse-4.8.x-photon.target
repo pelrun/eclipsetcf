@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?pde version="3.8"?><target name="Eclipse 4.7.x (Oxygen)" sequenceNumber="38">
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><?pde version="3.8"?><target name="Eclipse 4.8.x (Photon)" sequenceNumber="38">
 <locations>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
 <unit id="gnu.io.rxtx.sdk.feature.group" version="2.1.7.4_v20071016-417C7DP1Bh_eEaQJBrHBHg"/>
@@ -10,13 +9,13 @@
 <repository location="http://download.eclipse.org/cbi/updates/license"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.platform.ide" version="4.7.3.M20180330-0640"/>
-<unit id="org.eclipse.test.feature.group" version="3.7.200.v20170511-1043"/>
-<repository location="http://download.eclipse.org/eclipse/updates/4.7"/>
+<unit id="org.eclipse.platform.ide" version="4.8.0.I20180611-0500"/>
+<unit id="org.eclipse.test.feature.group" version="3.7.300.v20180524-2246"/>
+<repository location="http://download.eclipse.org/eclipse/updates/4.8"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.egit.feature.group" version="4.9.2.201712150930-r"/>
-<repository location="http://download.eclipse.org/releases/oxygen"/>
+<unit id="org.eclipse.egit.feature.group" version="5.0.0.201806131550-r"/>
+<repository location="http://download.eclipse.org/staging/photon"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
 <unit id="org.apache.log4j" version="1.2.15.v201012070815"/>
@@ -29,11 +28,11 @@
 <repository location="http://download.eclipse.org/technology/swtbot/releases/latest"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.tm.terminal.connector.cdtserial.sdk.feature.feature.group" version="4.3.0.201706140544"/>
-<unit id="org.eclipse.tm.terminal.connector.remote.sdk.feature.feature.group" version="4.3.0.201706140544"/>
-<unit id="org.eclipse.tm.terminal.connector.serial.sdk.feature.feature.group" version="4.3.0.201706140544"/>
-<unit id="org.eclipse.tm.terminal.sdk.feature.feature.group" version="4.3.0.201706140544"/>
-<repository location="http://download.eclipse.org/tm/terminal/updates/4.3"/>
+<unit id="org.eclipse.tm.terminal.connector.cdtserial.sdk.feature.feature.group" version="4.3.0.201803121138"/>
+<unit id="org.eclipse.tm.terminal.connector.remote.sdk.feature.feature.group" version="4.3.0.201803121138"/>
+<unit id="org.eclipse.tm.terminal.connector.serial.sdk.feature.feature.group" version="4.3.0.201803121138"/>
+<unit id="org.eclipse.tm.terminal.sdk.feature.feature.group" version="4.4.0.201803121138"/>
+<repository location="http://download.eclipse.org/tm/terminal/updates/4.4milestones"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
 <unit id="org.eclipse.rse.feature.group" version="3.7.3.201704251225"/>
@@ -41,22 +40,22 @@
 <repository location="http://download.eclipse.org/tm/updates/4.3milestones"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.cdt.sdk.feature.group" version="9.4.3.201802261533"/>
-<repository location="http://download.eclipse.org/tools/cdt/releases/9.4"/>
+<unit id="org.eclipse.cdt.sdk.feature.group" version="9.5.0.201806170908"/>
+<repository location="http://download.eclipse.org/tools/cdt/releases/9.5"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
 <unit id="com.google.gson" version="2.7.0.v20170129-0911"/>
 <unit id="org.apache.commons.net" version="3.2.0.v201305141515"/>
 <unit id="org.hamcrest" version="1.1.0.v20090501071000"/>
-<repository location="http://download.eclipse.org/tools/orbit/R-builds/R20170516192513/repository"/>
+<repository location="http://download.eclipse.org/tools/orbit/downloads/drops/R20180606145124/repository"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.remote.feature.group" version="3.0.0.201706052031"/>
-<repository location="http://download.eclipse.org/tools/ptp/builds/remote/oxygen/milestones"/>
+<unit id="org.eclipse.remote.feature.group" version="3.0.0.201803121903"/>
+<repository location="http://download.eclipse.org/tools/ptp/builds/remote/photon/milestones"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.launchbar.feature.group" version="2.2.0.201711162100"/>
-<repository location="http://download.eclipse.org/tools/cdt/launchbar/oxygen.2"/>
+<unit id="org.eclipse.launchbar.feature.group" version="2.2.0.201805041956"/>
+<repository location="https://ci.eclipse.org/cdt/view/LaunchBar/job/launchbar-master/lastSuccessfulBuild/artifact/repo/target/repository/"/>
 </location>
 </locations>
 </target>
