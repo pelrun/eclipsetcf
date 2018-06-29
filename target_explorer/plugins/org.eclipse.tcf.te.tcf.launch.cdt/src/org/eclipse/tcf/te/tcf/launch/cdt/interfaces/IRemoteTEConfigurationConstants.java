@@ -36,19 +36,21 @@ public interface IRemoteTEConfigurationConstants {
 	public static final String ATTR_SKIP_DOWNLOAD_TO_TARGET = DebugPlugin.getUniqueIdentifier() + ".ATTR_SKIP_DOWNLOAD_TO_TARGET"; //$NON-NLS-1$
 
 	/**
-	 * Launch configuration attribute key. Boolean value to set the auto path mapping property 
+	 * Launch configuration attribute key. Boolean value to set the auto path mapping property
 	 * from local object path to remote object path.
 	 * If the attribute is not set, the default value of this attribute is true.
+	 * @since 1.7
 	 */
 	public static final String ATTR_AUTO_PATH_MAPPING_FROM_LOCAL_TO_REMOTE = DebugPlugin.getUniqueIdentifier() + ".ATTR_AUTO_PATH_MAPPING_FROM_LOCAL_TO_REMOTE"; //$NON-NLS-1$
 
 	/**
-	 * Launch configuration attribute key. Boolean value to set the auto path mapping property 
+	 * Launch configuration attribute key. Boolean value to set the auto path mapping property
 	 * from remote object path to local object path.
 	 * If the attribute is not set, the default value of this attribute is true.
+	 * @since 1.7
 	 */
 	public static final String ATTR_AUTO_PATH_MAPPING_FROM_REMOTE_TO_LOCAL = DebugPlugin.getUniqueIdentifier() + ".ATTR_AUTO_PATH_MAPPING_FROM_REMOTE_TO_LOCAL"; //$NON-NLS-1$
-	
+
 	/*
 	 * The remote PID to attach to.
 	 */
