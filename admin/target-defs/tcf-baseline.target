@@ -8,13 +8,13 @@
 <unit id="org.eclipse.tcf.debug" version="0.0.0"/>
 <unit id="org.eclipse.tcf.debug.ui" version="0.0.0"/>
 <unit id="org.eclipse.tcf.rse" version="0.0.0"/>
-<repository location="http://download.eclipse.org/tools/tcf/releases/1.4"/>
+<repository location="http://download.eclipse.org/tools/tcf/releases/1.6/1.6.1"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
 <repository location="http://download.eclipse.org/releases/neon"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-<repository location="http://download.eclipse.org/tools/cdt/launchbar/neon.rc4/"/>
+<repository location="http://download.eclipse.org/tools/cdt/launchbar/neon.2/"/>
 </location>
 </locations>
 </target>
