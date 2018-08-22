@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2015 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007-2018 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -65,8 +65,9 @@ public abstract class AbstractChannel implements IChannel {
 
     /**
      * Represents a message sent through a channel between peers
+     * @since 1.6
      */
-    private static class Message {
+    protected static class Message {
         /**
          * Type of message.
          * "C" for Commands.
@@ -1053,9 +1054,10 @@ public abstract class AbstractChannel implements IChannel {
     /**
      * Handles the message received from the channel
      * @param msg
+     * @since 1.6
      */
     @SuppressWarnings("unchecked")
-    private void handleInput(Message msg) {
+    protected void handleInput(Message msg) {
         assert Protocol.isDispatchThread();
         if (state == STATE_CLOSED) {
             return;

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2013 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007-2018 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.tcf.core.AbstractChannel;
+import org.eclipse.tcf.core.ChannelHTTP;
 import org.eclipse.tcf.core.ChannelPIPE;
 import org.eclipse.tcf.core.ChannelTCP;
 import org.eclipse.tcf.protocol.IChannel;
@@ -97,6 +98,22 @@ public class TransportManager {
                 String name = peer.getAttributes().get("PipeName");
                 if (name == null) name = "//./pipe/TCF-Agent";
                 return new ChannelPIPE(peer, name);
+            }
+        });
+
+        addTransportProvider(new ITransportProvider() {
+
+            public String getName() {
+                return "HTTP";
+            }
+
+            public IChannel openChannel(IPeer peer) {
+                assert getName().equals(peer.getTransportName());
+                Map<String,String> attrs = peer.getAttributes();
+                String host = attrs.get(IPeer.ATTR_IP_HOST);
+                String port = attrs.get(IPeer.ATTR_IP_PORT);
+                if (host == null) throw new IllegalArgumentException("No host name");
+                return new ChannelHTTP(peer, host, parsePort(port));
             }
         });
 

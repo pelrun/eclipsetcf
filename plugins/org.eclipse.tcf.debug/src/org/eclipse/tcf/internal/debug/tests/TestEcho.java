@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2014 Wind River Systems, Inc. and others.
+ * Copyright (c) 2008-2018 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -75,7 +75,13 @@ class TestEcho implements ITCFTest, IDiagnostics.DoneEcho {
             test_suite.done(this, error);
         }
         else if (!s.equals(b)) {
-            test_suite.done(this, new Exception("Echo test failed: " + s + " != " + b));
+            int i = 0;
+            while (i < s.length() && i < b.length() && s.charAt(i) == b.charAt(i)) i++;
+            int cx = i < s.length() ? s.charAt(i) : '\0';
+            int cy = i < b.length() ? b.charAt(i) : '\0';
+            test_suite.done(this, new Exception("Echo test failed, offset " + i +
+                    ", 0x" + Integer.toHexString(cx) + " != 0x" + Integer.toHexString(cy) +
+                    ":\n" + s + "\n" + b));
         }
         else if (count < 0x400) {
             sendMessage();
