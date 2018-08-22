@@ -96,9 +96,9 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
     private boolean done_disassembly;
     private int resume_cnt = 0;
     private IToken cancel_test_cmd;
-    private boolean bp_reset_done;
     private boolean bp_set_done;
     private boolean bp_change_done;
+    private boolean bp_reset_done;
     private boolean bp_sync_done;
     private boolean data_bp_area_done;
     private ILineNumbers.CodeArea data_bp_area;
@@ -283,10 +283,6 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
             getTestList();
             return;
         }
-        if (!bp_reset_done) {
-            resetBreakpoints();
-            return;
-        }
         if (test_id != null) {
             if (test_ctx_id == null) {
                 startTestContext();
@@ -340,8 +336,9 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
             assert !all_setup_done;
             all_setup_done = true;
             for (SuspendedContext s : suspended.values()) resume(s.id);
+            return;
         }
-        else if (suspended.size() > 0) {
+        if (suspended.size() > 0) {
             final int test_cnt = suspended.size();
             Runnable done = new Runnable() {
                 int done_cnt;
@@ -353,10 +350,13 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
                 }
             };
             for (SuspendedContext sc : suspended.values()) runRegistersTest(sc, done);
+            return;
         }
-        else {
-            exit(null);
+        if (!bp_reset_done) {
+            resetBreakpoints();
+            return;
         }
+        exit(null);
     }
 
     private void getTestList() {
@@ -434,7 +434,6 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
             runTest();
             return;
         }
-        // Reset breakpoint list (previous tests might left breakpoints)
         srv_breakpoints.set(null, new IBreakpoints.DoneCommand() {
             public void doneCommand(IToken token, Exception error) {
                 if (error != null) {
@@ -1170,7 +1169,7 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
                     }
                 }
                 if (bp_id == null) {
-                    exit(new Exception("Invalid value of 'BPs' attribute in a context state"));
+                    exit(new Exception("Invalid value of 'BPs' attribute in a context state: " + ids));
                 }
             }
         }

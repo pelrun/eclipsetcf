@@ -146,7 +146,20 @@ class TestPathMap implements ITCFTest {
     private boolean obj_equ(String nm, Object x, Object y) {
         if (x == y) return true;
         if (x != null && x.equals(y)) return true;
-        exit(new Exception("PathMap.get: wrong map data, " + nm + ": " + x + " != " + y));
+        if (x instanceof String && y instanceof String) {
+            int i = 0;
+            String sx = (String)x;
+            String sy = (String)y;
+            while (i < sx.length() && i < sy.length() && sx.charAt(i) == sy.charAt(i)) i++;
+            int cx = i < sx.length() ? sx.charAt(i) : '\0';
+            int cy = i < sy.length() ? sy.charAt(i) : '\0';
+            exit(new Exception("PathMap.get: wrong map data, " + nm + ", offset " + i +
+                    ", 0x" + Integer.toHexString(cx) + " != 0x" + Integer.toHexString(cy) +
+                    ":\n" + x + "\n" + y));
+        }
+        else {
+            exit(new Exception("PathMap.get: wrong map data, " + nm + ": " + x + " != " + y));
+        }
         return false;
     }
 
