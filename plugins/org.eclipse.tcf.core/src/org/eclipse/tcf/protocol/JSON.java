@@ -328,7 +328,17 @@ public final class JSON {
                         break;
                     }
                 }
-                if (tmp_buf_pos >= tmp_buf.length) {
+                if (cur_ch >= 0x11d800 && cur_ch <= 0x11dfff) {
+                    write((char)(cur_ch - 0x110000));
+                }
+                else if (cur_ch >= 0x10000) {
+                    int n = cur_ch - 0x10000;
+                    int h = 0xd800 + ((n >> 10) & 0x3ff); /* High surrogate */
+                    int l = 0xdc00 + (n & 0x3ff); /* Low surrogate  */
+                    write((char)h);
+                    write((char)l);
+                }
+                else if (tmp_buf_pos >= tmp_buf.length) {
                     write((char)cur_ch);
                 }
                 else {
@@ -618,6 +628,17 @@ public final class JSON {
                 tmp_bbf = tmp;
             }
             int ch = tmp_buf[inp_pos++];
+            if (ch >= 0xd800 && ch <= 0xdfff) {
+                if (inp_pos < tmp_buf_pos &&
+                        ch >= 0xd800 && ch <= 0xdbff &&
+                        tmp_buf[inp_pos] >= 0xdc00 && tmp_buf[inp_pos] <= 0xdfff) {
+                    int cl = tmp_buf[inp_pos++];
+                    ch = 0x10000 + ((ch - 0xd800) << 10) + (cl - 0xdc00);
+                }
+                else {
+                    ch += 0x110000;
+                }
+            }
             if (ch == 1) {
                 Binary b = bin_buf[blc_pos++];
                 while (out_pos > tmp_bbf.length - b.size) {
@@ -753,6 +774,7 @@ public final class JSON {
      */
     public static Object[] parseSequence(byte[] b) throws IOException {
         assert Protocol.isDispatchThread();
+        if (b == null) return new Object[0];
         inp = b;
         inp_pos = 0;
         err_buf_pos = 0;
