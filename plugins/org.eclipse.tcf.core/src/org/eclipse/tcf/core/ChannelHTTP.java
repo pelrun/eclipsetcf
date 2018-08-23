@@ -36,7 +36,7 @@ public class ChannelHTTP extends AbstractChannel {
 
     private static int id_cnt = 0;
     private final String id = UUID.randomUUID().toString() +
-            "-" + Integer.toUnsignedString(id_cnt++, 16);
+            "-" + Integer.toHexString(id_cnt++);
 
     private final String host;
     private final int port;
