@@ -169,69 +169,82 @@ class TestThread extends Thread {
                 if (!std_out.lst.get(1).startsWith("* 1    process "))
                     throw new Exception("Invalid 'info infer' reply: list");
 
-                String reg_name = null;
-                BigInteger reg_val = null;
-                cmd("info reg");
-                if (std_out.lst.size() < 1)
-                    throw new Exception("Invalid 'info reg' reply: cnt < 1");
-                {
-                    String s0 = std_out.lst.get(0);
-                    int s0i = s0.indexOf(' ');
-                    reg_name = s0.substring(0, s0i);
-                    s0 = s0.substring(s0i);
-                    s0i = s0.indexOf("0x");
-                    s0 = s0.substring(s0i + 2);
-                    s0i = s0.indexOf('\t');
-                    reg_val = new BigInteger(s0.substring(0, s0i), 16);
-                }
+                for (int reg_no = 0; reg_no < 4; reg_no++) {
+                    String reg_name = null;
+                    BigInteger reg_val = null;
+                    cmd("info reg");
+                    if (std_out.lst.size() < reg_no + 1)
+                        throw new Exception("Invalid 'info reg' reply: cnt < " + (reg_no + 1));
+                    {
+                        String s0 = std_out.lst.get(reg_no);
+                        String[] sa = s0.split("\\s+");
+                        reg_name = sa[0];
+                        if (!sa[1].startsWith("0x"))
+                            throw new Exception("Invalid 'info reg' reply: missing 0x");
+                        reg_val = new BigInteger(sa[1].substring(2), 16);
+                    }
 
-                cmd("info all-reg");
-                if (std_out.lst.size() == 0 || std_err.lst.size() > 0)
-                    throw new Exception("Invalid 'info all-reg' reply");
+                    cmd("info all-reg");
+                    int cnt = 0;
+                    if (std_out.lst.size() == 0 || std_err.lst.size() > 0)
+                        throw new Exception("Invalid 'info all-reg' reply");
+                    for (String s0 : std_out.lst) {
+                        String[] sa = s0.split("\\s+");
+                        if (reg_name.equals(sa[0])) {
+                            if (!sa[1].startsWith("0x"))
+                                throw new Exception("Invalid 'info all-reg' reply: missing 0x");
+                            if (!reg_val.equals(new BigInteger(sa[1].substring(2), 16)))
+                                    throw new Exception("Invalid 'info all-reg' reply: wrong value of " + reg_name);
+                            cnt++;
+                        }
+                    }
+                    if (cnt != 1)
+                        throw new Exception("Invalid 'info all-reg' reply: cnt != 1 " + reg_name);
 
-                cmd("info float");
-                if (std_out.lst.size() == 0 || std_err.lst.size() > 0)
-                    throw new Exception("Invalid 'info float' reply");
+                    cmd("info float");
+                    if (std_out.lst.size() == 0 || std_err.lst.size() > 0)
+                        throw new Exception("Invalid 'info float' reply");
 
-                cmd("p/x $" + reg_name);
-                if (std_out.lst.size() < 1)
-                    throw new Exception("Invalid 'p/x' reply: cnt < 1");
-                {
-                    String s0 = std_out.lst.get(0);
-                    int s0i = s0.indexOf("0x");
-                    s0 = s0.substring(s0i + 2);
-                    if (!reg_val.equals(new BigInteger(s0, 16)))
-                        throw new Exception("Invalid 'p/x' reply: value");
-                }
+                    cmd("p/x $" + reg_name);
+                    if (std_out.lst.size() < 1)
+                        throw new Exception("Invalid 'p/x' reply: cnt < 1");
+                    {
+                        String s0 = std_out.lst.get(0);
+                        int s0i = s0.indexOf("0x");
+                        s0 = s0.substring(s0i + 2);
+                        if (!reg_val.equals(new BigInteger(s0, 16)))
+                            throw new Exception("Invalid 'p/x' reply: value");
+                    }
 
-                cmd("set $" + reg_name + " = 0x1234");
-                if (std_out.lst.size() > 0 || std_err.lst.size() > 0)
-                    throw new Exception("Invalid 'set' reply");
+                    cmd("set $" + reg_name + " = 0x1234");
+                    if (std_out.lst.size() > 0 || std_err.lst.size() > 0)
+                        throw new Exception("Invalid 'set' reply");
 
-                cmd("p/x $" + reg_name);
-                if (std_out.lst.size() < 1)
-                    throw new Exception("Invalid 'p/x' reply: cnt < 1");
-                {
-                    String s0 = std_out.lst.get(0);
-                    int s0i = s0.indexOf("0x");
-                    s0 = s0.substring(s0i + 2);
-                    if (!s0.equals("1234"))
-                        throw new Exception("Invalid 'p/x' reply: value");
-                }
+                    cmd("p/x $" + reg_name);
+                    if (std_out.lst.size() < 1)
+                        throw new Exception("Invalid 'p/x' reply: cnt < 1");
+                    {
+                        String s0 = std_out.lst.get(0);
+                        int s0i = s0.indexOf("0x");
+                        s0 = s0.substring(s0i + 2);
+                        if (!s0.equals("1234"))
+                            throw new Exception("Invalid 'p/x' reply: value");
+                    }
 
-                cmd("set $" + reg_name + " = 0x" + reg_val.toString(16));
-                if (std_out.lst.size() > 0 || std_err.lst.size() > 0)
-                    throw new Exception("Invalid 'set' reply");
+                    cmd("set $" + reg_name + " = 0x" + reg_val.toString(16));
+                    if (std_out.lst.size() > 0 || std_err.lst.size() > 0)
+                        throw new Exception("Invalid 'set' reply");
 
-                cmd("p/x $" + reg_name);
-                if (std_out.lst.size() < 1)
-                    throw new Exception("Invalid 'p/x' reply: cnt < 1");
-                {
-                    String s0 = std_out.lst.get(0);
-                    int s0i = s0.indexOf("0x");
-                    s0 = s0.substring(s0i + 2);
-                    if (!reg_val.equals(new BigInteger(s0, 16)))
-                        throw new Exception("Invalid 'p/x' reply: value");
+                    cmd("p/x $" + reg_name);
+                    if (std_out.lst.size() < 1)
+                        throw new Exception("Invalid 'p/x' reply: cnt < 1");
+                    {
+                        String s0 = std_out.lst.get(0);
+                        int s0i = s0.indexOf("0x");
+                        s0 = s0.substring(s0i + 2);
+                        if (!reg_val.equals(new BigInteger(s0, 16)))
+                            throw new Exception("Invalid 'p/x' reply: value");
+                    }
                 }
 
                 cmd("bt");
@@ -269,14 +282,13 @@ class TestThread extends Thread {
 
                 int infer = 0;
                 cmd("add-infer");
-                if (std_out.lst.size() < 1)
-                    throw new Exception("Invalid 'add-infer' reply: cnt < 1");
-                if (!std_out.lst.get(0).startsWith("Added inferior "))
-                    throw new Exception("Invalid 'add-infer' reply");
-                {
-                    String z = std_out.lst.get(0).substring(15);
-                    infer = Integer.parseInt(z);
+                for (String s : std_out.lst) {
+                    if (s.startsWith("Added inferior ")) {
+                        infer = Integer.parseInt(s.substring(15));
+                    }
                 }
+                if (infer == 0)
+                    throw new Exception("Invalid 'add-infer' reply");
 
                 cmd("infer " + infer);
                 if (std_out.lst.size() < 1)
