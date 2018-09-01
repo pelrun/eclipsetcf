@@ -29,4 +29,3 @@ Export-Package: org.eclipse.tcf.te.ui.controls,
  org.eclipse.tcf.te.ui.controls.panels,
  org.eclipse.tcf.te.ui.controls.validator,
  org.eclipse.tcf.te.ui.controls.wire.network
-Import-Package: gnu.io;resolution:=optional

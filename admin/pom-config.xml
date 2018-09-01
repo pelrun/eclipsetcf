@@ -72,7 +72,6 @@
 		<tm-site>http://download.eclipse.org/tm/updates/4.0</tm-site>
 		<terminal-site>http://download.eclipse.org/tm/terminal/updates/4.0</terminal-site>
 		<remote-site>http://download.eclipse.org/tools/ptp/builds/remote/2.0.0</remote-site>
-		<rxtx-site>http://archive.eclipse.org/tm/updates/rxtx</rxtx-site>
 		<!-- TCF needs gson-2.2.4 which was added to Orbit in Luna SR2 -->
 		<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20150124073747/repository/</orbit-site>
 		<!-- SWTBot-2.4 and later require an e4-based Eclipse eg Juno or later: -->
@@ -120,11 +119,6 @@
 		<repository>
 			<id>remote</id>
 			<url>${remote-site}</url>
-			<layout>p2</layout>
-		</repository>
-		<repository>
-			<id>rxtx</id>
-			<url>${rxtx-site}</url>
 			<layout>p2</layout>
 		</repository>
 	</repositories>
