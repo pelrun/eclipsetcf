@@ -127,7 +127,7 @@
 		<pluginRepository>
 			<id>sonatype</id>
 			<url>https://oss.sonatype.org/content/repositories/public</url>
-				<snapshots>
+			<snapshots>
 				<enabled>true</enabled>
 			</snapshots>
 			<releases>
@@ -232,14 +232,40 @@
 			<id>photon</id>
 
 			<properties>
-				<platform-site>http://download.eclipse.org/releases/photon</platform-site>
-				<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20170919201930/repository</orbit-site>
-				<cdt-site>http://download.eclipse.org/tools/cdt/builds/9.4</cdt-site>
+				<platform-site>http://download.eclipse.org/eclipse/updates/4.8</platform-site>
+				<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20180606145124/repository</orbit-site>
+				<cdt-site>http://download.eclipse.org/tools/cdt/releases/9.4</cdt-site>
 				<remote-site>http://download.eclipse.org/tools/ptp/builds/remote/3.0.0</remote-site>
 				<terminal-site>http://download.eclipse.org/tm/terminal/updates/4.4milestones</terminal-site>
 				<tm-site>http://download.eclipse.org/tm/updates/4.3milestones</tm-site>
-				<swtbot-site>http://download.eclipse.org/technology/swtbot/releases/latest</swtbot-site>
+				<swtbot-site>http://download.eclipse.org/technology/swtbot/releases/2.7.0</swtbot-site>
 			</properties>
+		</profile>
+
+		<profile>
+			<!-- Eclipse 2018-09, CDT 9.5 -->
+			<id>2018-09</id>
+
+			<properties>
+				<platform-site>http://download.eclipse.org/releases/2018-09</platform-site>
+				<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20180606145124/repository</orbit-site>
+				<cdt-site>http://download.eclipse.org/tools/cdt/releases/9.5</cdt-site>
+				<remote-site>http://download.eclipse.org/tools/ptp/builds/remote/3.0.0</remote-site>
+				<terminal-site>http://download.eclipse.org/tm/terminal/updates/4.4milestones</terminal-site>
+				<tm-site>http://download.eclipse.org/tm/updates/4.5.0-SNAPSHOT/repository</tm-site>
+				<swtbot-site>http://download.eclipse.org/technology/swtbot/releases/2.7.0</swtbot-site>
+			</properties>
+
+			<repositories>
+				<!-- Terminal is merged with TM -->
+				<repository>
+					<id>terminal</id>
+					<snapshots><enabled>false</enabled></snapshots>
+					<releases><enabled>false</enabled></releases>
+					<url>${terminal-site}</url>
+					<layout>p2</layout>
+				</repository>
+			</repositories>
 		</profile>
 	</profiles>
 
