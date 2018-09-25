@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2014 Wind River Systems, Inc. and others.
+ * Copyright (c) 2008-2018 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -100,7 +100,11 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
         "tcf_cpp_test_class_extension_ref",
         "tcf_cpp_test_class_extension_member_ptr",
         "tcf_cpp_test_anonymous_union_var",
-        "tcf_test_array_field"
+        "tcf_test_array_field",
+        "tcf_test_func1",
+        "tcf_test_func2",
+        "tcf_test_func3",
+        "tcf_test_func4",
     };
 
     private static final String[] test_expressions = {
@@ -180,6 +184,9 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
         "&tcf_cpp_test_int_ref == &tcf_cpp_test_class::s_int",
         "sizeof(tcf_cpp_test_int_ref) == sizeof(int)",
         "sizeof(tcf_cpp_test_class_extension_ref) == sizeof(tcf_cpp_test_class_extension_var)",
+        "&*tcf_test_func4==tcf_test_func4",
+        "&(*tcf_test_func4)==tcf_test_func4",
+        "&tcf_test_func4[0]==tcf_test_func4",
     };
 
     private static final String[] test_dprintfs = {
@@ -556,7 +563,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                             if (error != null) {
                                 if (error instanceof IErrorReport &&
                                         ((IErrorReport)error).getErrorCode() == IErrorReport.TCF_ERROR_SYM_NOT_FOUND) {
-                                    if (nm.startsWith("tcf_cpp_") || nm.equals("tcf_test_array_field")) {
+                                    if (nm.startsWith("tcf_cpp_") || nm.equals("tcf_test_array_field") || nm.equals("tcf_test_func4")) {
                                         global_var_ids.put(nm, null);
                                         runTest();
                                         return;
