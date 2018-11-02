@@ -110,7 +110,7 @@ public interface IProcessesV1 extends IProcesses {
          * @param error The error description if the operation failed, <code>null</code> if succeeded.
          * @param properties The global processes service or context specific capabilities.
          */
-        public void doneGetCapabilities(IToken token, Exception error, Map<String, Object> properties);
+        public void doneGetCapabilities(IToken token, Exception error, Map<String,Object> properties);
     }
 
     /**

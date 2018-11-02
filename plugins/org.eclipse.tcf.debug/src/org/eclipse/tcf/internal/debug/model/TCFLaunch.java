@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2016 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007-2018 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -177,6 +177,8 @@ public class TCFLaunch extends Launch {
     private Set<String> context_filter;
 
     private String dprintf_stream_id;
+
+    private boolean can_terminate_attached = false;
 
     private final IStreams.StreamsListener streams_listener = new IStreams.StreamsListener() {
 
@@ -816,6 +818,23 @@ public class TCFLaunch extends Launch {
             final Set<Integer> dont_stop = TCFLaunchDelegate.readSigSet(cfg.getAttribute(TCFLaunchDelegate.ATTR_SIGNALS_DONT_STOP, ""));
             final Set<Integer> dont_pass = TCFLaunchDelegate.readSigSet(cfg.getAttribute(TCFLaunchDelegate.ATTR_SIGNALS_DONT_PASS, ""));
             final IProcessesV1 ps_v1 = channel.getRemoteService(IProcessesV1.class);
+            if (ps_v1 != null) {
+                // Get processes service capabilities
+                new LaunchStep() {
+                    @Override
+                    void start() throws Exception  {
+                        ps_v1.getCapabilities(null, new IProcessesV1.DoneGetCapabilities() {
+                            @Override
+                            public void doneGetCapabilities(IToken token, Exception error, Map<String,Object> properties) {
+                                can_terminate_attached = properties != null &&
+                                        properties.get("CanTerminateAttached") instanceof Boolean &&
+                                        ((Boolean)properties.get("CanTerminateAttached")).booleanValue();
+                                done();
+                            }
+                        });
+                    }
+                };
+            }
             // Start the process
             new LaunchStep() {
                 @Override
@@ -1239,16 +1258,19 @@ public class TCFLaunch extends Launch {
         if (disconnecting) return;
         disconnecting = true;
         final Set<IToken> cmds = new HashSet<IToken>();
-        for (ProcessContext ctx : attached_processes.values()) {
-            cmds.add(ctx.terminate(new IProcesses.DoneCommand() {
-                public void doneCommand(IToken token, Exception error) {
-                    cmds.remove(token);
-                    if (error != null) channel.terminate(error);
-                    else if (cmds.isEmpty()) channel.close();
-                }
-            }));
-        }
         if (channel.getState() == IChannel.STATE_OPEN) {
+            for (final ProcessContext ctx : attached_processes.values()) {
+                IProcesses.DoneCommand prs_done_cmd = new IProcesses.DoneCommand() {
+                    public void doneCommand(IToken token, Exception error) {
+                        cmds.remove(token);
+                        if (!attached_processes.containsKey(ctx.getID())) error = null;
+                        if (error != null) channel.terminate(error);
+                        else if (cmds.isEmpty()) channel.close();
+                    }
+                };
+                if (!can_terminate_attached) cmds.add(ctx.detach(prs_done_cmd));
+                cmds.add(ctx.terminate(prs_done_cmd));
+            }
             IStreams streams = getService(IStreams.class);
             IStreams.DoneDisconnect done_disconnect = new IStreams.DoneDisconnect() {
                 public void doneDisconnect(IToken token, Exception error) {
@@ -1370,7 +1392,7 @@ public class TCFLaunch extends Launch {
                         done(false);
                         return;
                     }
-                    if (!detached && process.isAttached()) {
+                    if (!can_terminate_attached && !detached && process.isAttached()) {
                         process.detach(new IProcesses.DoneCommand() {
                             @Override
                             public void doneCommand(IToken token, Exception error) {
