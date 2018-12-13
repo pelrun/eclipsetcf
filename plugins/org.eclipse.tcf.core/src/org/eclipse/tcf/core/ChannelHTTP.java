@@ -77,6 +77,7 @@ public class ChannelHTTP extends AbstractChannel {
                 while (!stopped) {
                     String s = inp.readLine();
                     if (s == null) break;
+                    if (s.length() > 0) continue;
                     Protocol.invokeLater(new Runnable() {
                         IToken cmd;
                         @Override
@@ -108,11 +109,11 @@ public class ChannelHTTP extends AbstractChannel {
     @Override
     protected void write(int n) throws IOException {
         if (n < 0) {
-            if (n == EOM && wr_cnt > 0) {
+            if (wr_cnt > 0) {
                 try {
                     int i = 0;
                     char type = (char)wr_buf[i++];
-                    while (i < wr_cnt && wr_buf[i] == 0) i++;
+                    while (i >= wr_cnt || wr_buf[i++] != 0) break;
                     switch (type) {
                     case 'C':
                         sendCommand(i);
@@ -160,6 +161,7 @@ public class ChannelHTTP extends AbstractChannel {
     }
 
     private String getArgs(int i) throws Exception {
+        if (i >= wr_cnt) return null;
         StringBuffer args = new StringBuffer();
         while (i < wr_cnt) {
             if (args.length() > 0) args.append('&');
@@ -185,17 +187,17 @@ public class ChannelHTTP extends AbstractChannel {
         byte[] t = new byte[i - p];
         System.arraycopy(wr_buf, p, t, 0, t.length);
         Token token = new Token(t);
-        while (wr_buf[i] == 0) i++;
+        i++;
 
         p = i;
         while (wr_buf[i] != 0) i++;
         String service = new String(wr_buf, p, i - p, "UTF-8");
-        while (wr_buf[i] == 0) i++;
+        i++;
 
         p = i;
         while (wr_buf[i] != 0) i++;
         String command = new String(wr_buf, p, i - p, "UTF-8");
-        while (i < wr_buf.length && wr_buf[i] == 0) i++;
+        i++;
 
         sendRequest(token, service, command, getArgs(i));
     }
