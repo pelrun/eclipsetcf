@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2016 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007-2018 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -202,6 +202,11 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
             return "Disassembly";
         }
     }
+
+    private static final int
+        DISPLAY_SOURCE_ON_REFRESH       = 0,
+        DISPLAY_SOURCE_ON_SUSPEND       = 1,
+        DISPLAY_SOURCE_ON_STEP_MODE     = 2;
 
     private final TCFLaunch launch;
     private final Display display;
@@ -1910,18 +1915,22 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
      * The method is normally called from SourceLookupService.
      */
     public void displaySource(Object model_element, final IWorkbenchPage page, boolean forceSourceLookup) {
-        final Object generation = displaySourceStart(page, wait_for_pc_update_after_step);
-        /* Because of racing in Eclipse Debug infrastructure, 'model_element' value can be invalid.
-         * As a workaround, get current debug view selection.
-         */
         if (page != null) {
+            /*
+             * Because of racing in Eclipse Debug infrastructure, 'model_element' value can be invalid.
+             * As a workaround, get current debug view selection.
+             */
             ISelection context = DebugUITools.getDebugContextManager().getContextService(page.getWorkbenchWindow()).getActiveContext();
             if (context instanceof IStructuredSelection) {
                 IStructuredSelection selection = (IStructuredSelection)context;
                 model_element = selection.isEmpty() ? null : selection.getFirstElement();
             }
+            displaySource(model_element, page, DISPLAY_SOURCE_ON_SUSPEND);
         }
-        final Object element = model_element;
+    }
+
+    private void displaySource(final Object element, final IWorkbenchPage page, final int event) {
+        final Object generation = displaySourceStart(page, wait_for_pc_update_after_step);
         Protocol.invokeLater(25, new Runnable() {
             public void run() {
                 if (!displaySourceCheck(page, generation)) return;
@@ -1978,7 +1987,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
                     top_frame = stack_frame.getFrameNo() == 0;
                     ctx_id = stack_frame.parent.id;
                 }
-                displaySource(generation, page, element, ctx_id, mem_id, top_frame, area);
+                displaySource(generation, page, element, ctx_id, mem_id, top_frame, area, event);
             }
         });
     }
@@ -2035,7 +2044,8 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
     }
 
     private void displaySource(final Object generation, final IWorkbenchPage page,
-            final Object element, final String exe_id, final String mem_id, final boolean top_frame, final ILineNumbers.CodeArea area) {
+            final Object element, final String exe_id, final String mem_id, final boolean top_frame,
+            final ILineNumbers.CodeArea area, final int event) {
         final boolean disassembly_available = channel.getRemoteService(IDisassembly.class) != null;
         asyncExec(new Runnable() {
             public void run() {
@@ -2071,11 +2081,23 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
                         }
                     }
                     if (exe_id != null && disassembly_available &&
-                            (editor_input == null || editor_id == null || instruction_stepping_enabled) &&
-                            PlatformUI.getWorkbench().getEditorRegistry().findEditor(
-                                    DisassemblyEditorInput.EDITOR_ID) != null) {
-                        editor_id = DisassemblyEditorInput.EDITOR_ID;
-                        editor_input = DisassemblyEditorInput.INSTANCE;
+                            PlatformUI.getWorkbench().getEditorRegistry().findEditor(DisassemblyEditorInput.EDITOR_ID) != null) {
+                        switch (event) {
+                        case DISPLAY_SOURCE_ON_SUSPEND:
+                        case DISPLAY_SOURCE_ON_REFRESH:
+                            if (instruction_stepping_enabled || editor_input == null || editor_id == null) {
+                                editor_id = DisassemblyEditorInput.EDITOR_ID;
+                                editor_input = DisassemblyEditorInput.INSTANCE;
+                            }
+                            break;
+                        case DISPLAY_SOURCE_ON_STEP_MODE:
+                            if (instruction_stepping_enabled) {
+                                editor_id = DisassemblyEditorInput.EDITOR_ID;
+                                editor_input = DisassemblyEditorInput.INSTANCE;
+                                break;
+                            }
+                            break;
+                        }
                     }
                     if (!displaySourceCheck(page, generation)) return;
                     displaySource(page, editor_id, editor_input, line);
@@ -2127,7 +2149,14 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
                 if (windows == null) return;
                 for (IWorkbenchWindow window : windows) {
                     IWorkbenchPage page = window.getActivePage();
-                    if (page != null) displaySource(null, page, true);
+                    if (page != null) {
+                        ISelection context = DebugUITools.getDebugContextManager().getContextService(page.getWorkbenchWindow()).getActiveContext();
+                        if (context instanceof IStructuredSelection) {
+                            IStructuredSelection selection = (IStructuredSelection)context;
+                            Object element = selection.isEmpty() ? null : selection.getFirstElement();
+                            if (element != null) displaySource(element, page, DISPLAY_SOURCE_ON_REFRESH);
+                        }
+                    }
                 }
             }
         });
@@ -2338,6 +2367,14 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
      */
     public void setInstructionSteppingEnabled(boolean enabled) {
         instruction_stepping_enabled = enabled;
+        TCFNode node = DebugUITools.getDebugContext().getAdapter(TCFNode.class);
+        if (node != null && node.model == this) {
+            IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+            if (window != null) {
+                IWorkbenchPage page = window.getActivePage();
+                if (page != null) displaySource(node, page, DISPLAY_SOURCE_ON_STEP_MODE);
+            }
+        }
     }
 
     /**

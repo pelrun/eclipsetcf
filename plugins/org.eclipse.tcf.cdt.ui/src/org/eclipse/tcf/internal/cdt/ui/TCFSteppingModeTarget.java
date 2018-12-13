@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2011 Wind River Systems, Inc. and others.
+ * Copyright (c) 2010-2018 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,15 +12,9 @@ package org.eclipse.tcf.internal.cdt.ui;
 
 import org.eclipse.cdt.debug.core.model.ISteppingModeTarget;
 import org.eclipse.cdt.debug.core.model.ITargetProperties;
-import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.Preferences;
 import org.eclipse.core.runtime.Preferences.IPropertyChangeListener;
-import org.eclipse.debug.ui.DebugUITools;
-import org.eclipse.debug.ui.sourcelookup.ISourceDisplay;
 import org.eclipse.tcf.internal.debug.ui.model.TCFModel;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PlatformUI;
 
 /**
  * Integrates the TCF model with the "Instruction Stepping Mode" button from CDT.
@@ -28,21 +22,21 @@ import org.eclipse.ui.PlatformUI;
 @SuppressWarnings("deprecation")
 public class TCFSteppingModeTarget implements ISteppingModeTarget, ITargetProperties {
 
-    private final Preferences fPreferences;
-    private final TCFModel fModel;
+    private final Preferences prefs;
+    private final TCFModel model;
 
     public TCFSteppingModeTarget(TCFModel model) {
-        fPreferences= new Preferences();
-        fPreferences.setDefault(PREF_INSTRUCTION_STEPPING_MODE, model.isInstructionSteppingEnabled());
-        fModel = model;
+        prefs= new Preferences();
+        prefs.setDefault(PREF_INSTRUCTION_STEPPING_MODE, model.isInstructionSteppingEnabled());
+        this.model = model;
     }
 
     public void addPropertyChangeListener(IPropertyChangeListener listener) {
-        fPreferences.addPropertyChangeListener(listener);
+        prefs.addPropertyChangeListener(listener);
     }
 
     public void removePropertyChangeListener(IPropertyChangeListener listener) {
-        fPreferences.removePropertyChangeListener(listener);
+        prefs.removePropertyChangeListener(listener);
     }
 
     public boolean supportsInstructionStepping() {
@@ -50,27 +44,11 @@ public class TCFSteppingModeTarget implements ISteppingModeTarget, ITargetProper
     }
 
     public void enableInstructionStepping(boolean enabled) {
-        fPreferences.setValue(PREF_INSTRUCTION_STEPPING_MODE, enabled);
-        fModel.setInstructionSteppingEnabled(enabled);
-        // switch to disassembly or source
-        forceSourceDisplay(DebugUITools.getDebugContext());
-    }
-
-    private void forceSourceDisplay(IAdaptable debugContext) {
-        ISourceDisplay sourceDisplay = (ISourceDisplay) debugContext.getAdapter(ISourceDisplay.class);
-        if (sourceDisplay != null) {
-            IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-            if (window != null) {
-                IWorkbenchPage page = window.getActivePage();
-                if (page != null) {
-                    sourceDisplay.displaySource(debugContext, page, true);
-                }
-            }
-        }
+        prefs.setValue(PREF_INSTRUCTION_STEPPING_MODE, enabled);
+        model.setInstructionSteppingEnabled(enabled);
     }
 
     public boolean isInstructionSteppingEnabled() {
-        return fPreferences.getBoolean(PREF_INSTRUCTION_STEPPING_MODE);
+        return prefs.getBoolean(PREF_INSTRUCTION_STEPPING_MODE);
     }
-
 }
