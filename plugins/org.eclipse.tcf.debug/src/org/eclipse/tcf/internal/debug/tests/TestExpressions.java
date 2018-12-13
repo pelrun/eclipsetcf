@@ -91,6 +91,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
     private static String[] global_var_names = {
         "tcf_test_char",
         "tcf_test_short",
+        "tcf_test_int",
         "tcf_test_long",
         "tcf_test_str",
         "tcf_cpp_test_bool",
@@ -105,6 +106,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
         "tcf_test_func2",
         "tcf_test_func3",
         "tcf_test_func4",
+        "func2_label",
     };
 
     private static final String[] test_expressions = {
@@ -187,6 +189,9 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
         "&*tcf_test_func4==tcf_test_func4",
         "&(*tcf_test_func4)==tcf_test_func4",
         "&tcf_test_func4[0]==tcf_test_func4",
+        "func2_label",
+        "&func2_label",
+        "&func2_label!=0",
     };
 
     private static final String[] test_dprintfs = {
@@ -557,13 +562,14 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
         if (srv_syms != null && local_var_expr_ids.length > 0) {
             for (final String nm : global_var_names) {
                 if (!global_var_ids.containsKey(nm)) {
-                    cmds.add(srv_syms.find(process_id, new BigInteger(suspended_pc), nm, new ISymbols.DoneFind() {
+                    cmds.add(srv_syms.find(process_id, stack_frames[stack_frames.length - 2].getInstructionAddress(), nm, new ISymbols.DoneFind() {
                         public void doneFind(IToken token, Exception error, String symbol_id) {
                             cmds.remove(token);
                             if (error != null) {
                                 if (error instanceof IErrorReport &&
                                         ((IErrorReport)error).getErrorCode() == IErrorReport.TCF_ERROR_SYM_NOT_FOUND) {
-                                    if (nm.startsWith("tcf_cpp_") || nm.equals("tcf_test_array_field") || nm.equals("tcf_test_func4")) {
+                                    if (nm.startsWith("tcf_cpp_") || nm.equals("tcf_test_array_field") || nm.equals("tcf_test_func4") ||
+                                            nm.startsWith("tcf_test_int") || nm.startsWith("func2_label")) {
                                         global_var_ids.put(nm, null);
                                         runTest();
                                         return;
@@ -741,11 +747,13 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                         else {
                             expr_val.put(id, ctx);
                             byte[] arr = ctx.getValue();
-                            boolean b = false;
-                            for (byte x : arr) {
-                                if (x != 0) b = true;
+                            if (arr.length > 0) {
+                                boolean b = false;
+                                for (byte x : arr) {
+                                    if (x != 0) b = true;
+                                }
+                                if (!b) exit(new Exception("Invalid value of expression \"" + id + "\""));
                             }
-                            if (!b) exit(new Exception("Invalid value of expression \"" + id + "\""));
                             runTest();
                         }
                     }
