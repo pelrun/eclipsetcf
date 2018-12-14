@@ -2367,7 +2367,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
      */
     public void setInstructionSteppingEnabled(boolean enabled) {
         instruction_stepping_enabled = enabled;
-        TCFNode node = DebugUITools.getDebugContext().getAdapter(TCFNode.class);
+        TCFNode node = (TCFNode)DebugUITools.getDebugContext().getAdapter(TCFNode.class);
         if (node != null && node.model == this) {
             IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
             if (window != null) {
