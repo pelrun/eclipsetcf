@@ -151,7 +151,14 @@ public class ChannelHTTP extends AbstractChannel {
 
     @Override
     protected void stop() throws IOException {
+        assert !stopped;
         stopped = true;
+        URL url = new URL("http://" + host + ":" + port + "/tcf/stop/");
+        HttpURLConnection con = (HttpURLConnection)url.openConnection();
+        con.setRequestProperty("Content-Type", "application/json");
+        con.setRequestProperty("X-Session-ID", id);
+        con.setRequestMethod("GET");
+        con.getInputStream().close();
     }
 
     private char toHexDigit(int n) {
@@ -221,6 +228,7 @@ public class ChannelHTTP extends AbstractChannel {
         String nm = token != null ? "/tcf/c/" + token + "/" : "/tcf/e/";
         nm = "http://" + host + ":" + port + nm + service + "/" + command;
         if (args != null && args.length() > 0) nm += "?" + args;
+        assert !stopped;
         URL url = new URL(nm);
         HttpURLConnection con = (HttpURLConnection)url.openConnection();
         con.setRequestProperty("Content-Type", "application/json");
