@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2017 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007-2019 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -46,6 +46,7 @@ import org.eclipse.tcf.internal.debug.ui.ImageCache;
 import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.protocol.JSON;
 import org.eclipse.tcf.protocol.Protocol;
+import org.eclipse.tcf.services.IContextReset;
 import org.eclipse.tcf.services.ILineNumbers;
 import org.eclipse.tcf.services.IMemory;
 import org.eclipse.tcf.services.IMemoryMap;
@@ -77,6 +78,7 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
     private final TCFData<TCFNodeExecContext> memory_node;
     private final TCFData<TCFNodeExecContext> symbols_node;
     private final TCFData<String> full_name;
+    private final TCFData<Collection<Map<String,Object>>> reset_capabilities;
 
     private LinkedHashMap<BigInteger,TCFDataCache<TCFSymFileRef>> syms_info_lookup_cache;
     private LinkedHashMap<BigInteger,TCFDataCache<TCFSourceRef>> line_info_lookup_cache;
@@ -503,6 +505,24 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
                 return true;
             }
         };
+
+        reset_capabilities = new TCFData<Collection<Map<String, Object>>>(channel) {
+            @Override
+            protected boolean startDataRetrieval() {
+                IContextReset reset = launch.getService(IContextReset.class);
+                if (reset == null) {
+                    set(null, null, null);
+                    return true;
+                }
+                command = reset.getCapabilities(id, new IContextReset.DoneGetCapabilities() {
+                    @Override
+                    public void doneGetCapabilities(IToken token, Exception error, Collection<Map<String, Object>> capabilities) {
+                        set(token, error, capabilities);
+                    }
+                });
+                return false;
+            }
+        };
         TCFMemoryBlock.onMemoryNodeCreated(this);
         updateTerminal();
     }
@@ -836,6 +856,24 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
      */
     public TCFDataCache<String> getFullName() {
         return full_name;
+    }
+
+    public TCFDataCache<Collection<Map<String, Object>>> getResetCapabilities() {
+        return reset_capabilities;
+    }
+
+    public void reset(String reset_type, Map<String, Object> params) {
+        IContextReset ctx_reset = launch.getService(IContextReset.class);
+        if (ctx_reset != null) {
+            ctx_reset.reset(id, reset_type, params, new IContextReset.DoneReset() {
+                @Override
+                public void doneReset(IToken token, Exception error) {
+                    if (error != null) {
+                        model.showMessageBox("Cannot reset context", error);
+                    }
+                }
+            });
+        }
     }
 
     public void addSymbol(TCFNodeSymbol s) {
@@ -1466,6 +1504,7 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
         symbols_node.reset();
         memory_node.reset();
         signal_mask.reset();
+        reset_capabilities.reset();
         if (state.isValid()) {
             TCFContextState s = state.getData();
             if (s == null || s.is_suspended) state.reset();

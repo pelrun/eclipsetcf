@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.2"?>
 <!--
-    Copyright (c) 2010, 2014 Wind River Systems, Inc. and others.
+    Copyright (c) 2010-2019 Wind River Systems, Inc. and others.
     All rights reserved. This program and the accompanying materials
     are made available under the terms of the Eclipse Public License v1.0
     which accompanies this distribution, and is available at
@@ -75,7 +75,7 @@
    <extension point="org.eclipse.core.expressions.propertyTesters">
       <propertyTester
       		namespace="org.eclipse.tcf.launch"
-            properties="isExecutable,areUpdatePoliciesSupported"
+            properties="isExecutable,areUpdatePoliciesSupported,canReset"
             type="org.eclipse.core.runtime.IAdaptable"
             class="org.eclipse.tcf.internal.debug.ui.launch.TCFPropertyTester"
             id="org.eclipse.tcf.launch.PropertyTester">
@@ -388,6 +388,16 @@
                id="org.eclipse.ui.commands.toggleState">
          </state>
       </command>
+      <command
+            categoryId="org.eclipse.tcf.debug.ui.commands"
+            id="org.eclipse.tcf.debug.ui.commands.reset"
+            name="%Reset.label">
+         <commandParameter
+               id="org.eclipse.tcf.debug.ui.commands.reset.param.type"
+               name="type"
+               optional="true">
+         </commandParameter>
+      </command>
    </extension>
 
    <extension point="org.eclipse.ui.handlers">
@@ -461,6 +471,25 @@
 		        <count value="+">
 		        </count>
 		    </with>
+         </activeWhen>
+      </handler>
+      <handler
+            class="org.eclipse.tcf.internal.debug.ui.commands.ResetHandler"
+            commandId="org.eclipse.tcf.debug.ui.commands.reset">
+         <activeWhen>
+            <with
+                  variable="debugContext">
+               <iterate
+                     ifEmpty="false"
+                     operator="or">
+                  <test
+                        forcePluginActivation="true"
+                        property="org.eclipse.tcf.launch.canReset">
+                  </test></iterate>
+               <count
+                     value="1">
+               </count>
+            </with>
          </activeWhen>
       </handler>
    </extension>
@@ -742,6 +771,25 @@
                   checkEnabled="true">
             </visibleWhen>
          </menu>
+      </menuContribution>
+      <menuContribution
+            allPopups="false"
+            locationURI="toolbar:org.eclipse.debug.ui.main.toolbar?after=stepGroup">
+         <command
+               commandId="org.eclipse.tcf.debug.ui.commands.reset"
+               icon="icons/reset.gif"
+               label="%Reset.label"
+               style="pulldown"
+               tooltip="%Reset.tooltip">
+         </command>
+      </menuContribution>
+      <menuContribution
+            allPopups="false"
+            locationURI="menu:org.eclipse.tcf.debug.ui.commands.reset">
+         <dynamic
+               class="org.eclipse.tcf.internal.debug.ui.commands.ResetMenu"
+               id="org.eclipse.tcf.debug.ui.menu.dynamic">
+         </dynamic>
       </menuContribution>
    </extension>
 

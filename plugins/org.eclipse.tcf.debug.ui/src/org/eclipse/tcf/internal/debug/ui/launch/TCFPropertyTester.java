@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2008-2019 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,6 +10,9 @@
  *******************************************************************************/
 package org.eclipse.tcf.internal.debug.ui.launch;
 
+import java.util.Collection;
+import java.util.Map;
+
 import org.eclipse.core.expressions.PropertyTester;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IAdaptable;
@@ -17,12 +20,17 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.debug.ui.IDebugView;
 import org.eclipse.tcf.debug.ui.ITCFLaunchContext;
 import org.eclipse.tcf.internal.debug.ui.Activator;
+import org.eclipse.tcf.internal.debug.ui.model.TCFNode;
+import org.eclipse.tcf.internal.debug.ui.model.TCFNodeExecContext;
+import org.eclipse.tcf.util.TCFDataCache;
+import org.eclipse.tcf.util.TCFTask;
 
 public class TCFPropertyTester extends PropertyTester {
 
     public boolean test(Object receiver, String property, Object[] args, Object expected_value) {
         if (property.equals("areUpdatePoliciesSupported")) return testUpdatePoliciesSupported(receiver);
         if (property.equals("isExecutable")) return testIsExecutable(receiver, expected_value);
+        if (property.equals("canReset")) return testCanReset(receiver);
         return false;
     }
 
@@ -50,5 +58,32 @@ public class TCFPropertyTester extends PropertyTester {
         }
         if (expected_value != null) return expected_value.equals(value);
         return (value instanceof Boolean) && ((Boolean)value).booleanValue();
+    }
+
+    private boolean testCanReset(Object receiver) {
+        boolean canReset = false;
+
+        if (receiver instanceof TCFNode) {
+            TCFNode node = (TCFNode)receiver;
+            while (!canReset && node != null) {
+                if (node instanceof TCFNodeExecContext) {
+                    final TCFNodeExecContext exec = (TCFNodeExecContext)node;
+                    canReset = new TCFTask<Boolean>(exec.getChannel()) {
+                        @Override
+                        public void run() {
+                            TCFDataCache<Collection<Map<String, Object>>> cache = exec.getResetCapabilities();
+                            if (!cache.validate(this)) {
+                                return;
+                            }
+                            Collection<Map<String, Object>> caps = cache.getData();
+                            boolean ok = caps != null && !caps.isEmpty();
+                            done(ok);
+                        }
+                    }.getE();
+                }
+                node = node.getParent();
+            }
+        }
+        return canReset;
     }
 }
