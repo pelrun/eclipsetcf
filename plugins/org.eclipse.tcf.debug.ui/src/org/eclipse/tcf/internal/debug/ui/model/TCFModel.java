@@ -246,6 +246,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
     private boolean hover_while_running;
     private boolean qualified_type_names_enabled;
     private boolean filter_variants_by_discriminant;
+    private boolean suspend_after_reset;
 
     private final Map<String,String> action_results = new HashMap<String,String>();
     private final HashMap<String,TCFAction> active_actions = new HashMap<String,TCFAction>();
@@ -772,6 +773,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
             hover_while_running = prefs_store.getBoolean(TCFPreferences.PREF_HOVER_WHILE_RUNNING);
             qualified_type_names_enabled = prefs_store.getBoolean(TCFPreferences.PREF_SHOW_QUALIFIED_TYPE_NAMES);
             filter_variants_by_discriminant = prefs_store.getBoolean(TCFPreferences.PREF_FILTER_VARIANTS_BY_DISCRIMINANT);
+            suspend_after_reset = prefs_store.getBoolean(TCFPreferences.PREF_SUSPEND_AFTER_RESET);
             final boolean affectsExpressionsOnly = event != null && (
                     TCFPreferences.PREF_SHOW_QUALIFIED_TYPE_NAMES.equals(event.getProperty()) ||
                     TCFPreferences.PREF_FILTER_VARIANTS_BY_DISCRIMINANT.equals(event.getProperty()));
@@ -1128,6 +1130,10 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
 
     public boolean getHoverWhileRunning() {
         return hover_while_running;
+    }
+
+    public boolean getSuspendAfterReset() {
+        return suspend_after_reset;
     }
 
     void onProxyInstalled(TCFModelProxy mp) {

@@ -32,7 +32,8 @@ public class TCFPreferences {
         PREF_FULL_ERROR_REPORTS = "FullErrorReports",
         PREF_HOVER_WHILE_RUNNING = "HoverWhileRunning",
         PREF_SHOW_QUALIFIED_TYPE_NAMES = "ShowQualifiedTypeNames",
-        PREF_FILTER_VARIANTS_BY_DISCRIMINANT = "FilterVariantsByDiscriminant";
+        PREF_FILTER_VARIANTS_BY_DISCRIMINANT = "FilterVariantsByDiscriminant",
+        PREF_SUSPEND_AFTER_RESET = "SuspendAfterReset";
 
     public static IPreferenceStore getPreferenceStore() {
         return Activator.getDefault().getPreferenceStore();

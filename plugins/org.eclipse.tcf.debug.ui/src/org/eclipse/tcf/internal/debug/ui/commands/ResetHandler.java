@@ -8,6 +8,7 @@
 package org.eclipse.tcf.internal.debug.ui.commands;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.core.commands.AbstractHandler;
@@ -18,6 +19,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.tcf.internal.debug.ui.model.TCFNode;
 import org.eclipse.tcf.internal.debug.ui.model.TCFNodeExecContext;
+import org.eclipse.tcf.internal.debug.ui.preferences.TCFPreferences;
 import org.eclipse.tcf.services.IContextReset;
 import org.eclipse.tcf.util.TCFDataCache;
 import org.eclipse.tcf.util.TCFTask;
@@ -59,7 +61,10 @@ public class ResetHandler extends AbstractHandler {
                         TCFNodeExecContext exec = (TCFNodeExecContext)node;
                         String type = event.getParameter("org.eclipse.tcf.debug.ui.commands.reset.param.type");
                         if (type == null) type = getDefaultResetType(exec);
-                        exec.reset(type, null);
+                        boolean suspend = exec.getModel().getSuspendAfterReset();
+                        Map<String, Object> params = new HashMap<String, Object>();
+                        if (suspend) params.put(IContextReset.PARAM_SUSPEND, true);
+                        exec.reset(type, params);
                         break;
                     }
                     node = node.getParent();

@@ -398,6 +398,16 @@
                optional="true">
          </commandParameter>
       </command>
+      <command
+            categoryId="org.eclipse.tcf.debug.ui.commands"
+            defaultHandler="org.eclipse.tcf.internal.debug.ui.commands.ToggleSuspendAfterResetHandler"
+            id="org.eclipse.tcf.debug.ui.commands.toggleSuspendAfterReset"
+            name="Suspend after reset">
+         <state
+               class="org.eclipse.ui.handlers.RegistryToggleState"
+               id="org.eclipse.ui.commands.toggleState">
+         </state>
+      </command>
    </extension>
 
    <extension point="org.eclipse.ui.handlers">
@@ -790,6 +800,15 @@
                class="org.eclipse.tcf.internal.debug.ui.commands.ResetMenu"
                id="org.eclipse.tcf.debug.ui.menu.dynamic">
          </dynamic>
+         <separator
+               name="group.reset"
+               visible="true">
+         </separator>
+         <command
+               commandId="org.eclipse.tcf.debug.ui.commands.toggleSuspendAfterReset"
+               label="Suspend after reset"
+               style="toggle">
+         </command>
       </menuContribution>
    </extension>
 
