@@ -189,6 +189,7 @@ class DisassemblyService(services.Service):
 
         :returns: pending command handle.
         """
+        raise NotImplementedError("Abstract method")
 
 
 class DoneGetCapabilities(object):
