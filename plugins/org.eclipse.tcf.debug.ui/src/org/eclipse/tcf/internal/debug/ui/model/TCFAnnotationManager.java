@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2017 Wind River Systems, Inc. and others.
+ * Copyright (c) 2008-2019 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -20,11 +20,8 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.eclipse.core.resources.IWorkspaceRunnable;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
@@ -807,16 +804,9 @@ public class TCFAnnotationManager {
                         if (update_task != win_info.update_task) return;
                         assert win_info.update_node == node;
                         win_info.update_task = null;
-                        try {
-                            ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable() {
-                                public void run(IProgressMonitor monitor) throws CoreException {
-                                    updateAnnotations(window, node, res);
-                                }
-                            }, null);
-                        }
-                        catch (Exception e) {
-                            Activator.log(e);
-                        }
+                        // Note: don't call ResourcesPlugin.getWorkspace().run() here,
+                        // otherwise display thread is blocked for too long
+                        updateAnnotations(window, node, res);
                     }
                 });
             }
