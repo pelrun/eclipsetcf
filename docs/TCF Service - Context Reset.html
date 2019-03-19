@@ -1,0 +1,161 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+    <title>Target Communication Framework Services - Context Reset</title>
+</head>
+
+<body lang='EN-US'>
+    <h1>Target Communication Framework Services - Context Reset</h1>
+    <ul>
+        <li><a href='#VersionHistory'>Version History</a>
+        <li><a href='#Overview'>Overview</a>
+        <li>
+            <a href='#Cmds'>Commands</a>
+            <ul>
+                <li><a href='#CmdGetCapabilities'>Get Capabilities</a>
+                <li><a href='#CmdReset'>Reset</a>
+            </ul>
+        <li><a href='#API'>API</a>
+    </ul>
+    <h1>Context Reset Service</h1>
+    <h2><a name='VersionHistory'>Version History</a></h2>
+    <table border=1 cellpadding=8>
+        <tr>
+            <th>Version
+            <th>Date
+            <th>Change
+        <tr>
+            <td>1.0
+            <td>2019-03-18
+            <td>Initial
+    </table>
+    <h2><a name='Overview'>Overview</a></h2>
+    <p>
+        ContextReset allows to execute reset commands on the taget.
+        The exact behavior of reset command depends on the taget.
+    </p>
+    <p>
+        Clients can use getCapabilities command to learn about available reset types.
+    </p>
+    <p>
+        The service uses standard format for error reports,
+        see <a href='TCF Services.html#ErrorFormat'>Error Report Format</a>.
+    </p>
+    <h2><a name='Cmds'>Commands</a></h2>
+    <h3><a name='CmdGetCapabilities'>Get Capabilities</a></h3>
+<pre><b><font face="Courier New" size=2 color=#333399>
+C &bull; <i>&lt;token&gt;</i> &bull; ContextReset &bull; getCapabilities &bull; <i>&lt;string: context ID&gt;</i> &bull;
+</font></b></pre>
+    <p>
+        The command reports reset service capabilities to clients so they
+        can adjust to different implementations of the service.
+        When called with a null ("") context ID the global capabilities are returned,
+        otherwise context specific capabilities are returned.
+    </p>
+    <p>Reply:</p>
+<pre><b><font face="Courier New" size=2 color=#333399>
+R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull; <i>&lt;service capabilities&gt;</i> &bull;
+
+<i>&lt;service capabilities&gt;</i>
+    &rArr; <i>&lt;object&gt;</i>
+</font></b></pre>
+    <p>
+        Service capabilities consist of a list of properties. All properties are optional.
+        Tools and targets can define additional properties.
+    </p>
+    <h3><a name='CmdReset'>Reset</a></h3>
+<pre><b><font face="Courier New" size=2 color=#333399>
+C &bull; <i>&lt;token&gt;</i> &bull; ContextReset &bull; reset &bull; <i>&lt;string: context ID&gt;</i> &bull; <i>&lt;string: reset type&gt;</i> &bull; <i>&lt;reset parameters&gt;</i> &bull;
+
+<i>&lt;reset parameters&gt;</i>
+    &rArr; <i>&lt;object&gt;</i>
+</font></b></pre>
+    <p>The command performs reset of a specified context.</p>
+    <p>
+        Reset parametes are optional.
+        Tools and targets can define additional properties.
+    </p>
+    <p>Predefined parameters are:</p>
+    <dl>
+        <ul>
+            <li>
+            <dt><code><b><font face="Courier New" size=2 color=#333399><a name='propSuspend'>"Suspend"</a> : <i>&lt;boolean&gt;</i></font></b></code></dt>
+            <dd>If true, context gets suspended after reset.</dd>
+            </li>
+       </ul>
+    </dl>
+    <p>Reply:</p>
+<pre><b><font face="Courier New" size=2 color=#333399>
+R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull;
+</font></b></pre>
+    <h2><a name='API'>API</a></h2>
+<pre>
+public <font color=#7F0055>interface</font> IContextReset <font color=#7F0055>extends</font> IService {
+
+    <font color=#3F5FBF>/**
+     * Service name.
+     */</font>
+    <font color=#7F0055>static final</font> String NAME = "ContextReset";
+
+    <font color=#3F5FBF>/** The name of the reset type, String. */</font>
+    <font color=#7F0055>static final</font> String CAPABILITY_TYPE = "Type";
+
+    <font color=#3F5FBF>/** Brief description of the reset type, String. */</font>
+    <font color=#7F0055>static final</font> String CAPABILITY_DESCRIPTION = "Description";
+
+    <font color=#3F5FBF>/**
+     * Report context reset service capabilities to clients so they can adjust
+     * to different implementations of the service.
+     *
+     * @param ctx - a context ID.
+     * @param done - command result call back object.
+     * @return - pending command handle.
+     */</font>
+    IToken getCapabilities(String context_id, DoneGetCapabilities done);
+
+    <font color=#3F5FBF>/**
+     * Call back interface for 'getCapabilities' command.
+     */</font>
+    <font color=#7F0055>interface</font> DoneGetCapabilities {
+        <font color=#3F5FBF>/**
+         * Called when 'getCapabilities' command is done.
+         *
+         * @param token - command handle.
+         * @param error - error object or null.
+         * @param capabilities - context reset service capabilities description.
+         */</font>
+        <font color=#7F0055>void</font> doneGetCapabilities(IToken token, Exception error, Collection<Map<String, Object>> capabilities);
+    }
+
+    <font color=#3F5FBF>/**
+     * If true, context gets suspended after reset, Boolean.
+     */</font>
+    <font color=#7F0055>static final</font> String PARAM_SUSPEND = "Suspend";
+
+    <font color=#3F5FBF>/**
+     * Reset a specified context.
+     *
+     * @param context_id - a context ID, usually one returned by Run Control or Memory services.
+     * @param type - name of the reset type.
+     * @param params - parameters to control the context reset.
+     * @param done - command result call back object.
+     * @return - pending command handle.
+     */</font>
+    IToken reset(String context_id, String reset_type, Map<String, Object> params, DoneReset done);
+
+    <font color=#3F5FBF>/**
+     * Call back interface for 'reset' command.
+     */</font>
+    <font color=#7F0055>interface</font> DoneReset {
+        <font color=#3F5FBF>/**
+         * Called when reset is done.
+         *
+         * @param token - command handle.
+         * @param error - error object or null.
+         */</font>
+        <font color=#7F0055>void</font> doneReset(IToken token, Exception error);
+    }
+}
+</pre>
+</body>
+</html>
