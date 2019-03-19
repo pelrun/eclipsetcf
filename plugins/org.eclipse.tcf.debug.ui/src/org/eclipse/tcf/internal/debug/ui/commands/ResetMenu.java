@@ -79,18 +79,14 @@ public class ResetMenu extends CompoundContributionItem implements IWorkbenchCon
                         @Override
                         public void run() {
                             TCFDataCache<Collection<Map<String, Object>>> cache = exec.getResetCapabilities();
-                            if (!cache.validate(this)) {
-                                return;
-                            }
-                            Collection<Map<String, Object>> capabilities = cache.getData();
-                            done(capabilities);
+                            if (!cache.validate(this)) return;
+                            done(cache.getData());
                         }
                     }.getE();
                     items = new IContributionItem[capabilities.size()];
                     int i = 0;
                     for (Map<String, Object> c : capabilities) {
-                        items[i] = makeContributionItem(exec, c);
-                        ++i;
+                        items[i++] = makeContributionItem(exec, c);
                     }
                     break;
                 }

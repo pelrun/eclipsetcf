@@ -19,34 +19,11 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.tcf.internal.debug.ui.model.TCFNode;
 import org.eclipse.tcf.internal.debug.ui.model.TCFNodeExecContext;
-import org.eclipse.tcf.internal.debug.ui.preferences.TCFPreferences;
 import org.eclipse.tcf.services.IContextReset;
 import org.eclipse.tcf.util.TCFDataCache;
 import org.eclipse.tcf.util.TCFTask;
 
 public class ResetHandler extends AbstractHandler {
-
-    private String getDefaultResetType(final TCFNodeExecContext exec) {
-        return new TCFTask<String>(exec.getChannel()) {
-            @Override
-            public void run() {
-                TCFDataCache<Collection<Map<String, Object>>> cache = exec.getResetCapabilities();
-                if (!cache.validate(this)) {
-                    return;
-                }
-                Collection<Map<String, Object>> caps = cache.getData();
-                if (caps == null || caps.isEmpty()) {
-                    done(null);
-                }
-                else {
-                    @SuppressWarnings("unchecked")
-                    Map<String, Object>[] items = caps.toArray(new Map[caps.size()]);
-                    String type = items[0].get(IContextReset.CAPABILITY_TYPE).toString();
-                    done(type);
-                }
-            }
-        }.getE();
-    }
 
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
@@ -55,16 +32,32 @@ public class ResetHandler extends AbstractHandler {
             IStructuredSelection ssel = (IStructuredSelection)selection;
             Object obj = ssel.getFirstElement();
             if (obj instanceof TCFNode) {
+                final String param_type = event.getParameter("org.eclipse.tcf.debug.ui.commands.reset.param.type");
                 TCFNode node = (TCFNode)obj;
                 while (node != null) {
                     if (node instanceof TCFNodeExecContext) {
-                        TCFNodeExecContext exec = (TCFNodeExecContext)node;
-                        String type = event.getParameter("org.eclipse.tcf.debug.ui.commands.reset.param.type");
-                        if (type == null) type = getDefaultResetType(exec);
-                        boolean suspend = exec.getModel().getSuspendAfterReset();
-                        Map<String, Object> params = new HashMap<String, Object>();
-                        if (suspend) params.put(IContextReset.PARAM_SUSPEND, true);
-                        exec.reset(type, params);
+                        final TCFNodeExecContext exec = (TCFNodeExecContext)node;
+                        new TCFTask<Boolean>() {
+                            @Override
+                            public void run() {
+                                String type = param_type;
+                                if (type == null) {
+                                    TCFDataCache<Collection<Map<String, Object>>> cache = exec.getResetCapabilities();
+                                    if (!cache.validate(this)) return;
+                                    Collection<Map<String, Object>> caps = cache.getData();
+                                    if (caps != null && !caps.isEmpty()) {
+                                        @SuppressWarnings("unchecked")
+                                        Map<String, Object>[] items = caps.toArray(new Map[caps.size()]);
+                                        type = items[0].get(IContextReset.CAPABILITY_TYPE).toString();
+                                    }
+                                }
+                                boolean suspend = exec.getModel().getSuspendAfterReset();
+                                Map<String, Object> params = new HashMap<String, Object>();
+                                if (suspend) params.put(IContextReset.PARAM_SUSPEND, true);
+                                exec.reset(type, params);
+                                done(true);
+                            }
+                        }.getE();
                         break;
                     }
                     node = node.getParent();
