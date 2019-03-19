@@ -30,7 +30,7 @@ import org.eclipse.tcf.services.ILocator;
 
 /**
  * ChannelHTTP implements TCF channel over HTTP protocol.
- * @since 1.6
+ * @since 1.7
  */
 public class ChannelHTTP extends AbstractChannel {
 

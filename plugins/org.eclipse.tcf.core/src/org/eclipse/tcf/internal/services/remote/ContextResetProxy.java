@@ -14,7 +14,6 @@ import org.eclipse.tcf.core.Command;
 import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.services.IContextReset;
-import org.eclipse.tcf.services.IDisassembly.IDisassemblyLine;
 
 public class ContextResetProxy implements IContextReset {
 

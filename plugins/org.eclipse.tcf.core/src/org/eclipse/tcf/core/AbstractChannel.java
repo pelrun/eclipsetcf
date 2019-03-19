@@ -65,14 +65,14 @@ public abstract class AbstractChannel implements IChannel {
 
     /**
      * Represents a message sent through a channel between peers
-     * @since 1.6
+     * @since 1.7
      */
     protected static class Message {
         /**
          * Type of message.
          * "C" for Commands.
          * "R" for Command Results.
-         * "N" for Unkown Command Result.
+         * "N" for Unknown Command Result.
          * "P" for Progress Result.
          * "E" for Events.
          */
@@ -1054,7 +1054,7 @@ public abstract class AbstractChannel implements IChannel {
     /**
      * Handles the message received from the channel
      * @param msg
-     * @since 1.6
+     * @since 1.7
      */
     @SuppressWarnings("unchecked")
     protected void handleInput(Message msg) {

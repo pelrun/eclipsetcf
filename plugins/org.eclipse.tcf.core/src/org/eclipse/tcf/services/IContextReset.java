@@ -17,8 +17,8 @@ import org.eclipse.tcf.protocol.IToken;
  * TCF Context Reset service interface.
  *
  * @noimplement This interface is not intended to be implemented by clients.
+ * @since 1.7
  */
-
 public interface IContextReset extends IService {
 
     /**

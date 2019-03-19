@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: %pluginName
 Bundle-SymbolicName: org.eclipse.tcf.te.runtime.persistence;singleton:=true
-Bundle-Version: 1.5.0.qualifier
+Bundle-Version: 1.7.0.qualifier
 Bundle-Activator: org.eclipse.tcf.te.runtime.persistence.activator.CoreBundleActivator
 Bundle-Vendor: %providerName
 Require-Bundle: com.google.gson;bundle-version="2.2.4",
