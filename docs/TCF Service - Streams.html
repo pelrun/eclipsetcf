@@ -115,8 +115,8 @@ C &bull; <i>&lt;token&gt;</i> &bull; Streams &bull; read &bull; <i>&lt;string: s
 </font></b></pre>
 
 <ul>
-    <li><dt><code><b>stream ID</b></code> <dd>ID of stream that will be read.
-    <li><dt><code><b>size</b></code> <dd>Maximum number of bytes to read.
+    <li><code><b>stream ID</b></code> - ID of stream that will be read.
+    <li><code><b>size</b></code> - Maximum number of bytes to read.
 </ul>
 
 <p>The command reads data from a stream. If stream buffer is empty, the command will wait until data is available.
@@ -135,12 +135,12 @@ R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;string: data&gt;</i> &bull; <i>&lt;e
 </font></b></pre>
 
 <ul>
-    <li><dt><code><b>data</b></code> <dd>Data bytes that were read from the stream. By default, data is BASE64 encoded.
+    <li><code><b>data</b></code> - Data bytes that were read from the stream. By default, data is BASE64 encoded.
     Peers can send unencoded binary data if both implement ZeroCopy service.
-    <li><dt><code><b>lost size</b></code> <dd>Number of bytes that were lost because of buffer overflow.
+    <li><code><b>lost size</b></code> - Number of bytes that were lost because of buffer overflow.
          -1 means unknown number of bytes were lost. if both 'lost_size' and 'data.length' are non-zero then lost bytes are considered
          located right before read bytes.
-    <li><dt><code><b>EOS</b></code> <dd>true if end of stream was reached.
+    <li><code><b>EOS</b></code> - true if end of stream was reached.
 </ul>
 
 <h3><a name='CmdWrite'>Write</a></h3>
@@ -150,9 +150,9 @@ C &bull; <i>&lt;token&gt;</i> &bull; Streams &bull; write &bull; <i>&lt;string: 
 </font></b></pre>
 
 <ul>
-    <li><dt><code><b>stream ID</b></code> <dd>ID of stream that will receive the data.
-    <li><dt><code><b>size</b></code> <dd>Number of bytes to write. Length of unencoded <code><b>data</b></code> must match the size.
-    <li><dt><code><b>data</b></code> <dd>Data bytes that will be written to the stream. By default, data is BASE64 encoded.
+    <li><code><b>stream ID</b></code> - ID of stream that will receive the data.
+    <li><code><b>size</b></code> - Number of bytes to write. Length of unencoded <code><b>data</b></code> must match the size.
+    <li><code><b>data</b></code> - Data bytes that will be written to the stream. By default, data is BASE64 encoded.
     Peers can send unencoded binary data if both implement ZeroCopy service.
 </ul>
 

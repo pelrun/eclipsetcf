@@ -1,0 +1,531 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+    <title>Target Communication Framework Services - Diagnostics</title>
+</head>
+
+<body lang='EN-US'>
+
+<h1>Target Communication Framework Services - Diagnostics</h1>
+
+<ul>
+    <li><a href='#VersionHistory'>Version History</a>
+    <li><a href='#Overview'>Overview</a>
+    <li><a href='#Cmds'>Commands</a>
+    <ul>
+        <li><a href='#CmdEcho'>Echo</a>
+        <li><a href='#CmdEchoFP'>Echo FP</a>
+        <li><a href='#CmdEchoINT'>Echo INT</a>
+        <li><a href='#CmdEchoERR'>Echo ERR</a>
+        <li><a href='#CmdGetTestList'>Get Test List</a>
+        <li><a href='#CmdRunTest'>Run Test</a>
+        <li><a href='#CmdCancelTest'>Cancel Test</a>
+        <li><a href='#CmdGetSymbol'>Get Symbol</a>
+        <li><a href='#CmdCreateTestStreams'>Create Test Streams</a>
+        <li><a href='#CmdDisposeTestStream'>Dispose Test Stream</a>
+    </ul>
+    <li><a href='#API'>API</a>
+</ul>
+
+<h1>Diagnostics Service</h1>
+
+<h2><a name='VersionHistory'>Version History</a></h2>
+
+<table border=1 cellpadding=8>
+    <tr>
+        <th>Version
+        <th>Date
+        <th>Change
+    <tr>
+        <td>1.0
+        <td>2011-11-11
+        <td>Initial
+</table>
+
+<h2><a name='Overview'>Overview</a></h2>
+
+<p>The Diagnostics service is used for testing of the peer and
+ communication channel functionality and reliability.</p>
+
+<p>The service uses standard format for error reports,
+see <a href='TCF Services.html#ErrorFormat'>Error Report Format</a>.</p>
+
+<h2><a name='Cmds'>Commands</a></h2>
+
+  <h3><a name='CmdEcho'>Echo</a></h3>
+<pre><b><font face="Courier New" size=2 color=#333399>
+C &bull; <i>&lt;token&gt;</i> &bull; Diagnostics &bull; echo &bull; <i>&lt;string: test pattern&gt;</i> &bull;
+</font></b></pre>
+  <p>
+    The command is used to test communication channel ability to transmit arbitrary
+    strings in both directions.
+  </p>
+  <p>Reply:</p>
+<pre><b><font face="Courier New" size=2 color=#333399>
+R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull; <i>&lt;string: test pattern&gt;</i> &bull;
+</font></b></pre>
+  <p>
+    Reply contains same string as the command argument.
+  </p>
+
+  <h3><a name='CmdEchoFP'>Echo FP</a></h3>
+<pre><b><font face="Courier New" size=2 color=#333399>
+C &bull; <i>&lt;token&gt;</i> &bull; Diagnostics &bull; echoFP &bull; <i>&lt;float: test pattern&gt;</i> &bull;
+</font></b></pre>
+  <p>
+    The command is used to test communication channel ability to transmit arbitrary
+    floating point numbers in both directions.
+  </p>
+  <p>Reply:</p>
+<pre><b><font face="Courier New" size=2 color=#333399>
+R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull; <i>&lt;float: test pattern&gt;</i> &bull;
+</font></b></pre>
+  <p>
+    Reply contains same number as the command argument.
+  </p>
+
+  <h3><a name='CmdEchoINT'>Echo INT</a></h3>
+<pre><b><font face="Courier New" size=2 color=#333399>
+C &bull; <i>&lt;token&gt;</i> &bull; Diagnostics &bull; echoINT &bull; <i>&lt;integer: type&gt;</i> &bull; <i>&lt;integer: test pattern&gt;</i> &bull;
+</font></b></pre>
+  <p>
+    The command is used to test communication channel ability to transmit arbitrary
+    integer numbers in both directions. Type can be:
+  </p>
+  <ul>
+    <li><code><b><font face="Courier New" size=2 color=#333399>0</font></b></code>
+    - signed integer number, up to 32 bits
+    <li><code><b><font face="Courier New" size=2 color=#333399>1</font></b></code>
+    - unsigned integer number, up to 32 bits
+    <li><code><b><font face="Courier New" size=2 color=#333399>2</font></b></code>
+    - long signed number, up to 64 bits
+    <li><code><b><font face="Courier New" size=2 color=#333399>3</font></b></code>
+    - long unsigned, up to 64 bits
+  </ul>
+  <p>Reply:</p>
+<pre><b><font face="Courier New" size=2 color=#333399>
+R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull; <i>&lt;integer: test pattern&gt;</i> &bull;
+</font></b></pre>
+  <p>
+    Reply contains same number as the command argument.
+  </p>
+
+  <h3><a name='CmdEchoERR'>Echo ERR</a></h3>
+<pre><b><font face="Courier New" size=2 color=#333399>
+C &bull; <i>&lt;token&gt;</i> &bull; Diagnostics &bull; echoERR &bull; <i>&lt;error report: test pattern&gt;</i> &bull;
+</font></b></pre>
+  <p>
+    The command is used to test remote agent ability to receive and transmit TCF error reports.
+  </p>
+  <p>Reply:</p>
+<pre><b><font face="Courier New" size=2 color=#333399>
+R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull; <i>&lt;error report: test pattern&gt;</i> &bull; <i>&lt;string: test pattern&gt;</i> &bull;
+</font></b></pre>
+  <p>
+    Reply contains same error report as the command argument, and the same report converted to a human readable string.
+  </p>
+
+  <h3><a name='CmdGetTestList'>Get Test List</a></h3>
+<pre><b><font face="Courier New" size=2 color=#333399>
+C &bull; <i>&lt;token&gt;</i> &bull; Diagnostics &bull; getTestList &bull;
+</font></b></pre>
+  <p>
+    Get list of test names that are implemented by the service.
+    Clients can request remote peer to run a test from the list.
+    When started, a test performs a predefined set actions.
+    Nature of test actions is uniquely identified by test name.
+    Exact description of test actions is a contract between client and remote peer,
+    and it is not part of Diagnostics service specifications.
+    Clients should not attempt to run a test if they don't recognize the test name.
+  </p>
+  <p>Reply:</p>
+<pre><b><font face="Courier New" size=2 color=#333399>
+R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull; <i>&lt;string array: test names&gt;</i> &bull;
+</font></b></pre>
+  <p>
+    Reply contains names of tests that are supported by the peer.
+  </p>
+
+  <h3><a name='CmdRunTest'>Run Test</a></h3>
+<pre><b><font face="Courier New" size=2 color=#333399>
+C &bull; <i>&lt;token&gt;</i> &bull; Diagnostics &bull; runTest &bull; <i>&lt;string: test name&gt;</i> &bull;
+</font></b></pre>
+  <p>
+     Run a test. When started, a test performs a predefined set actions.
+     Nature of test actions is uniquely identified by test name.
+     Running test usually has associated execution context ID.
+     Depending on the test, the ID can be used with services RunControl and/or Processes services to control
+     test execution, and to obtain test results.
+  </p>
+  <p>Reply:</p>
+<pre><b><font face="Courier New" size=2 color=#333399>
+R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull; <i>&lt;string: test context ID&gt;</i> &bull;
+</font></b></pre>
+  <p>
+    Reply contains test execution contest ID.
+  </p>
+
+  <h3><a name='CmdCancelTest'>Cancel Test</a></h3>
+<pre><b><font face="Courier New" size=2 color=#333399>
+C &bull; <i>&lt;token&gt;</i> &bull; Diagnostics &bull; cancelTest &bull; <i>&lt;string: test context ID&gt;</i> &bull;
+</font></b></pre>
+  <p>
+     Cancel execution of a test.
+  </p>
+  <p>Reply:</p>
+<pre><b><font face="Courier New" size=2 color=#333399>
+R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull;
+</font></b></pre>
+
+  <h3><a name='CmdGetSymbol'>Get Symbol</a></h3>
+<pre><b><font face="Courier New" size=2 color=#333399>
+C &bull; <i>&lt;token&gt;</i> &bull; Diagnostics &bull; getSymbol &bull; <i>&lt;string: symbol name&gt;</i> &bull;
+</font></b></pre>
+  <p>
+     Get information about a symbol in a test execution context.
+  </p>
+  <p>Reply:</p>
+<pre><b><font face="Courier New" size=2 color=#333399>
+R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull; <i>&lt;object: symbol properties&gt;</i> &bull;
+</font></b></pre>
+  <p>
+    Reply contains properties of the symbol.
+  </p>
+  <p>Predefined properties are:</p>
+  <ul>
+      <li><code><b><font face="Courier New" size=2 color=#333399>"Section" : <i>&lt;string&gt;</i></font></b></code>
+      - The name of the section that own the symbol.
+      <li><code><b><font face="Courier New" size=2 color=#333399>"Value" : <i>&lt;integer&gt;</i></font></b></code>
+      - The value of the symbol.
+      <li><code><b><font face="Courier New" size=2 color=#333399>"Abs" : <i>&lt;boolean&gt;</i></font></b></code>
+      - True if the symbol reprsent an absolute address.
+      <li><code><b><font face="Courier New" size=2 color=#333399>"Storage" : <i>&lt;string&gt;</i></font></b></code>
+      - The type of storage of the symbol. Possible values are:
+      <ul>
+        <li><code><b><font face="Courier New" size=2 color=#333399>COMMON</font></b></code>
+        <li><code><b><font face="Courier New" size=2 color=#333399>GLOBAL</font></b></code>
+        <li><code><b><font face="Courier New" size=2 color=#333399>LOCAL</font></b></code>
+        <li><code><b><font face="Courier New" size=2 color=#333399>UNDEF</font></b></code>
+      </ul>
+  </ul>
+
+  <h3><a name='CmdCreateTestStreams'>Create Test Streams</a></h3>
+<pre><b><font face="Courier New" size=2 color=#333399>
+C &bull; <i>&lt;token&gt;</i> &bull; Diagnostics &bull; createTestStreams &bull; <i>&lt;integer: input buffer size&gt;</i> &bull; <i>&lt;integer: output buffer size&gt;</i> &bull;
+</font></b></pre>
+  <p>
+     Create a pair of virtual streams, see <a href='TCF Service - Streams.html'>Streams</a> service.
+     Remote ends of the streams are connected together, so any data sent into 'inp' stream
+     will become available for reading from 'out' stream.
+     The command is used for testing virtual streams.
+  </p>
+  <p>Reply:</p>
+<pre><b><font face="Courier New" size=2 color=#333399>
+R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull; <i>&lt;string: input ID&gt;</i> &bull;  <i>&lt;string: output ID&gt;</i> &bull;
+</font></b></pre>
+  <p>
+    Reply contains IDs of created streams pair.
+  </p>
+
+  <h3><a name='CmdDisposeTestStream'>Dispose Test Stream</a></h3>
+<pre><b><font face="Courier New" size=2 color=#333399>
+C &bull; <i>&lt;token&gt;</i> &bull; Diagnostics &bull; disposeTestStream &bull; <i>&lt;string: stream ID&gt;</i> &bull;
+</font></b></pre>
+  <p>
+     Dispose a virtual stream that was created by 'createTestStreams' command.
+  </p>
+  <p>Reply:</p>
+<pre><b><font face="Courier New" size=2 color=#333399>
+R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull;
+</font></b></pre>
+
+<h2><a name='API'>API</a></h2>
+
+<pre>
+<font color=#3F5FBF>/**
+ * This is optional service that can be implemented by a peer.
+ * If implemented, the service can be used for testing of the peer and
+ * communication channel functionality and reliability.
+ *
+ * @noimplement This interface is not intended to be implemented by clients.
+ */</font>
+
+<font color=#7F0055>public interface</font> IDiagnostics <font color=#7F0055>extends</font> IService {
+
+    <font color=#7F0055>static final</font> String NAME = "Diagnostics";
+
+    <font color=#3F5FBF>/**
+     * 'echo' command result returns same string that was given as command argument.
+     * The command is used to test communication channel ability to transmit arbitrary strings in
+     * both directions.
+     * @param s - any string.
+     * @param done - command result call back object.
+     * @return - pending command handle.
+     */</font>
+    IToken echo(String s, DoneEcho done);
+
+    <font color=#3F5FBF>/**
+     * Call back interface for 'echo' command.
+     */</font>
+    <font color=#7F0055>interface</font> DoneEcho {
+        <font color=#3F5FBF>/**
+         * Called when 'echo' command is done.
+         * @param token - command handle.
+         * @param error - error object or null.
+         * @param s - same string as the command argument.
+         */</font>
+        <font color=#7F0055>void</font> doneEcho(IToken token, Throwable error, String s);
+    }
+
+    <font color=#3F5FBF>/**
+     * 'echoFP' command result returns same floating point number that was given as command argument.
+     * The command is used to test communication channel ability to transmit arbitrary floating point numbers in
+     * both directions.
+     * @param n - any floating point number.
+     * @param done - command result call back object.
+     * @return - pending command handle.
+     */</font>
+    IToken echoFP(BigDecimal n, DoneEchoFP done);
+
+    <font color=#3F5FBF>/**
+     * Call back interface for 'echoFP' command.
+     */</font>
+    <font color=#7F0055>interface</font> DoneEchoFP {
+        <font color=#3F5FBF>/**
+         * Called when 'echoFP' command is done.
+         * @param token - command handle.
+         * @param error - error object or null.
+         * @param n - same number as the command argument.
+         */</font>
+        <font color=#7F0055>void</font> doneEchoFP(IToken token, Throwable error, BigDecimal n);
+    }
+
+    <font color=#3F5FBF>/**
+     * 'echoINT' command result returns same integer number that was given as command argument.
+     * The command is used to test communication channel ability to transmit arbitrary integer numbers in
+     * both directions.
+     * @param t - number type:
+     *   0 - signed, up to 32 bits
+     *   1 - unsigned, up to 32 bits
+     *   2 - signed, up to 64 bits
+     *   3 - unsigned, up to 64 bits
+     * @param n - the number.
+     * @param done - command result call back object.
+     * @return - pending command handle.
+     * @since 1.4
+     */</font>
+    IToken echoINT(<font color=#7F0055>int</font> t, BigInteger n, DoneEchoINT done);
+
+    <font color=#3F5FBF>/**
+     * Call back interface for 'echoINT' command.
+     * @since 1.4
+     */</font>
+    <font color=#7F0055>interface</font> DoneEchoINT {
+        <font color=#3F5FBF>/**
+         * Called when 'echoINT' command is done.
+         * @param token - command handle.
+         * @param error - error object or null.
+         * @param n - same number as the command argument.
+         */</font>
+        <font color=#7F0055>void</font> doneEchoINT(IToken token, Throwable error, BigInteger n);
+    }
+
+    <font color=#3F5FBF>/**
+     * 'echoERR' command result returns same error report that was given as command argument.
+     * The command is used to test remote agent ability to receive and transmit TCF error reports.
+     * @param error - an error object.
+     * @param done - command result call back object.
+     * @return - pending command handle.
+     */</font>
+    IToken echoERR(Throwable error, DoneEchoERR done);
+
+    <font color=#3F5FBF>/**
+     * Call back interface for 'echoERR' command.
+     */</font>
+    <font color=#7F0055>interface</font> DoneEchoERR {
+        <font color=#3F5FBF>/**
+         * Called when 'echoERR' command is done.
+         * @param token - command handle.
+         * @param error - communication error report or null.
+         * @param error_obj - error object, should be equal to the command argument.
+         * @param error_msg - error object converted to a human readable string.
+         */</font>
+        <font color=#7F0055>void</font> doneEchoERR(IToken token, Throwable error, Throwable error_obj, String error_msg);
+    }
+
+    <font color=#3F5FBF>/**
+     * Get list of test names that are implemented by the service.
+     * Clients can request remote peer to run a test from the list.
+     * When started, a test performs a predefined set actions.
+     * Nature of test actions is uniquely identified by test name.
+     * Exact description of test actions is a contract between client and remote peer,
+     * and it is not part of Diagnostics service specifications.
+     * Clients should not attempt to run a test if they don't recognize the test name.
+     * @param done - command result call back object.
+     * @return - pending command handle.
+     */</font>
+    IToken getTestList(DoneGetTestList done);
+
+    <font color=#3F5FBF>/**
+     * Call back interface for 'getTestList' command.
+     */</font>
+    <font color=#7F0055>interface</font> DoneGetTestList {
+        <font color=#3F5FBF>/**
+         * Called when 'getTestList' command is done.
+         * @param token - command handle.
+         * @param error - error object or null.
+         * @param list - names of tests that are supported by the peer.
+         */</font>
+        <font color=#7F0055>void</font> doneGetTestList(IToken token, Throwable error, String[] list);
+    }
+
+    <font color=#3F5FBF>/**
+     * Run a test. When started, a test performs a predefined set actions.
+     * Nature of test actions is uniquely identified by test name.
+     * Running test usually has associated execution context ID.
+     * Depending on the test, the ID can be used with services RunControl and/or Processes services to control
+     * test execution, and to obtain test results.
+     * @param name - test name
+     * @param done - command result call back object.
+     * @return - pending command handle.
+     */</font>
+    IToken runTest(String name, DoneRunTest done);
+
+    <font color=#3F5FBF>/**
+     * Call back interface for 'runTest' command.
+     */</font>
+    <font color=#7F0055>interface</font> DoneRunTest {
+        <font color=#3F5FBF>/**
+         * Called when 'runTest' command is done.
+         * @param token - command handle.
+         * @param error - error object or null.
+         * @param context_id - test execution contest ID.
+         */</font>
+        <font color=#7F0055>void</font> doneRunTest(IToken token, Throwable error, String context_id);
+    }
+
+    <font color=#3F5FBF>/**
+     * Cancel execution of a test.
+     * @param context_id - test execution context ID.
+     * @param done - command result call back object.
+     * @return - pending command handle.
+     */</font>
+    IToken cancelTest(String context_id, DoneCancelTest done);
+
+    <font color=#3F5FBF>/**
+     * Call back interface for 'cancelTest' command.
+     */</font>
+    <font color=#7F0055>interface</font> DoneCancelTest {
+        <font color=#3F5FBF>/**
+         * Called when 'cancelTest' command is done.
+         * @param token - command handle.
+         * @param error - error object or null.
+         */</font>
+        <font color=#7F0055>void</font> doneCancelTest(IToken token, Throwable error);
+    }
+
+    <font color=#3F5FBF>/**
+     * Get information about a symbol in test execution context.
+     * @param context_id - test execution context ID, returned by the runTest command.
+     * @param symbol_name - name of the symbol
+     * @param done - command result call back object.
+     * @return - pending command handle.
+     */</font>
+    IToken getSymbol(String context_id, String symbol_name, DoneGetSymbol done);
+
+    <font color=#3F5FBF>/**
+     * Call back interface for 'getSymbol' command.
+     */</font>
+    <font color=#7F0055>interface</font> DoneGetSymbol {
+        <font color=#3F5FBF>/**
+         * Called when 'getSymbol' command is done.
+         * @param token - command handle.
+         * @param error - error object or null.
+         * @param symbol - symbol properties
+         */</font>
+        <font color=#7F0055>void</font> doneGetSymbol(IToken token, Throwable error, ISymbol symbol);
+    }
+
+    <font color=#3F5FBF>/**
+     * Interface to access result value of 'getSymbol' command.
+     */</font>
+    <font color=#7F0055>interface</font> ISymbol {
+        String getSectionName();
+        Number getValue();
+        <font color=#7F0055>boolean</font> isUndef();
+        <font color=#7F0055>boolean</font> isCommon();
+        <font color=#7F0055>boolean</font> isGlobal();
+        <font color=#7F0055>boolean</font> isLocal();
+        <font color=#7F0055>boolean</font> isAbs();
+    }
+
+    <font color=#3F5FBF>/**
+     * Create a pair of virtual streams, @see IStreams service.
+     * Remote ends of the streams are connected together, so any data sent into 'inp' stream
+     * will become available for reading from 'out' stream.
+     * The command is used for testing virtual streams.
+     * @param inp_buf_size - buffer size in bytes of the input stream.
+     * @param out_buf_size - buffer size in bytes of the output stream.
+     * @param done - command result call back object.
+     * @return - pending command handle.
+     */</font>
+    IToken createTestStreams(<font color=#7F0055>int</font> inp_buf_size, <font color=#7F0055>int</font> out_buf_size, DoneCreateTestStreams done);
+
+    <font color=#3F5FBF>/**
+     * Call back interface for 'createTestStreams' command.
+     */</font>
+    <font color=#7F0055>interface</font> DoneCreateTestStreams {
+
+        <font color=#3F5FBF>/**
+         * Called when 'createTestStreams' command is done.
+         * @param token - command handle.
+         * @param error - error object or null.
+         * @param inp_id - the input stream ID.
+         * @param out_id - the output stream ID.
+         */</font>
+        <font color=#7F0055>void</font> doneCreateTestStreams(IToken token, Throwable error, String inp_id, String out_id);
+    }
+
+    <font color=#3F5FBF>/**
+     * Dispose a virtual stream that was created by 'createTestStreams' command.
+     * @param id - the stream ID.
+     * @param done - command result call back object.
+     * @return - pending command handle.
+     */</font>
+    IToken disposeTestStream(String id, DoneDisposeTestStream done);
+
+    <font color=#3F5FBF>/**
+     * Call back interface for 'disposeTestStream' command.
+     */</font>
+    <font color=#7F0055>interface</font> DoneDisposeTestStream {
+
+        <font color=#3F5FBF>/**
+         * Called when 'createTestStreams' command is done.
+         * @param token - command handle.
+         * @param error - error object or null.
+         */</font>
+        <font color=#7F0055>void</font> doneDisposeTestStream(IToken token, Throwable error);
+    }
+
+    <font color=#3F5FBF>/**
+     * Send a command that is not implemented by peer.
+     * Used to test handling of 'N' messages by communication channel.
+     * @param done - command result call back object.
+     * @return - pending command handle.
+     */</font>
+    IToken not_implemented_command(DoneNotImplementedCommand done);
+
+    <font color=#7F0055>interface</font> DoneNotImplementedCommand {
+
+        <font color=#3F5FBF>/**
+         * Called when 'not_implemented_command' command is done.
+         * @param token - command handle.
+         * @param error - error object.
+         */</font>
+        <font color=#7F0055>void</font> doneNotImplementedCommand(IToken token, Throwable error);
+    }
+}
+</pre>
+
+</body>
+</html>

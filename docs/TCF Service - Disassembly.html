@@ -55,25 +55,16 @@ C &bull; <i>&lt;token&gt;</i> &bull; Disassembly &bull; disassemble &bull; <i>&l
 <p>Where context-id is the memory context in which to process the command.</p>
 
 <p>Predefined properties are:</p>
-<dl>
 <ul>
-    <li><dt><code><b><font face="Courier New" size=2 color=#333399><a name='propISA'>"ISA"</a> : <i>&lt;string&gt;</i></font></b></code>
-    <dd>The name of the instruction set architecture.
-    </li>
-
-    <li><dt><code><b><font face="Courier New" size=2 color=#333399><a name='propSimplified'>"Simplified"</a> : <i>&lt;boolean&gt;</i></font></b></code>
-    <dd>If true, simplified mnemonics are specified.
-    </li>
-
-    <li><dt><code><b><font face="Courier New" size=2 color=#333399><a name='propPseudoInst'>"PseudoInstructions"</a> : <i>&lt;boolean&gt;</i></font></b></code>
-    <dd>If true, pseudo-instructions are requested.
-    </li>
-
-    <li><dt><code><b><font face="Courier New" size=2 color=#333399><a name='propOpcodeValue'>"OpcodeValue"</a> : <i>&lt;boolean&gt;</i></font></b></code>
-    <dd>If true, the instruction code byte values are returned.
-    </li>
+    <li><code><b><font face="Courier New" size=2 color=#333399><a name='propISA'>"ISA"</a> : <i>&lt;string&gt;</i></font></b></code>
+    - The name of the instruction set architecture.
+    <li><code><b><font face="Courier New" size=2 color=#333399><a name='propSimplified'>"Simplified"</a> : <i>&lt;boolean&gt;</i></font></b></code>
+    - If true, simplified mnemonics are specified.
+    <li><code><b><font face="Courier New" size=2 color=#333399><a name='propPseudoInst'>"PseudoInstructions"</a> : <i>&lt;boolean&gt;</i></font></b></code>
+    - If true, pseudo-instructions are requested.
+    <li><code><b><font face="Courier New" size=2 color=#333399><a name='propOpcodeValue'>"OpcodeValue"</a> : <i>&lt;boolean&gt;</i></font></b></code>
+    - If true, the instruction code byte values are returned.
 </ul>
-</dl>
 
 <p>Reply:</p>
 
@@ -100,13 +91,13 @@ R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull; <i>&lt;a
     <li><code><b><font face="Courier New" size=2 color=#333399>"ISA" : <i>&lt;string&gt;</i></font></b></code>
     - Instruction Set Architecture of the disassembly line
     <li><code><b><font face="Courier New" size=2 color=#333399>"Address" : <i>&lt;int&gt;</i></font></b></code>
-        - Address of the instruction
+    - Address of the instruction
     <li><code><b><font face="Courier New" size=2 color=#333399>"Size" : <i>&lt;int&gt;</i></font></b></code>
-        - Size of the instruction in bytes
+    - Size of the instruction in bytes
     <li><code><b><font face="Courier New" size=2 color=#333399>"Instruction" : <i>&lt;array&gt;</i></font></b></code>
-        - Array of the intruction fields
+    - Array of the intruction fields
     <li><code><b><font face="Courier New" size=2 color=#333399>"OpcodeValue" : <i>&lt;string&gt;</i></font></b></code>
-        - Encoded byte array of the instruction binary representation
+    - Encoded byte array of the instruction binary representation
 </ul>
 
 <pre><b><font face="Courier New" size=2 color=#333399>

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2016 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007-2019 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -180,7 +180,7 @@ public interface IDiagnostics extends IService {
 
     /**
      * Cancel execution of a test.
-     * @param context_id - text execution context ID.
+     * @param context_id - test execution context ID.
      * @param done - command result call back object.
      * @return - pending command handle.
      */
@@ -199,11 +199,11 @@ public interface IDiagnostics extends IService {
     }
 
     /**
-     * Get information about a symbol in text execution context.
-     * @param context_id
-     * @param symbol_name
-     * @param done
-     * @return
+     * Get information about a symbol in a test execution context.
+     * @param context_id - test execution context ID, returned by the runTest command.
+     * @param symbol_name - name of the symbol
+     * @param done - command result call back object.
+     * @return - pending command handle.
      */
     IToken getSymbol(String context_id, String symbol_name, DoneGetSymbol done);
 
@@ -215,7 +215,7 @@ public interface IDiagnostics extends IService {
          * Called when 'getSymbol' command is done.
          * @param token - command handle.
          * @param error - error object or null.
-         * @param symbol
+         * @param symbol - symbol properties
          */
         void doneGetSymbol(IToken token, Throwable error, ISymbol symbol);
     }
@@ -235,8 +235,8 @@ public interface IDiagnostics extends IService {
 
     /**
      * Create a pair of virtual streams, @see IStreams service.
-     * Remote ends of the streams are connected, so any data sent into 'inp' stream
-     * will become for available for reading from 'out' stream.
+     * Remote ends of the streams are connected together, so any data sent into 'inp' stream
+     * will become available for reading from 'out' stream.
      * The command is used for testing virtual streams.
      * @param inp_buf_size - buffer size in bytes of the input stream.
      * @param out_buf_size - buffer size in bytes of the output stream.
