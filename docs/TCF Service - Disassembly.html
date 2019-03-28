@@ -204,14 +204,14 @@ Tools and targets can define additional properties. Predefined properties are:</
     <font color=#3F5FBF>/**
      * Call back interface for 'getCapabilities' command.
      */</font>
-    <font color=#7F0055>Interface</font> DoneGetCapabilities {
+    <font color=#7F0055>interface</font> DoneGetCapabilities {
         <font color=#3F5FBF>/**
          * Called when capabilities retrieval is done.
          * @param token - command handle.
          * @param error - error object or null.
          * @param capabilities - array of capabilities, see CAPABILITY_* for contents of each array element.
          */</font>
-        <font color=#7F0055>void</font> doneGetCapabilities(IToken token, Throwable error, Map<String,Object>[] capabilities);
+        <font color=#7F0055>void</font> doneGetCapabilities(IToken token, Throwable error, Map&lt;String,Object&gt;[] capabilities);
     }
 
     <font color=#3F5FBF>/**
@@ -224,7 +224,7 @@ Tools and targets can define additional properties. Predefined properties are:</
      * @return - pending command handle.
      */</font>
 
-    IToken disassemble(String context_id, Number addr, int size, Map<String,Object> params, DoneDisassemble done);
+    IToken disassemble(String context_id, Number addr, int size, Map&lt;String,Object&gt; params, DoneDisassemble done);
 
     <font color=#3F5FBF>/**
      * Call back interface for 'disassemble' command.

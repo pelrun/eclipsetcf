@@ -649,7 +649,7 @@ E &bull; Registers &bull; registerChanged &bull; <i>&lt;string: context ID&gt;</
          * Get a list of property names which can be searched for starting on this context
          * <font color=#7F9FBF>@return</font> collection of property names.
          */</font>
-        Collection<String> canSearch();
+        Collection&lt;String&gt; canSearch();
 
         <font color=#3F5FBF>/**
          * Get the role the register plays in a program execution.
@@ -661,7 +661,7 @@ E &bull; Registers &bull; registerChanged &bull; <i>&lt;string: context ID&gt;</
          * Get complete map of context properties.
          * <font color=#7F9FBF>@return</font> map of all available context properties.
          */</font>
-        Map<String,Object> getProperties();
+        Map&lt;String,Object&gt; getProperties();
 
         <font color=#3F5FBF>/**
          * Read value of the context.
@@ -676,9 +676,9 @@ E &bull; Registers &bull; registerChanged &bull; <i>&lt;string: context ID&gt;</
          * <font color=#7F9FBF>@param</font> done - call back object.
          * <font color=#7F9FBF>@return</font> - pending command handle.
          */</font>
-        IToken set(byte[] value, DoneSet done);
+        IToken set(<font color=#7F0055>byte</font>[] value, DoneSet done);
 
-       <font color=#3F5FBF>/**
+        <font color=#3F5FBF>/**
          * Search register contexts that passes given search filter.
          * Search is only supported for properties listed in the "CanSearch" property.
          * <font color=#7F9FBF>@param</font> filter - properties bag that defines search filter.
@@ -697,7 +697,7 @@ E &bull; Registers &bull; registerChanged &bull; <i>&lt;string: context ID&gt;</
          * Get value associated with the name.
          * <font color=#7F9FBF>@return</font> the value as an array of bytes.
          */</font>
-        byte[] getValue();
+        <font color=#7F0055>byte</font>[] getValue();
 
         <font color=#3F5FBF>/**
          * Get name (mnemonic) of the value.
@@ -727,7 +727,7 @@ E &bull; Registers &bull; registerChanged &bull; <i>&lt;string: context ID&gt;</
      * <font color=#7F9FBF>@param</font> done - call back object.
      * <font color=#7F9FBF>@return</font> - pending command handle.
      */</font>
-    IToken setm(Location[] locs, byte[] value, DoneSet done);
+    IToken setm(Location[] locs, <font color=#7F0055>byte</font>[] value, DoneSet done);
 
     <font color=#3F5FBF>/**
      * Class Location represents value location in register context
@@ -759,7 +759,7 @@ E &bull; Registers &bull; registerChanged &bull; <i>&lt;string: context ID&gt;</
          * <font color=#7F9FBF>@param</font> error - error description if operation failed, null if succeeded.
          * <font color=#7F9FBF>@param</font> value - context value as array of bytes.
          */</font>
-        <font color=#7F0055>void</font> doneGet(IToken token, Exception error, byte[] value);
+        <font color=#7F0055>void</font> doneGet(IToken token, Exception error, <font color=#7F0055>byte</font>[] value);
     }
 
     <font color=#3F5FBF>/**

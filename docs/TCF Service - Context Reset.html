@@ -124,7 +124,7 @@ R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull;
          * @param error - error object or null.
          * @param capabilities - context reset service capabilities description.
          */</font>
-        <font color=#7F0055>void</font> doneGetCapabilities(IToken token, Exception error, Collection<Map<String, Object>> capabilities);
+        <font color=#7F0055>void</font> doneGetCapabilities(IToken token, Exception error, Collection&lt;Map&lt;String,Object&gt;&gt; capabilities);
     }
 
     <font color=#3F5FBF>/**
@@ -141,7 +141,7 @@ R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull;
      * @param done - command result call back object.
      * @return - pending command handle.
      */</font>
-    IToken reset(String context_id, String reset_type, Map<String, Object> params, DoneReset done);
+    IToken reset(String context_id, String reset_type, Map&lt;String,Object&gt; params, DoneReset done);
 
     <font color=#3F5FBF>/**
      * Call back interface for 'reset' command.

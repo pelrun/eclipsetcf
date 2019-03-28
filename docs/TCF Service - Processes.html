@@ -529,7 +529,7 @@ E &bull; Processes &bull; exited &bull; <i>&lt;string: process ID&gt;</i> &bull;
      * Call-back interface to be called when "getSignalList" command is complete.
      */</font>
     <font color=#7F0055>interface</font> DoneGetSignalList {
-        <font color=#7F0055>void</font> doneGetSignalList(IToken token, Exception error, Collection<Map<String,Object>> list);
+        <font color=#7F0055>void</font> doneGetSignalList(IToken token, Exception error, Collection&lt;Map&lt;String,Object&gt;&gt; list);
     }
 
     <font color=#3F5FBF>/**
@@ -588,7 +588,7 @@ E &bull; Processes &bull; exited &bull; <i>&lt;string: process ID&gt;</i> &bull;
      * Call-back interface to be called when "getEnvironment" command is complete.
      */</font>
     <font color=#7F0055>interface</font> DoneGetEnvironment {
-        <font color=#7F0055>void</font> doneGetEnvironment(IToken token, Exception error, Map<String,String> environment);
+        <font color=#7F0055>void</font> doneGetEnvironment(IToken token, Exception error, Map&lt;String,String&gt; environment);
     }
 
     <font color=#3F5FBF>/**
