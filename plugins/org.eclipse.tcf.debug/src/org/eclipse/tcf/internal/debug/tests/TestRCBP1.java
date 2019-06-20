@@ -111,6 +111,7 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
     private boolean mem_map_test_running;
     private boolean mem_map_test_done;
     private boolean all_setup_done;
+    private boolean test_done;
 
     private static int mem_map_region_id = 0;
     private static int test_cnt;
@@ -185,6 +186,7 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
                 if (err != null) {
                     if (bp_cnt == 0 && id.equals(data_bp_id)) return;
                     if (id.equals(inv_bp_id)) return;
+                    if (test_done) return;
                     exit(new Exception("Invalid BP status: " + err));
                 }
             }
@@ -332,11 +334,12 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
                 runMemoryMapTest();
                 return;
             }
-            assert resume_cnt == 0;
-            assert !all_setup_done;
-            all_setup_done = true;
-            for (SuspendedContext s : suspended.values()) resume(s.id);
-            return;
+            if (!all_setup_done) {
+                assert resume_cnt == 0;
+                all_setup_done = true;
+                for (SuspendedContext s : suspended.values()) resume(s.id);
+                return;
+            }
         }
         if (suspended.size() > 0) {
             final int test_cnt = suspended.size();
@@ -345,11 +348,14 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
                 public void run() {
                     done_cnt++;
                     if (done_cnt == test_cnt) {
-                        exit(null);
+                        runTest();
                     }
                 }
             };
             for (SuspendedContext sc : suspended.values()) runRegistersTest(sc, done);
+            return;
+        }
+        if (!test_done) {
             return;
         }
         if (!bp_reset_done) {
@@ -434,6 +440,7 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
             runTest();
             return;
         }
+        bp_list.clear();
         srv_breakpoints.set(null, new IBreakpoints.DoneCommand() {
             public void doneCommand(IToken token, Exception error) {
                 if (error != null) {
@@ -968,6 +975,7 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
     }
 
     public void contextAdded(RunControlContext[] contexts) {
+        if (test_done) return;
         for (RunControlContext ctx : contexts) {
             final String id = ctx.getID();
             if (threads.get(id) != null) {
@@ -1062,6 +1070,7 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
     }
 
     public void contextChanged(RunControlContext[] contexts) {
+        if (test_done) return;
         for (RunControlContext ctx : contexts) {
             String id = ctx.getID();
             if (id.equals(test_ctx_id)) test_context = ctx;
@@ -1069,10 +1078,14 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
                 assert isMyContext(ctx);
                 threads.put(id, ctx);
             }
+            if (id.equals(test_ctx_id) && ctx.getProperties().get("DiagnosticTestProcess") == null) {
+                testDone(id);
+            }
         }
     }
 
     public void contextException(String id, String msg) {
+        if (test_done) return;
         RunControlContext ctx = threads.get(id);
         if (ctx != null) {
             assert isMyContext(ctx);
@@ -1081,6 +1094,7 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
     }
 
     public void contextRemoved(String[] contexts) {
+        if (test_done) return;
         for (String id : contexts) {
             if (suspended.get(id) != null) {
                 exit(new Exception("Invalid contextRemoved event"));
@@ -1092,6 +1106,7 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
     }
 
     public void contextResumed(String id) {
+        if (test_done) return;
         IRunControl.RunControlContext ctx = threads.get(id);
         if (ctx == null) return;
         assert isMyContext(ctx);
@@ -1111,6 +1126,7 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
 
     @Override
     public void testDone(String id) {
+        assert !test_done;
         if (threads.remove(id) != null && threads.isEmpty()) {
             if (bp_cnt != 40) {
                 exit(new Exception("Test main thread breakpoint count = " + bp_cnt + ", expected 40"));
@@ -1121,14 +1137,10 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
             if (temp_bp_id != null && temp_bp_cnt != 1) {
                 exit(new Exception("Temporary breakpoint count = " + temp_bp_cnt + ", expected 1"));
             }
-            srv_run_ctrl.removeListener(this);
-            // Reset breakpoint list
-            bp_list.clear();
-            srv_breakpoints.set(null, new IBreakpoints.DoneCommand() {
-                public void doneCommand(IToken token, Exception error) {
-                    exit(error);
-                }
-            });
+        }
+        if (id.equals(test_ctx_id)) {
+            test_done = true;
+            runTest();
         }
     }
 
@@ -1327,6 +1339,7 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
     }
 
     public void contextSuspended(final String id, String pc, String reason, Map<String, Object> params) {
+        if (test_done) return;
         IRunControl.RunControlContext ctx = threads.get(id);
         if (ctx == null) return;
         assert isMyContext(ctx);
