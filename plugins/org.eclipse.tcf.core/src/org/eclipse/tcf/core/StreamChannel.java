@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2015 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007-2019 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -114,8 +114,7 @@ public abstract class StreamChannel extends AbstractChannel {
                 }
                 break;
             default:
-                if (n < 0) return EOS;
-                assert false;
+                throw new IOException("Invalid escape sequence: " + ESC + " " + n);
             }
         }
     }
