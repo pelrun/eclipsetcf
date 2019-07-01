@@ -1078,9 +1078,6 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
                 assert isMyContext(ctx);
                 threads.put(id, ctx);
             }
-            if (id.equals(test_ctx_id) && ctx.getProperties().get("DiagnosticTestProcess") == null) {
-                testDone(id);
-            }
         }
     }
 
@@ -1130,15 +1127,22 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
         if (threads.remove(id) != null && threads.isEmpty()) {
             if (bp_cnt != 40) {
                 exit(new Exception("Test main thread breakpoint count = " + bp_cnt + ", expected 40"));
+                return;
             }
             if (data_bp_id != null && data_bp_cnt != 10) {
                 exit(new Exception("Test main thread data breakpoint count = " + data_bp_cnt + ", expected 10"));
+                return;
             }
             if (temp_bp_id != null && temp_bp_cnt != 1) {
                 exit(new Exception("Temporary breakpoint count = " + temp_bp_cnt + ", expected 1"));
+                return;
             }
         }
         if (id.equals(test_ctx_id)) {
+            if (!all_setup_done) {
+                exit(new Exception("Test process exited too soon"));
+                return;
+            }
             test_done = true;
             runTest();
         }
