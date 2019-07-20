@@ -355,9 +355,8 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
             for (SuspendedContext sc : suspended.values()) runRegistersTest(sc, done);
             return;
         }
-        if (!test_done) {
-            return;
-        }
+        if (test_ctx_id == null) test_done = true;
+        else if (!test_done) return;
         if (!bp_reset_done) {
             resetBreakpoints();
             return;
