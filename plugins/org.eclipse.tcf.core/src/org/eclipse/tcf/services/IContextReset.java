@@ -22,7 +22,7 @@ import org.eclipse.tcf.protocol.IToken;
 public interface IContextReset extends IService {
 
     /**
-     * Service name.
+     * This service name, as it appears on the wire - a TCF name of the service.
      */
     static final String NAME = "ContextReset";
 
@@ -53,7 +53,7 @@ public interface IContextReset extends IService {
          * @param error - error object or null.
          * @param capabilities - context reset service capabilities description.
          */
-        void doneGetCapabilities(IToken token, Exception error, Collection<Map<String, Object>> capabilities);
+        void doneGetCapabilities(IToken token, Exception error, Collection<Map<String,Object>> capabilities);
     }
 
     /**
@@ -70,7 +70,7 @@ public interface IContextReset extends IService {
      * @param done - command result call back object.
      * @return - pending command handle.
      */
-    IToken reset(String context_id, String reset_type, Map<String, Object> params, DoneReset done);
+    IToken reset(String context_id, String reset_type, Map<String,Object> params, DoneReset done);
 
     /**
      * Call back interface for 'reset' command.

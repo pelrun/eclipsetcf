@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2013 Wind River Systems, Inc. and others.
+ * Copyright (c) 2010-2019 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -23,6 +23,9 @@ import org.eclipse.tcf.protocol.IToken;
 
 public interface IDisassembly extends IService {
 
+    /**
+     * This service name, as it appears on the wire - a TCF name of the service.
+     */
     static final String NAME = "Disassembly";
 
     static final String
@@ -126,9 +129,16 @@ public interface IDisassembly extends IService {
     /** Instruction field types */
     static final String
         FTYPE_STRING = "String",
-        FTYPE_Register = "Register",
         FTYPE_ADDRESS = "Address",
         FTYPE_DISPLACEMENT = "Displacement",
         FTYPE_IMMEDIATE = "Immediate";
+    /** @since 1.7 */
+    static final String
+        FTYPE_REGISTER = "Register";
 
+    /**
+     * @deprecated
+     */
+    static final String
+        FTYPE_Register = "Register";
 }

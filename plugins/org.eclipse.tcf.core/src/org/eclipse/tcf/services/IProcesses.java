@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2016 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007-2019 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -33,6 +33,9 @@ import org.eclipse.tcf.protocol.IToken;
  */
 public interface IProcesses extends IService {
 
+    /**
+     * This service name, as it appears on the wire - a TCF name of the service.
+     */
     static final String NAME = "Processes";
 
     /**

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2017 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007-2019 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -34,7 +34,7 @@ import org.eclipse.tcf.protocol.IToken;
 public interface IBreakpoints extends IService {
 
     /**
-     * Service name.
+     * This service name, as it appears on the wire - a TCF name of the service.
      */
     static final String NAME = "Breakpoints";
 
@@ -255,7 +255,7 @@ public interface IBreakpoints extends IService {
 
     /**
      * Tell target to remove breakpoints.
-     * @param id - unique breakpoint identifier.
+     * @param ids - array of breakpoint identifiers.
      * @param done - command result call back object.
      * @return - pending command handle.
      */
@@ -285,6 +285,7 @@ public interface IBreakpoints extends IService {
      * Upload properties of given breakpoint from target agent breakpoint table.
      * @param id - unique breakpoint identifier.
      * @param done - command result call back object.
+     * @return - pending command handle.
      */
     IToken getProperties(String id, DoneGetProperties done);
 
@@ -376,7 +377,7 @@ public interface IBreakpoints extends IService {
         void contextChanged(Map<String,Object>[] bps);
 
         /**
-         * Called when breakpoints are removed .
+         * Called when breakpoints are removed.
          * @param ids - array of breakpoint IDs.
          */
         void contextRemoved(String[] ids);

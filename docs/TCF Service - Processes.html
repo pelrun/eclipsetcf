@@ -352,8 +352,24 @@ E &bull; Processes &bull; exited &bull; <i>&lt;string: process ID&gt;</i> &bull;
 <h2><a name='API'>API</a></h2>
 
 <pre>
+<font color=#3F5FBF>/**
+ * IProcesses service provides access to the target OS's process
+ * information, allows to start and terminate a process, and allows
+ * to attach and detach a process for debugging. Debug services,
+ * like IMemory and IRunControl, require a process to be attached
+ * before they can access it.
+ *
+ * If a process is started by this service, its standard input/output streams are
+ * available for client to read/write using Streams service. Stream type of such
+ * streams is set to "Processes".
+ *
+ * <font color=#7F9FBF>@noimplement</font> This interface is not intended to be implemented by clients.
+ */</font>
 <font color=#7F0055>public interface</font> IProcesses <font color=#7F0055>extends</font> IService {
 
+    <font color=#3F5FBF>/**
+     * This service name, as it appears on the wire - a TCF name of the service.
+     */</font>
     <font color=#7F0055>static final</font> String NAME = "Processes";
 
     <font color=#3F5FBF>/**
@@ -366,7 +382,7 @@ E &bull; Processes &bull; exited &bull; <i>&lt;string: process ID&gt;</i> &bull;
      * If the ID is not a process ID, 'IProcesses.getContext' may not return any
      * useful information
      *
-     * <font color=#7F9FBF>@param</font> id &ndash; context ID.
+     * <font color=#7F9FBF>@param</font> id - context ID.
      * <font color=#7F9FBF>@param</font> done - call back interface called when operation is completed.
      */</font>
     IToken getContext(String id, DoneGetContext done);
@@ -376,9 +392,9 @@ E &bull; Processes &bull; exited &bull; <i>&lt;string: process ID&gt;</i> &bull;
      */</font>
     <font color=#7F0055>interface</font> DoneGetContext {
         <font color=#3F5FBF>/**
-         * Called when contexts data retrieval is done.
-         * <font color=#7F9FBF>@param</font> error &ndash; error description if operation failed, null if succeeded.
-         * <font color=#7F9FBF>@param</font> context &ndash; context data.
+         * Called when context data retrieval is done.
+         * <font color=#7F9FBF>@param</font> error - error description if operation failed, null if succeeded.
+         * <font color=#7F9FBF>@param</font> context - context data.
          */</font>
         <font color=#7F0055>void</font> doneGetContext(IToken token, Exception error, ProcessContext context);
     }
@@ -386,7 +402,7 @@ E &bull; Processes &bull; exited &bull; <i>&lt;string: process ID&gt;</i> &bull;
     <font color=#3F5FBF>/**
      * Retrieve children of given context.
      *
-     * <font color=#7F9FBF>@param</font> parent_context_id &ndash; parent context ID. Can be null &ndash;
+     * <font color=#7F9FBF>@param</font> parent_context_id - parent context ID. Can be null -
      * to retrieve top level of the hierarchy, or one of context IDs retrieved
      * by previous getContext or getChildren commands.
      * <font color=#7F9FBF>@param</font> attached_only - if true return only attached process IDs.
@@ -399,9 +415,9 @@ E &bull; Processes &bull; exited &bull; <i>&lt;string: process ID&gt;</i> &bull;
      */</font>
     <font color=#7F0055>interface</font> DoneGetChildren {
         <font color=#3F5FBF>/**
-         * Called when contexts data retrieval is done.
-         * <font color=#7F9FBF>@param</font> error &ndash; error description if operation failed, null if succeeded.
-         * <font color=#7F9FBF>@param</font> context_ids &ndash; array of available context IDs.
+         * Called when context list retrieval is done.
+         * <font color=#7F9FBF>@param</font> error - error description if operation failed, null if succeeded.
+         * <font color=#7F9FBF>@param</font> context_ids - array of available context IDs.
          */</font>
         <font color=#7F0055>void</font> doneGetChildren(IToken token, Exception error, String[] context_ids);
     }
@@ -438,20 +454,20 @@ E &bull; Processes &bull; exited &bull; <i>&lt;string: process ID&gt;</i> &bull;
 
         <font color=#3F5FBF>/**
          * Get context ID.
-         * Same as getProperties().get(&ldquo;ID&rdquo;)
+         * Same as getProperties().get("ID")
          */</font>
         String getID();
 
         <font color=#3F5FBF>/**
          * Get parent context ID.
-         * Same as getProperties().get(&ldquo;ParentID&rdquo;)
+         * Same as getProperties().get("ParentID")
          */</font>
         String getParentID();
 
         <font color=#3F5FBF>/**
          * Get process name.
          * Client UI can show this name to a user.
-         * Same as getProperties().get(&ldquo;Name&rdquo;)
+         * Same as getProperties().get("Name")
          */</font>
         String getName();
 
@@ -470,9 +486,9 @@ E &bull; Processes &bull; exited &bull; <i>&lt;string: process ID&gt;</i> &bull;
 
         <font color=#3F5FBF>/**
          * Get all available context properties.
-         * <font color=#7F9FBF>@return</font> Map 'property name' -> 'property value'
+         * <font color=#7F9FBF>@return</font> Map 'property name' -&gt; 'property value'
          */</font>
-        Map&lt;String, Object&gt; getProperties();
+        Map&lt;String,Object&gt; getProperties();
 
         <font color=#3F5FBF>/**
          * Attach debugger to a process.
@@ -498,6 +514,9 @@ E &bull; Processes &bull; exited &bull; <i>&lt;string: process ID&gt;</i> &bull;
         IToken terminate(DoneCommand done);
     }
 
+    <font color=#3F5FBF>/**
+     * Call-back interface to be called when command is complete.
+     */</font>
     <font color=#7F0055>interface</font> DoneCommand {
         <font color=#7F0055>void</font> doneCommand(IToken token, Exception error);
     }
@@ -519,7 +538,8 @@ E &bull; Processes &bull; exited &bull; <i>&lt;string: process ID&gt;</i> &bull;
         SIG_DESCRIPTION = "Description";
 
     <font color=#3F5FBF>/**
-     * Get list of signals that can be send to the context.
+     * Get list of signals that can be send to the process.
+     * <font color=#7F9FBF>@param</font> context_id - process context ID or null.
      * <font color=#7F9FBF>@param</font> done - call back interface called when operation is completed.
      * <font color=#7F9FBF>@return</font> pending command handle, can be used to cancel the command.
      */</font>
@@ -539,11 +559,13 @@ E &bull; Processes &bull; exited &bull; <i>&lt;string: process ID&gt;</i> &bull;
      * If context is not attached the command will return an error.
      * <font color=#7F9FBF>@param</font> done - call back interface called when operation is completed.
      * <font color=#7F9FBF>@return</font> pending command handle, can be used to cancel the command.
+     * TODO: deprecated - cannot support more than 32 signals
      */</font>
     IToken getSignalMask(String context_id, DoneGetSignalMask done);
 
     <font color=#3F5FBF>/**
      * Call-back interface to be called when "getSignalMask" command is complete.
+     * TODO: deprecated - cannot support more than 32 signals
      */</font>
     <font color=#7F0055>interface</font> DoneGetSignalMask {
         <font color=#3F5FBF>/**
@@ -557,6 +579,32 @@ E &bull; Processes &bull; exited &bull; <i>&lt;string: process ID&gt;</i> &bull;
     }
 
     <font color=#3F5FBF>/**
+     * Get process or thread signal mask.
+     * Signal indices in the mask control how signals should be handled by debug agent.
+     * When new context is created it inherits the mask from its parent.
+     * If context is not attached the command will return an error.
+     * <font color=#7F9FBF>@param</font> done - call back interface called when operation is completed.
+     * <font color=#7F9FBF>@return</font> pending command handle, can be used to cancel the command.
+     * <font color=#7F9FBF>@since</font> 1.4
+     */</font>
+    IToken getSignalMask(String context_id, DoneGetSignalMaskSets done);
+
+    <font color=#3F5FBF>/**
+     * Call-back interface to be called when "getSignalMask" command is complete.
+     * <font color=#7F9FBF>@since</font> 1.4
+     */</font>
+    <font color=#7F0055>interface</font> DoneGetSignalMaskSets {
+        <font color=#3F5FBF>/**
+         * <font color=#7F9FBF>@param</font> token - command handle.
+         * <font color=#7F9FBF>@param</font> dont_stop - set of signals that should suspend execution of the context.
+         * <font color=#7F9FBF>@param</font> dont_pass - set of signals that should not be delivered to the context.
+         * <font color=#7F9FBF>@param</font> pending - set of signals that are generated but not delivered yet.
+         * Note: "pending" is meaningful only if the context is suspended.
+         */</font>
+        <font color=#7F0055>void</font> doneGetSignalMask(IToken token, Exception error, Set&lt;Integer&gt; dont_stop, Set&lt;Integer&gt; dont_pass, Set&lt;Integer&gt; pending);
+    }
+
+    <font color=#3F5FBF>/**
      * Set process or thread signal mask.
      * Bits in the mask control how signals should be handled by debug agent.
      * If context is not attached the command will return an error.
@@ -565,8 +613,22 @@ E &bull; Processes &bull; exited &bull; <i>&lt;string: process ID&gt;</i> &bull;
      * <font color=#7F9FBF>@param</font> dont_pass - bit-set of signals that should not be delivered to the context.
      * <font color=#7F9FBF>@param</font> done - call back interface called when operation is completed.
      * <font color=#7F9FBF>@return</font> pending command handle, can be used to cancel the command.
+     * TODO: deprecated - cannot support more than 32 signals
      */</font>
     IToken setSignalMask(String context_id, <font color=#7F0055>int</font> dont_stop, <font color=#7F0055>int</font> dont_pass, DoneCommand done);
+
+    <font color=#3F5FBF>/**
+     * Set process or thread signal mask.
+     * Signal indices in the mask control how signals should be handled by debug agent.
+     * If context is not attached the command will return an error.
+     * <font color=#7F9FBF>@param</font> dont_stop - set of signals that should not suspend execution of the context.
+     * By default, debugger suspends a context before it receives a signal.
+     * <font color=#7F9FBF>@param</font> dont_pass - set of signals that should not be delivered to the context.
+     * <font color=#7F9FBF>@param</font> done - call back interface called when operation is completed.
+     * <font color=#7F9FBF>@return</font> pending command handle, can be used to cancel the command.
+     * <font color=#7F9FBF>@since</font> 1.4
+     */</font>
+    IToken setSignalMask(String context_id, Set&lt;Integer&gt; dont_stop, Set&lt;Integer&gt; dont_pass, DoneCommand done);
 
     <font color=#3F5FBF>/**
      * Send a signal to a process or thread.
@@ -598,14 +660,15 @@ E &bull; Processes &bull; exited &bull; <i>&lt;string: process ID&gt;</i> &bull;
      * <font color=#7F9FBF>@param</font> command_line - command line arguments for the process.
      * Note: the service does NOT add image file name as first argument for the process.
      * If a client wants first parameter to be the file name, it should add it itself.
-     * <font color=#7F9FBF>@param</font> environment - list of environment variables for the process.
+     * <font color=#7F9FBF>@param</font> environment - map of environment variables for the process,
      * if null then default set of environment variables will be used.
      * <font color=#7F9FBF>@param</font> attach - if true debugger should be attached to the process.
      * <font color=#7F9FBF>@param</font> done - call back interface called when operation is completed.
      * <font color=#7F9FBF>@return</font> pending command handle, can be used to cancel the command.
      */</font>
     IToken start(String directory, String file,
-            String[] command_line, String[] environment, <font color=#7F0055>boolean</font> attach, DoneStart done);
+            String[] command_line, Map&lt;String,String&gt; environment,
+            <font color=#7F0055>boolean</font> attach, DoneStart done);
 
     <font color=#3F5FBF>/**
      * Call-back interface to be called when "start" command is complete.
@@ -635,7 +698,8 @@ E &bull; Processes &bull; exited &bull; <i>&lt;string: process ID&gt;</i> &bull;
         <font color=#3F5FBF>/**
          * Called when a process exits.
          * <font color=#7F9FBF>@param</font> process_id - process context ID
-         * <font color=#7F9FBF>@param</font> exit_code - process exit code
+         * <font color=#7F9FBF>@param</font> exit_code - if &gt;= 0 - the process exit code,
+         * if &lt; 0 - process was terminated by a signal, the signal code = -exit_code.
          */</font>
         <font color=#7F0055>void</font> exited(String process_id, <font color=#7F0055>int</font> exit_code);
     }

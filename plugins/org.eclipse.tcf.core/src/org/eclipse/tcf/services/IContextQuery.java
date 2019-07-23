@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2013 Wind River Systems, Inc. and others.
+ * Copyright (c) 2012-2019 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -75,7 +75,7 @@ import org.eclipse.tcf.protocol.IToken;
 public interface IContextQuery extends IService {
 
     /**
-     * Service name.
+     * This service name, as it appears on the wire - a TCF name of the service.
      */
     static final String NAME = "ContextQuery";
 

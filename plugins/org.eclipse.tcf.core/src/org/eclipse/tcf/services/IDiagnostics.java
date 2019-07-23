@@ -26,6 +26,9 @@ import org.eclipse.tcf.protocol.IToken;
 
 public interface IDiagnostics extends IService {
 
+    /**
+     * This service name, as it appears on the wire - a TCF name of the service.
+     */
     static final String NAME = "Diagnostics";
 
     /**

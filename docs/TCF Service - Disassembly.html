@@ -172,11 +172,14 @@ Tools and targets can define additional properties. Predefined properties are:</
 <pre>
 <font color=#3F5FBF>/**
  * TCF Disassembly service interface.
+ *
+ * <font color=#7F9FBF>@noimplement</font> This interface is not intended to be implemented by clients.
  */</font>
+
 <font color=#7F0055>public interface</font> IDisassembly <font color=#7F0055>extends</font> IService {
 
     <font color=#3F5FBF>/**
-     * Service name.
+     * This service name, as it appears on the wire - a TCF name of the service.
      */</font>
     <font color=#7F0055>static final</font> String NAME = "Disassembly";
 
@@ -195,9 +198,9 @@ Tools and targets can define additional properties. Predefined properties are:</
 
     <font color=#3F5FBF>/**
      * Retrieve disassembly service capabilities a given context-id.
-     * @param context_id - a context ID, usually one returned by Run Control or Memory services.
-     * @param done - command result call back object.
-     * @return - pending command handle.
+     * <font color=#7F9FBF>@param</font> context_id - a context ID, usually one returned by Run Control or Memory services.
+     * <font color=#7F9FBF>@param</font> done - command result call back object.
+     * <font color=#7F9FBF>@return</font> - pending command handle.
      */</font>
     IToken getCapabilities(String context_id, DoneGetCapabilities done);
 
@@ -207,24 +210,23 @@ Tools and targets can define additional properties. Predefined properties are:</
     <font color=#7F0055>interface</font> DoneGetCapabilities {
         <font color=#3F5FBF>/**
          * Called when capabilities retrieval is done.
-         * @param token - command handle.
-         * @param error - error object or null.
-         * @param capabilities - array of capabilities, see CAPABILITY_* for contents of each array element.
+         * <font color=#7F9FBF>@param</font> token - command handle.
+         * <font color=#7F9FBF>@param</font> error - error object or null.
+         * <font color=#7F9FBF>@param</font> capabilities - array of capabilities, see CAPABILITY_* for contents of each array element.
          */</font>
         <font color=#7F0055>void</font> doneGetCapabilities(IToken token, Throwable error, Map&lt;String,Object&gt;[] capabilities);
     }
 
     <font color=#3F5FBF>/**
      * Disassemble instruction code from a specified range of memory addresses, in a specified context.
-     * @param context_id - a context ID, usually one returned by Run Control or Memory services.
-     * @param addr - address of first instruction to disassemble.
-     * @param size - size in bytes of the address range.
-     * @param params - properties to control the disassembly output, an element of capabilities array, see getCapabilities.
-     * @param done - command result call back object.
-     * @return - pending command handle.
+     * <font color=#7F9FBF>@param</font> context_id - a context ID, usually one returned by Run Control or Memory services.
+     * <font color=#7F9FBF>@param</font> addr - address of first instruction to disassemble.
+     * <font color=#7F9FBF>@param</font> size - size in bytes of the address range.
+     * <font color=#7F9FBF>@param</font> params - properties to control the disassembly output, an element of capabilities array, see getCapabilities.
+     * <font color=#7F9FBF>@param</font> done - command result call back object.
+     * <font color=#7F9FBF>@return</font> - pending command handle.
      */</font>
-
-    IToken disassemble(String context_id, Number addr, int size, Map&lt;String,Object&gt; params, DoneDisassemble done);
+    IToken disassemble(String context_id, Number addr, <font color=#7F0055>int</font> size, Map&lt;String,Object&gt; params, DoneDisassemble done);
 
     <font color=#3F5FBF>/**
      * Call back interface for 'disassemble' command.
@@ -232,9 +234,9 @@ Tools and targets can define additional properties. Predefined properties are:</
     <font color=#7F0055>interface</font> DoneDisassemble {
         <font color=#3F5FBF>/**
          * Called when disassembling is done.
-         * @param token - command handle.
-         * @param error - error object or null.
-         * @param disassembly - array of disassembly lines.
+         * <font color=#7F9FBF>@param</font> token - command handle.
+         * <font color=#7F9FBF>@param</font> error - error object or null.
+         * <font color=#7F9FBF>@param</font> disassembly - array of disassembly lines.
          */</font>
         <font color=#7F0055>void</font> doneDisassemble(IToken token, Throwable error, IDisassemblyLine[] disassembly);
     }
@@ -245,22 +247,22 @@ Tools and targets can define additional properties. Predefined properties are:</
     <font color=#7F0055>interface</font> IDisassemblyLine {
 
         <font color=#3F5FBF>/**
-         * @return instruction address.
+         * <font color=#7F9FBF>@return</font> instruction address.
          */</font>
         Number getAddress();
 
         <font color=#3F5FBF>/**
-         * @return instruction size in bytes.
+         * <font color=#7F9FBF>@return</font> instruction size in bytes.
          */</font>
         <font color=#7F0055>int</font> getSize();
 
         <font color=#3F5FBF>/**
-         * @return instruction binary representation.
+         * <font color=#7F9FBF>@return</font> instruction binary representation.
          */</font>
         <font color=#7F0055>byte</font>[] getOpcodeValue();
 
         <font color=#3F5FBF>/**
-         * @return array of instruction fields, each field is a collection of field properties, see FIELD_*.
+         * <font color=#7F9FBF>@return</font> array of instruction fields, each field is a collection of field properties, see FIELD_*.
          */</font>
         Map&lt;String,Object&gt;[] getInstruction();
     }
@@ -270,22 +272,30 @@ Tools and targets can define additional properties. Predefined properties are:</
         <font color=#3F5FBF>/** The type of the instruction field. See FTYPE_*, String. */</font>
         FIELD_TYPE = "Type",
 
-        <font color=#3F5FBF>/** Value of the field for “String” and “Register” types, String. */</font>
+        <font color=#3F5FBF>/** Value of the field for "String" and "Register" types, String. */</font>
         FIELD_TEXT = "Text",
 
-        <font color=#3F5FBF>/** Value of the field for “Address,” “Displacement,” or “Immediate” types, Number. */</font>
+        <font color=#3F5FBF>/** Value of the field for "Address", "Displacement", or "Immediate" types, Number. */</font>
         FIELD_VALUE = "Value",
 
-        <font color=#3F5FBF>/** Context ID of the address space used with “Address” types, String. */</font>
+        <font color=#3F5FBF>/** Context ID of the address space used with "Address" types, String. */</font>
         FIELD_ADDRESS_SPACE = "AddressSpace";
 
     <font color=#3F5FBF>/** Instruction field types */</font>
     <font color=#7F0055>static final</font> String
         FTYPE_STRING = "String",
-        FTYPE_REGISTER = "Register",
         FTYPE_ADDRESS = "Address",
         FTYPE_DISPLACEMENT = "Displacement",
         FTYPE_IMMEDIATE = "Immediate";
+    <font color=#3F5FBF>/** <font color=#7F9FBF>@since</font> 1.7 */</font>
+    <font color=#7F0055>static final</font> String
+        FTYPE_REGISTER = "Register";
+
+    <font color=#3F5FBF>/**
+     * @deprecated
+     */</font>
+    <font color=#7F0055>static final</font> String
+        FTYPE_Register = "Register";
 }
 </pre>
 

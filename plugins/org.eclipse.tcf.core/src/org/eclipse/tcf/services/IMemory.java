@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2015 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007-2019 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -28,6 +28,9 @@ import org.eclipse.tcf.protocol.IToken;
  */
 public interface IMemory extends IService {
 
+    /**
+     * This service name, as it appears on the wire - a TCF name of the service.
+     */
     static final String NAME = "Memory";
 
     /**
@@ -43,7 +46,7 @@ public interface IMemory extends IService {
         PROP_START_BOUND = "StartBound",        /** Number, lowest address (inclusive) which is valid for the context */
         PROP_END_BOUND = "EndBound",            /** Number, highest address (inclusive) which is valid for the context */
         PROP_ACCESS_TYPES = "AccessTypes";      /** Array of String, the access types allowed for this context */
-        /** @since 1.3*/
+    /** @since 1.3*/
     static final String
         PROP_ADDRESSABLE_UNIT_SIZE = "AddressableUnitSize", /** Number, addressable unit size in number of bytes */
         PROP_DEFAULT_WORD_SIZE = "DefaultWordSize"; /** Number, default word size in number of bytes */
@@ -126,13 +129,13 @@ public interface IMemory extends IService {
      * return MemoryError at the end if any of the bytes
      * were not processed correctly.
      */
-    final static int MODE_CONTINUEONERROR = 0x1;
+    static final int MODE_CONTINUEONERROR = 0x1;
 
     /**
      * Memory access mode:
      * Verify result of memory operations (by reading and comparing).
      */
-    final static int MODE_VERIFY = 0x2;
+    static final int MODE_VERIFY = 0x2;
 
     /**
      * @noimplement This interface is not intended to be implemented by clients.
@@ -269,14 +272,14 @@ public interface IMemory extends IService {
     interface ErrorOffset {
 
         // Error may have per byte information
-        final static int
+        static final int
             BYTE_VALID        = 0x00,
             BYTE_UNKNOWN      = 0x01, // e.g. out of range
             BYTE_INVALID      = 0x02,
             BYTE_CANNOT_READ  = 0x04,
             BYTE_CANNOT_WRITE = 0x08;
 
-        final static String
+        static final String
             RANGE_KEY_ADDR  = "addr",
             RANGE_KEY_SIZE  = "size",
             RANGE_KEY_STAT  = "stat",

@@ -418,9 +418,14 @@ E &bull; Registers &bull; registerChanged &bull; <i>&lt;string: context ID&gt;</
 <pre>
 <font color=#3F5FBF>/**
  * IRegisters service provides access to target CPU register values and properties.
+ *
+ * <font color=#7F9FBF>@noimplement</font> This interface is not intended to be implemented by clients.
  */</font>
 <font color=#7F0055>public interface</font> IRegisters <font color=#7F0055>extends</font> IService {
 
+    <font color=#3F5FBF>/**
+     * This service name, as it appears on the wire - a TCF name of the service.
+     */</font>
     <font color=#7F0055>static final</font> String NAME = "Registers";
 
     <font color=#3F5FBF>/**
@@ -448,10 +453,11 @@ E &bull; Registers &bull; registerChanged &bull; <i>&lt;string: context ID&gt;</
         PROP_MEMORY_ADDRESS = "MemoryAddress",  <font color=#3F5FBF>/** Number, the address of a memory mapped register */</font>
         PROP_MEMORY_CONTEXT = "MemoryContext",  <font color=#3F5FBF>/** String, the context ID of a memory context in which a memory mapped register is located */</font>
         PROP_CAN_SEARCH = "CanSearch",          <font color=#3F5FBF>/** Array of String, a list of attribute names which can be searched for starting on this context */</font>
-        PROP_ROLE = "Role";                     <font color=#3F5FBF>/** String, the role the register plays in a program execution */</font>
+        PROP_ROLE = "Role",                     <font color=#3F5FBF>/** String, the role the register plays in a program execution */</font>
+        PROP_OFFSET = "Offset";                 <font color=#3F5FBF>/** Number, when present describes the offset in the data of the parent register where the value of a field can be found. */</font>
 
     <font color=#3F5FBF>/**
-     * Role property names.
+     * Values of context property "Role".
      */</font>
     <font color=#7F0055>static final</font> String
         ROLE_PC = "PC",                         <font color=#3F5FBF>/** Program counter. Defines instruction to execute next */</font>
@@ -461,17 +467,16 @@ E &bull; Registers &bull; registerChanged &bull; <i>&lt;string: context ID&gt;</
         ROLE_CORE = "CORE";                     <font color=#3F5FBF>/** Indicates register or register groups which belong to the core state */</font>
 
     <font color=#3F5FBF>/**
-     * Filter property names.
+     * Search filter properties.
      */</font>
     <font color=#7F0055>static final</font> String
         SEARCH_NAME = "Name",                   <font color=#3F5FBF>/** The name of the property this filter applies too */</font>
         SEARCH_EQUAL_VALUE = "EqualValue";      <font color=#3F5FBF>/** The value which is searched for */</font>
 
-
     <font color=#3F5FBF>/**
      * Retrieve context info for given context ID.
      *
-     * <font color=#7F9FBF>@param</font> id &ndash; context ID.
+     * <font color=#7F9FBF>@param</font> id - context ID.
      * <font color=#7F9FBF>@param</font> done - call back interface called when operation is completed.
      */</font>
     IToken getContext(String id, DoneGetContext done);
@@ -481,9 +486,10 @@ E &bull; Registers &bull; registerChanged &bull; <i>&lt;string: context ID&gt;</
      */</font>
     <font color=#7F0055>interface</font> DoneGetContext {
         <font color=#3F5FBF>/**
-         * Called when contexts data retrieval is done.
-         * <font color=#7F9FBF>@param</font> error &ndash; error description if operation failed, null if succeeded.
-         * <font color=#7F9FBF>@param</font> context &ndash; context data.
+         * Called when context data retrieval is done.
+         * <font color=#7F9FBF>@param</font> token - command handle
+         * <font color=#7F9FBF>@param</font> error - error description if operation failed, null if succeeded.
+         * <font color=#7F9FBF>@param</font> context - context data.
          */</font>
         <font color=#7F0055>void</font> doneGetContext(IToken token, Exception error, RegistersContext context);
     }
@@ -498,7 +504,7 @@ E &bull; Registers &bull; registerChanged &bull; <i>&lt;string: context ID&gt;</
      * with same IDs, however, each service accesses its own subset of context's
      * attributes and functionality, which is relevant to that service.
      *
-     * <font color=#7F9FBF>@param</font> parent_context_id &ndash; parent context ID. Can be null &ndash;
+     * <font color=#7F9FBF>@param</font> parent_context_id - parent context ID. Can be null -
      * to retrieve top level of the hierarchy, or one of context IDs retrieved
      * by previous getChildren commands.
      * <font color=#7F9FBF>@param</font> done - call back interface called when operation is completed.
@@ -510,9 +516,10 @@ E &bull; Registers &bull; registerChanged &bull; <i>&lt;string: context ID&gt;</
      */</font>
     <font color=#7F0055>interface</font> DoneGetChildren {
         <font color=#3F5FBF>/**
-         * Called when contexts data retrieval is done.
-         * <font color=#7F9FBF>@param</font> error &ndash; error description if operation failed, null if succeeded.
-         * <font color=#7F9FBF>@param</font> context_ids &ndash; array of available context IDs.
+         * Called when context list retrieval is done.
+         * <font color=#7F9FBF>@param</font> token - command handle
+         * <font color=#7F9FBF>@param</font> error - error description if operation failed, null if succeeded.
+         * <font color=#7F9FBF>@param</font> context_ids - array of available context IDs.
          */</font>
         <font color=#7F0055>void</font> doneGetChildren(IToken token, Exception error, String[] context_ids);
     }
@@ -534,6 +541,12 @@ E &bull; Registers &bull; registerChanged &bull; <i>&lt;string: context ID&gt;</
         String getParentID();
 
         <font color=#3F5FBF>/**
+         * Get process ID, if applicable.
+         * <font color=#7F9FBF>@return</font> process ID.
+         */</font>
+        String getProcessID();
+
+        <font color=#3F5FBF>/**
          * Get context (register, register group, bit field) name.
          * <font color=#7F9FBF>@return</font> context name.
          */</font>
@@ -550,8 +563,8 @@ E &bull; Registers &bull; registerChanged &bull; <i>&lt;string: context ID&gt;</
          * Byte arrays in get()/set() methods should be same size.
          * Hardware register can be smaller then this size, for example in case
          * when register size is not an even number of bytes. In such case implementation
-         * should add/remove padding that consists of necessary number of zero bits.
-         * @return context size in bytes.
+         * should add/remove padding that consist of necessary number of zero bits.
+         * <font color=#7F9FBF>@return</font> context size in bytes.
          */</font>
         <font color=#7F0055>int</font> getSize();
 
@@ -599,8 +612,9 @@ E &bull; Registers &bull; registerChanged &bull; <i>&lt;string: context ID&gt;</
         <font color=#7F0055>boolean</font> isFloat();
 
         <font color=#3F5FBF>/**
-         * Check endianess of the context.
+         * Check endianness of the context.
          * Big endian means decreasing numeric significance with increasing bit number.
+         * The endianness is used to encode and decode values of get, getm, set and setm commands.
          * <font color=#7F9FBF>@return</font> true if big endian.
          */</font>
         <font color=#7F0055>boolean</font> isBigEndian();
@@ -658,6 +672,12 @@ E &bull; Registers &bull; registerChanged &bull; <i>&lt;string: context ID&gt;</
         String getRole();
 
         <font color=#3F5FBF>/**
+         * Get the offset in the data of the parent register where the value of a field can be found
+         * <font color=#7F9FBF>@return</font> offset.
+         */</font>
+        <font color=#7F0055>int</font> getOffset();
+
+        <font color=#3F5FBF>/**
          * Get complete map of context properties.
          * <font color=#7F9FBF>@return</font> map of all available context properties.
          */</font>
@@ -685,7 +705,7 @@ E &bull; Registers &bull; registerChanged &bull; <i>&lt;string: context ID&gt;</
          * <font color=#7F9FBF>@param</font> done - call back object.
          * <font color=#7F9FBF>@return</font> - pending command handle.
          */</font>
-         IToken search(Map&lt;String,Object&gt; filter, DoneSearch done);
+        IToken search(Map&lt;String,Object&gt; filter, DoneSearch done);
     }
 
     <font color=#3F5FBF>/**
@@ -784,7 +804,7 @@ E &bull; Registers &bull; registerChanged &bull; <i>&lt;string: context ID&gt;</
          * <font color=#7F9FBF>@param</font> error - error description if operation failed, null if succeeded.
          * <font color=#7F9FBF>@param</font> paths - array of paths to each context with properties matching the filter
          */</font>
-        <font color=#7F0055>void</font> doneSearch(IToken token, String[][] paths);
+        <font color=#7F0055>void</font> doneSearch(IToken token, Exception error, String[][] paths);
     }
 
     <font color=#3F5FBF>/**
@@ -823,7 +843,7 @@ E &bull; Registers &bull; registerChanged &bull; <i>&lt;string: context ID&gt;</
          * At least, changes caused by "set" command should be notified.
          * <font color=#7F9FBF>@param</font> id - register context ID.
          */</font>
-        <font color=#7F0055>void</font> registerChanged(String context_id);
+        <font color=#7F0055>void</font> registerChanged(String id);
     }
 }
 </pre>

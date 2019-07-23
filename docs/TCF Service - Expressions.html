@@ -95,30 +95,27 @@ Context data is expected to be cached by clients.</p>
     <li><code><b><font face="Courier New" size=2 color=#333399>"ParentID" : <i>&lt;string&gt;</i></font></b></code>
     - ID of a parent context.
 
-    <li><code><b><font face="Courier New" size=2 color=#333399>"" : <i>&lt;&gt;</i></font></b></code>
+    <li><code><b><font face="Courier New" size=2 color=#333399>"SymbolID" : <i>&lt;string&gt;</i></font></b></code>
+    - symbol ID if expression designates a symbol. The symbol ID can be used with <a href='TCF Service - Symbols.html'>Symbols Service</a> to get symbol data.
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"Expression" : <i>&lt;string&gt;</i></font></b></code>
+    - text of the expression.
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"CanAssign" : <i>&lt;boolean&gt;</i></font></b></code>
+    - true if expression designates a storage location, so new value can be assigned (stored) at the location.
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"HasFuncCall" : <i>&lt;boolean&gt;</i></font></b></code>
+    - true if expression cantains a function call, which needs to be executed in the debug context.
+    Evaluation of such expressions resumes and suspends target thread or CPU.
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"Class" : <i>&lt;number&gt;</i></font></b></code>
     - .
 
-    <li><code><b><font face="Courier New" size=2 color=#333399>"" : <i>&lt;&gt;</i></font></b></code>
+    <li><code><b><font face="Courier New" size=2 color=#333399>"Type" : <i>&lt;string&gt;</i></font></b></code>
     - .
 
-    <li><code><b><font face="Courier New" size=2 color=#333399>"" : <i>&lt;&gt;</i></font></b></code>
+    <li><code><b><font face="Courier New" size=2 color=#333399>"Size" : <i>&lt;number&gt;</i></font></b></code>
     - .
-
-    <li><code><b><font face="Courier New" size=2 color=#333399>"" : <i>&lt;&gt;</i></font></b></code>
-    - .
-
-    <li><code><b><font face="Courier New" size=2 color=#333399>"" : <i>&lt;&gt;</i></font></b></code>
-    - .
-
-    <li><code><b><font face="Courier New" size=2 color=#333399>"" : <i>&lt;&gt;</i></font></b></code>
-    - .
-
-    <li><code><b><font face="Courier New" size=2 color=#333399>"" : <i>&lt;&gt;</i></font></b></code>
-    - .
-
-    <li><code><b><font face="Courier New" size=2 color=#333399>"" : <i>&lt;&gt;</i></font></b></code>
-    - .
-
 </ul>
 
 <h3><a name='CmdGetChildren'>Get Children</a></h3>
@@ -127,6 +124,8 @@ Context data is expected to be cached by clients.</p>
 C &bull; <i>&lt;token&gt;</i> &bull; Expressions &bull; getChildren &bull; <i>&lt;string: parent context ID&gt;</i> &bull;
 </font></b></pre>
 
+<p><font color=#FF7000>TBD</font></p>
+
 <h2><a name='API'>API</a></h2>
 
 <pre>
@@ -134,12 +133,12 @@ C &bull; <i>&lt;token&gt;</i> &bull; Expressions &bull; getChildren &bull; <i>&l
  * Expressions service allows TCF client to perform expression evaluation on remote target.
  * The service can be used to retrieve or modify values of variables or any data structures in remote target memory.
  *
- * @noimplement This interface is not intended to be implemented by clients.
+ * <font color=#7F9FBF>@noimplement</font> This interface is not intended to be implemented by clients.
  */</font>
 <font color=#7F0055>public interface</font> IExpressions <font color=#7F0055>extends</font> IService {
 
     <font color=#3F5FBF>/**
-     * Service name.
+     * This service name, as it appears on the wire - a TCF name of the service.
      */</font>
     <font color=#7F0055>static final</font> String NAME = "Expressions";
 
@@ -153,45 +152,45 @@ C &bull; <i>&lt;token&gt;</i> &bull; Expressions &bull; getChildren &bull; <i>&l
     <font color=#7F0055>interface</font> Expression {
         <font color=#3F5FBF>/**
          * Get context ID.
-         * @return context ID.
+         * <font color=#7F9FBF>@return</font> context ID.
          */</font>
         String getID();
 
         <font color=#3F5FBF>/**
          * Get parent context ID.
-         * @return parent context ID.
+         * <font color=#7F9FBF>@return</font> parent context ID.
          */</font>
         String getParentID();
 
         <font color=#3F5FBF>/**
          * Get expression script language ID.
-         * @return language ID.
+         * <font color=#7F9FBF>@return</font> language ID.
          */</font>
         String getLanguage();
 
         <font color=#3F5FBF>/**
          * Return expression string - the script part of the context.
-         * @return expression script string
+         * <font color=#7F9FBF>@return</font> expression script string
          */</font>
         String getExpression();
 
         <font color=#3F5FBF>/**
          * Return symbol ID if the expression represents a symbol (e.g. local variable).
-         * @return symbol ID
+         * <font color=#7F9FBF>@return</font> symbol ID
          */</font>
         String getSymbolID();
 
         <font color=#3F5FBF>/**
          * Get size of expression value in bits.
          * Can be 0 if value size is even number of bytes, use getSize() in such case.
-         * @return size in bits.
+         * <font color=#7F9FBF>@return</font> size in bits.
          */</font>
         <font color=#7F0055>int</font> getBits();
 
         <font color=#3F5FBF>/**
          * Get size in bytes. The size can include extra (unused) bits.
          * This is "static" or "declared" size - as determined by expression type.
-         * @return size in bytes.
+         * <font color=#7F9FBF>@return</font> size in bytes.
          */</font>
         <font color=#7F0055>int</font> getSize();
 
@@ -199,26 +198,26 @@ C &bull; <i>&lt;token&gt;</i> &bull; Expressions &bull; getChildren &bull; <i>&l
          * Get expression type ID. Symbols service can be used to get type properties.
          * This is "static" or "declared" type ID, actual type of a value can be different -
          * if expression language supports dynamic typing.
-         * @return type ID.
+         * <font color=#7F9FBF>@return</font> type ID.
          */</font>
         String getTypeID();
 
         <font color=#3F5FBF>/**
          * Check if the expression can be assigned a new value.
-         * @return true if can assign.
+         * <font color=#7F9FBF>@return</font> true if can assign.
          */</font>
         <font color=#7F0055>boolean</font> canAssign();
 
         <font color=#3F5FBF>/**
          * Check if the expression contains target function call.
          * Such expression can resume the target when evaluated.
-         * @return true if has a function call.
+         * <font color=#7F9FBF>@return</font> true if has a function call.
          */</font>
         <font color=#7F0055>boolean</font> hasFuncCall();
 
         <font color=#3F5FBF>/**
          * Get complete map of context properties.
-         * @return map of context properties.
+         * <font color=#7F9FBF>@return</font> map of context properties.
          */</font>
         Map&lt;String,Object&gt; getProperties();
     }
@@ -240,7 +239,7 @@ C &bull; <i>&lt;token&gt;</i> &bull; Expressions &bull; getChildren &bull; <i>&l
 
     <font color=#3F5FBF>/**
      * Expression scope attributes.
-     * @since 1.2
+     * <font color=#7F9FBF>@since</font> 1.2
      */</font>
     <font color=#7F0055>static final</font> String
         SCOPE_CONTEXT_ID = "ContextID",
@@ -250,7 +249,7 @@ C &bull; <i>&lt;token&gt;</i> &bull; Expressions &bull; getChildren &bull; <i>&l
     <font color=#3F5FBF>/**
      * Value represents result of expression evaluation.
      * Note that same expression can be evaluated multiple times with different results.
-     * @noimplement This interface is not intended to be implemented by clients.
+     * <font color=#7F9FBF>@noimplement</font> This interface is not intended to be implemented by clients.
      */</font>
     <font color=#7F0055>interface</font> Value {
 
@@ -263,14 +262,14 @@ C &bull; <i>&lt;token&gt;</i> &bull; Expressions &bull; getChildren &bull; <i>&l
 
         <font color=#3F5FBF>/**
          * Get value type ID. Symbols service can be used to get type properties.
-         * @return type ID.
+         * <font color=#7F9FBF>@return</font> type ID.
          */</font>
         String getTypeID();
 
         <font color=#3F5FBF>/**
          * Check endianness of the values.
          * Big-endian means decreasing numeric significance with increasing byte number.
-         * @return true if big-endian.
+         * <font color=#7F9FBF>@return</font> true if big-endian.
          */</font>
         <font color=#7F0055>boolean</font> isBigEndian();
 
@@ -278,38 +277,38 @@ C &bull; <i>&lt;token&gt;</i> &bull; Expressions &bull; getChildren &bull; <i>&l
          * Implicit pointer means that the value represents a pointer,
          * which value is unknown or optimized away,
          * even though the value it would point to is known.
-         * @return true if the value is implicit pointer.
-         * @since 1.3
+         * <font color=#7F9FBF>@return</font> true if the value is implicit pointer.
+         * <font color=#7F9FBF>@since</font> 1.3
          */</font>
         <font color=#7F0055>boolean</font> isImplicitPointer();
 
         <font color=#3F5FBF>/**
          * Return register ID if the value represents register variable.
-         * @return register ID or null.
+         * <font color=#7F9FBF>@return</font> register ID or null.
          */</font>
         String getRegisterID();
 
         <font color=#3F5FBF>/**
          * Return symbol ID if the value represents a symbol.
-         * @return symbol ID or null.
+         * <font color=#7F9FBF>@return</font> symbol ID or null.
          */</font>
         String getSymbolID();
 
         <font color=#3F5FBF>/**
          * Return value memory address, if applicable.
-         * @return address or null.
+         * <font color=#7F9FBF>@return</font> address or null.
          */</font>
         Number getAddress();
 
         <font color=#3F5FBF>/**
          * Get value as array of bytes.
-         * @return value as array of bytes.
+         * <font color=#7F9FBF>@return</font> value as array of bytes.
          */</font>
         <font color=#7F0055>byte</font>[] getValue();
 
         <font color=#3F5FBF>/**
          * Get complete map of value properties.
-         * @return map of value properties.
+         * <font color=#7F9FBF>@return</font> map of value properties.
          */</font>
         Map&lt;String,Object&gt; getProperties();
     }
@@ -324,13 +323,13 @@ C &bull; <i>&lt;token&gt;</i> &bull; Expressions &bull; getChildren &bull; <i>&l
         VAL_REGISTER = "Register",
         VAL_SYMBOL = "Symbol",
         VAL_ADDRESS = "Address";
-    <font color=#3F5FBF>/** @since 1.3 */</font>
+    <font color=#3F5FBF>/** <font color=#7F9FBF>@since</font> 1.3 */</font>
     <font color=#7F0055>static final</font> String
         VAL_BINARY_SCALE = "BinaryScale",
         VAL_DECIMAL_SCALE = "DecimalScale",
         VAL_IMPLICIT_POINTER = "ImplicitPointer",
         VAL_PIECES = "Pieces";
-    <font color=#3F5FBF>/** @since 1.4 */</font>
+    <font color=#3F5FBF>/** <font color=#7F9FBF>@since</font> 1.4 */</font>
     <font color=#7F0055>static final</font> String
         VAL_BIT_STRIDE = "BitStride";
 
@@ -338,9 +337,9 @@ C &bull; <i>&lt;token&gt;</i> &bull; Expressions &bull; getChildren &bull; <i>&l
      * Retrieve expression context info for given context ID.
      * @see Expression
      *
-     * @param id - context ID.
-     * @param done - call back interface called when operation is completed.
-     * @return - pending command handle.
+     * <font color=#7F9FBF>@param</font> id - context ID.
+     * <font color=#7F9FBF>@param</font> done - call back interface called when operation is completed.
+     * <font color=#7F9FBF>@return</font> - pending command handle.
      */</font>
     IToken getContext(String id, DoneGetContext done);
 
@@ -350,9 +349,9 @@ C &bull; <i>&lt;token&gt;</i> &bull; Expressions &bull; getChildren &bull; <i>&l
     <font color=#7F0055>interface</font> DoneGetContext {
         <font color=#3F5FBF>/**
          * Called when context data retrieval is done.
-         * @param token - command handle
-         * @param error - error description if operation failed, null if succeeded.
-         * @param context - context properties.
+         * <font color=#7F9FBF>@param</font> token - command handle
+         * <font color=#7F9FBF>@param</font> error - error description if operation failed, null if succeeded.
+         * <font color=#7F9FBF>@param</font> context - context properties.
          */</font>
         <font color=#7F0055>void</font> doneGetContext(IToken token, Exception error, Expression context);
     }
@@ -370,9 +369,9 @@ C &bull; <i>&lt;token&gt;</i> &bull; Expressions &bull; getChildren &bull; <i>&l
      * Children list does *not* include IDs of expressions that were created by clients
      * using "create" command.
      *
-     * @param parent_context_id - parent context ID.
-     * @param done - call back interface called when operation is completed.
-     * @return - pending command handle.
+     * <font color=#7F9FBF>@param</font> parent_context_id - parent context ID.
+     * <font color=#7F9FBF>@param</font> done - call back interface called when operation is completed.
+     * <font color=#7F9FBF>@return</font> - pending command handle.
      */</font>
     IToken getChildren(String parent_context_id, DoneGetChildren done);
 
@@ -382,9 +381,9 @@ C &bull; <i>&lt;token&gt;</i> &bull; Expressions &bull; getChildren &bull; <i>&l
     <font color=#7F0055>interface</font> DoneGetChildren {
         <font color=#3F5FBF>/**
          * Called when context list retrieval is done.
-         * @param token - command handle
-         * @param error - error description if operation failed, null if succeeded.
-         * @param context_ids - array of available context IDs.
+         * <font color=#7F9FBF>@param</font> token - command handle
+         * <font color=#7F9FBF>@param</font> error - error description if operation failed, null if succeeded.
+         * <font color=#7F9FBF>@param</font> context_ids - array of available context IDs.
          */</font>
         <font color=#7F0055>void</font> doneGetChildren(IToken token, Exception error, String[] context_ids);
     }
@@ -392,22 +391,22 @@ C &bull; <i>&lt;token&gt;</i> &bull; Expressions &bull; getChildren &bull; <i>&l
     <font color=#3F5FBF>/**
      * Create an expression context.
      * The context should be disposed after use.
-     * @param parent_id - a context ID that can be used to resolve symbol names.
-     * @param language - language of expression script, null means default language
-     * @param expression - expression script
-     * @param done - call back interface called when operation is completed.
-     * @return - pending command handle.
+     * <font color=#7F9FBF>@param</font> parent_id - a context ID that can be used to resolve symbol names.
+     * <font color=#7F9FBF>@param</font> language - language of expression script, null means default language
+     * <font color=#7F9FBF>@param</font> expression - expression script
+     * <font color=#7F9FBF>@param</font> done - call back interface called when operation is completed.
+     * <font color=#7F9FBF>@return</font> - pending command handle.
      */</font>
     IToken create(String parent_id, String language, String expression, DoneCreate done);
 
     <font color=#3F5FBF>/**
      * Create an expression context using given scope to resolve symbols.
      * The context should be disposed after use.
-     * @param scope - see SCOPE_* attribute definitions.
-     * @param expression - expression script
-     * @param done - call back interface called when operation is completed.
-     * @return - pending command handle.
-     * @since 1.2
+     * <font color=#7F9FBF>@param</font> scope - see SCOPE_* attribute definitions.
+     * <font color=#7F9FBF>@param</font> expression - expression script
+     * <font color=#7F9FBF>@param</font> done - call back interface called when operation is completed.
+     * <font color=#7F9FBF>@return</font> - pending command handle.
+     * <font color=#7F9FBF>@since</font> 1.2
      */</font>
     IToken createInScope(Map&lt;String,Object&gt; scope, String expression, DoneCreate done);
 
@@ -417,18 +416,18 @@ C &bull; <i>&lt;token&gt;</i> &bull; Expressions &bull; getChildren &bull; <i>&l
     <font color=#7F0055>interface</font> DoneCreate {
         <font color=#3F5FBF>/**
          * Called when context create context command is done.
-         * @param token - command handle
-         * @param error - error description if operation failed, null if succeeded.
-         * @param context - context properties.
+         * <font color=#7F9FBF>@param</font> token - command handle
+         * <font color=#7F9FBF>@param</font> error - error description if operation failed, null if succeeded.
+         * <font color=#7F9FBF>@param</font> context - context properties.
          */</font>
         <font color=#7F0055>void</font> doneCreate(IToken token, Exception error, Expression context);
     }
 
     <font color=#3F5FBF>/**
      * Dispose an expression context that was created by create()
-     * @param id - the expression context ID
-     * @param done - call back interface called when operation is completed.
-     * @return - pending command handle.
+     * <font color=#7F9FBF>@param</font> id - the expression context ID
+     * <font color=#7F9FBF>@param</font> done - call back interface called when operation is completed.
+     * <font color=#7F9FBF>@return</font> - pending command handle.
      */</font>
     IToken dispose(String id, DoneDispose done);
 
@@ -438,17 +437,17 @@ C &bull; <i>&lt;token&gt;</i> &bull; Expressions &bull; getChildren &bull; <i>&l
     <font color=#7F0055>interface</font> DoneDispose {
         <font color=#3F5FBF>/**
          * Called when context dispose command is done.
-         * @param token - command handle
-         * @param error - error description if operation failed, null if succeeded.
+         * <font color=#7F9FBF>@param</font> token - command handle
+         * <font color=#7F9FBF>@param</font> error - error description if operation failed, null if succeeded.
          */</font>
         <font color=#7F0055>void</font> doneDispose(IToken token, Exception error);
     }
 
     <font color=#3F5FBF>/**
      * Evaluate value of an expression context.
-     * @param id - the expression context ID
-     * @param done - call back interface called when operation is completed.
-     * @return - pending command handle.
+     * <font color=#7F9FBF>@param</font> id - the expression context ID
+     * <font color=#7F9FBF>@param</font> done - call back interface called when operation is completed.
+     * <font color=#7F9FBF>@return</font> - pending command handle.
      */</font>
     IToken evaluate(String id, DoneEvaluate done);
 
@@ -458,19 +457,19 @@ C &bull; <i>&lt;token&gt;</i> &bull; Expressions &bull; getChildren &bull; <i>&l
     <font color=#7F0055>interface</font> DoneEvaluate {
         <font color=#3F5FBF>/**
          * Called when context dispose command is done.
-         * @param token - command handle
-         * @param error - error description if operation failed, null if succeeded.
-         * @param value - expression evaluation result
+         * <font color=#7F9FBF>@param</font> token - command handle
+         * <font color=#7F9FBF>@param</font> error - error description if operation failed, null if succeeded.
+         * <font color=#7F9FBF>@param</font> value - expression evaluation result
          */</font>
         <font color=#7F0055>void</font> doneEvaluate(IToken token, Exception error, Value value);
     }
 
     <font color=#3F5FBF>/**
      * Assign a value to memory location determined by an expression.
-     * @param id - expression ID.
-     * @param value - value as an array of bytes.
-     * @param done - call back interface called when operation is completed.
-     * @return - pending command handle.
+     * <font color=#7F9FBF>@param</font> id - expression ID.
+     * <font color=#7F9FBF>@param</font> value - value as an array of bytes.
+     * <font color=#7F9FBF>@param</font> done - call back interface called when operation is completed.
+     * <font color=#7F9FBF>@return</font> - pending command handle.
      */</font>
     IToken assign(String id, <font color=#7F0055>byte</font>[] value, DoneAssign done);
 
@@ -480,21 +479,21 @@ C &bull; <i>&lt;token&gt;</i> &bull; Expressions &bull; getChildren &bull; <i>&l
     <font color=#7F0055>interface</font> DoneAssign {
         <font color=#3F5FBF>/**
          * Called when assign command is done.
-         * @param token - command handle
-         * @param error - error description if operation failed, null if succeeded.
+         * <font color=#7F9FBF>@param</font> token - command handle
+         * <font color=#7F9FBF>@param</font> error - error description if operation failed, null if succeeded.
          */</font>
         <font color=#7F0055>void</font> doneAssign(IToken token, Exception error);
     }
 
     <font color=#3F5FBF>/**
      * Add expressions service event listener.
-     * @param listener - event listener implementation.
+     * <font color=#7F9FBF>@param</font> listener - event listener implementation.
      */</font>
     <font color=#7F0055>void</font> addListener(ExpressionsListener listener);
 
     <font color=#3F5FBF>/**
      * Remove expressions service event listener.
-     * @param listener - event listener implementation.
+     * <font color=#7F9FBF>@param</font> listener - event listener implementation.
      */</font>
     <font color=#7F0055>void</font> removeListener(ExpressionsListener listener);
 
@@ -511,7 +510,7 @@ C &bull; <i>&lt;token&gt;</i> &bull; Expressions &bull; getChildren &bull; <i>&l
          * Not every change is notified - it is not possible,
          * only those, which are not caused by normal execution of the debuggee.
          * At least, changes caused by "assign" command should be notified.
-         * @param id - expression context ID.
+         * <font color=#7F9FBF>@param</font> id - expression context ID.
          */</font>
         <font color=#7F0055>void</font> valueChanged(String id);
     }

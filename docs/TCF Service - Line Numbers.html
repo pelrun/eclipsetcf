@@ -12,6 +12,10 @@
     <li><a href='#VersionHistory'>Version History</a>
     <li><a href='#Overview'>Overview</a>
     <li><a href='#Cmds'>Commands</a>
+    <ul>
+        <li><a href='#CmdMapToSource'>Map To Source</a>
+        <li><a href='#CmdMapToMemory'>Map To Memory</a>
+    </ul>
     <li><a href='#API'>API</a>
 </ul>
 
@@ -32,14 +36,312 @@
 
 <h2><a name='Overview'>Overview</a></h2>
 
+<p>Line numbers service associates locations in the source files with the corresponding
+machine instruction addresses in the executable object.</p>
+
+<p>Line number information is searched in symbol files of a debug context.
+The symbol file list is handled by <a href='TCF Service - Memory Map.html'>Memory Map Service</a>.</p>
+
+<p>Results of line information searches are arrays of Code Area objects. Code Area represents a continues area in source text mapped to
+continues range of code addresses. Code Area data object is collection of area properties.</p>
+
+<p>Lines are numbered beginning at 1.</p>
+
+<p>Columns are numbered beginning at 1. The value 0 is reserved to indicate that a code area begins at the "left edge" of the line.
+   Absence of column property means same as value 0.</p>
+
+<p>Predefined Code Area properties are:</p>
+<ul>
+    <li><code><b><font face="Courier New" size=2 color=#333399>"SLine" : <i>&lt;number&gt;</i></font></b></code>
+      - line number of the start of the area in the source file.
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"SCol" : <i>&lt;number&gt;</i></font></b></code>
+      - column number of the start of the area in the source file.
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"SAddr" : <i>&lt;number&gt;</i></font></b></code>
+      - address of the start of the area in memory.
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"ELine" : <i>&lt;number&gt;</i></font></b></code>
+      - line number of the end of the area in the source file.
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"ECol" : <i>&lt;number&gt;</i></font></b></code>
+      - column number of the end of the area in the source file.
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"EAddr" : <i>&lt;number&gt;</i></font></b></code>
+      - address of the end of the area in memory.
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"NAddr" : <i>&lt;number&gt;</i></font></b></code>
+      - address of the next area in the source file.
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"File" : <i>&lt;string&gt;</i></font></b></code>
+      - name of the source file corresponding to the area. It can be relative to "Dir".
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"Dir" : <i>&lt;string&gt;</i></font></b></code>
+      - directory name of of the source file corresponding to the area.
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"ISA" : <i>&lt;number&gt;</i></font></b></code>
+      - an integer whose value encodes the applicable instruction set architecture for the area.
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"IsStmt" : <i>&lt;boolean&gt;</i></font></b></code>
+      - a boolean indicating that the area is a recommended breakpoint location.
+      A recommended breakpoint location is intended to "represent" a line, a statement and/or a semantically distinct subpart of a statement.
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"BasicBlock" : <i>&lt;boolean&gt;</i></font></b></code>
+      - a boolean indicating that the area is the beginning of a basic block.
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"PrologueEnd" : <i>&lt;boolean&gt;</i></font></b></code>
+      - a boolean indicating that the area is one (of possibly many) where execution should be suspended for an entry breakpoint of a function.
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"EpilogueBegin" : <i>&lt;boolean&gt;</i></font></b></code>
+      - a boolean indicating that the area is one (of possibly many) where execution should be suspended for an exit breakpoint of a function.
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"OpIndex" : <i>&lt;number&gt;</i></font></b></code>
+      - an integer representing the index of an operation within a VLIW instruction.
+      The index of the first operation is 0. For non-VLIW architectures, this is either 0 or absent.
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"Discriminator" : <i>&lt;number&gt;</i></font></b></code>
+      - an integer identifying the block to which the area belongs.
+      Discriminator values are assigned arbitrarily by the debug information producer and serve to distinguish among
+      multiple blocks that may all be associated with the same source file, line, and column.
+      Where only one block exists for a given source position, the discriminator value should be either 0 or absent.
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"NStmtAddr" : <i>&lt;number&gt;</i></font></b></code>
+      - address of the next recommended breakpoint location (start of statement).
+</ul>
+
+<pre><b><font face="Courier New" size=2 color=#333399>
+<i>&lt;array of code areas&gt;</i>
+    &rArr; null
+    &rArr; [ <i>&lt;code area list&gt;</i> ]
+
+<i>&lt;code area list&gt;</i>
+    &rArr; <i>&lt;Code Area: object&gt;</i>
+    &rArr; <i>&lt;code area list&gt;</i> , <i>&lt;Code Area: object&gt;</i>
+</font></b></pre>
+
 <p>The service uses standard format for error reports,
 see <a href='TCF Services.html#ErrorFormat'>Error Report Format</a>.</p>
 
 <h2><a name='Cmds'>Commands</a></h2>
 
+<h3><a name='CmdMapToSource'>Map To Source</a></h3>
+
+<pre><b><font face="Courier New" size=2 color=#333399>
+C &bull; <i>&lt;token&gt;</i> &bull; LineNumbers &bull; mapToSource &bull; <i>&lt;string: context ID&gt;</i> &bull; <i>&lt;number: start address&gt;</i> &bull; <i>&lt;number: end address&gt;</i> &bull;
+</font></b></pre>
+
+<p>The command searches line number information for given range of memory addresses of a context.</p>
+
+<p>The reply contains an array of Code Area objects:</p>
+<pre><b><font face="Courier New" size=2 color=#333399>
+R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull; <i>&lt;array of code areas&gt;</i> &bull;
+</font></b></pre>
+
+<h3><a name='CmdMapToMemory'>Map To Memory</a></h3>
+
+<pre><b><font face="Courier New" size=2 color=#333399>
+C &bull; <i>&lt;token&gt;</i> &bull; LineNumbers &bull; mapToMemory &bull; <i>&lt;string: context ID&gt;</i> &bull; <i>&lt;string: file&gt;</i> &bull; <i>&lt;number: line&gt;</i> &bull; <i>&lt;number: column&gt;</i> &bull;
+</font></b></pre>
+
+<p>The command searches line number information for given source file name, line and column.</p>
+
+<p>The reply contains an array of Code Area objects:</p>
+<pre><b><font face="Courier New" size=2 color=#333399>
+R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull; <i>&lt;array of code areas&gt;</i> &bull;
+</font></b></pre>
+
 <h2><a name='API'>API</a></h2>
 
 <pre>
+<font color=#3F5FBF>/**
+ * Line numbers service associates locations in the source files with the corresponding
+ * machine instruction addresses in the executable object.
+ *
+ * <font color=#7F9FBF>@noimplement</font> This interface is not intended to be implemented by clients.
+ */</font>
+<font color=#7F0055>public interface</font> ILineNumbers <font color=#7F0055>extends</font> IService {
+
+    <font color=#7F0055>static final</font> String NAME = "LineNumbers";
+
+    <font color=#3F5FBF>/**
+     * CodeArea represent a continues area in source text mapped to
+     * continues range of code addresses.
+     * Line and columns are counted starting from 1.
+     * File name can be relative path, in such case client should
+     * use CodeArea directory name as origin for the path.
+     * File and directory names are valid on a host where code was compiled.
+     * It is client responsibility to map names to this host file system.
+     */</font>
+    <font color=#7F0055>final class</font> CodeArea {
+        <font color=#7F0055>public final</font> String directory;
+        <font color=#7F0055>public final</font> String file;
+        <font color=#7F0055>public final int</font> start_line;
+        <font color=#7F0055>public final int</font> start_column;
+        <font color=#7F0055>public final int</font> end_line;
+        <font color=#7F0055>public final int</font> end_column;
+        <font color=#7F0055>public final</font> Number start_address;
+        <font color=#7F0055>public final</font> Number end_address;
+        <font color=#7F0055>public final int</font> isa;
+        <font color=#7F0055>public final</font> <font color=#7F0055>boolean</font> is_statement;
+        <font color=#7F0055>public final</font> <font color=#7F0055>boolean</font> basic_block;
+        <font color=#7F0055>public final</font> <font color=#7F0055>boolean</font> prologue_end;
+        <font color=#7F0055>public final</font> <font color=#7F0055>boolean</font> epilogue_begin;
+
+        <font color=#7F0055>public</font> CodeArea(String directory, String file, <font color=#7F0055>int</font> start_line, <font color=#7F0055>int</font> start_column,
+                <font color=#7F0055>int</font> end_line, <font color=#7F0055>int</font> end_column, Number start_address, Number end_address, <font color=#7F0055>int</font> isa,
+                <font color=#7F0055>boolean</font> is_statement, <font color=#7F0055>boolean</font> basic_block,
+                <font color=#7F0055>boolean</font> prologue_end, <font color=#7F0055>boolean</font> epilogue_begin) {
+            <font color=#7F0055>this</font>.directory = directory;
+            <font color=#7F0055>this</font>.file = file;
+            <font color=#7F0055>this</font>.start_line = start_line;
+            <font color=#7F0055>this</font>.start_column = start_column;
+            <font color=#7F0055>this</font>.end_line = end_line;
+            <font color=#7F0055>this</font>.end_column = end_column;
+            <font color=#7F0055>this</font>.start_address = start_address;
+            <font color=#7F0055>this</font>.end_address = end_address;
+            <font color=#7F0055>this</font>.isa = isa;
+            <font color=#7F0055>this</font>.is_statement = is_statement;
+            <font color=#7F0055>this</font>.basic_block = basic_block;
+            <font color=#7F0055>this</font>.prologue_end = prologue_end;
+            <font color=#7F0055>this</font>.epilogue_begin = epilogue_begin;
+        }
+
+        <font color=#3F5FBF>/**
+         * <font color=#7F9FBF>@since</font> 1.3
+         */</font>
+        <font color=#7F0055>public</font> CodeArea(Map&lt;String,Object&gt; area, CodeArea prev) {
+            this(getString(area, "Dir", prev != null ? prev.directory : null),
+            getString(area, "File", prev != null ? prev.file : null),
+            getInteger(area, "SLine", 0), getInteger(area, "SCol", 0),
+            getInteger(area, "ELine", 0), getInteger(area, "ECol", 0),
+            (Number)area.get("SAddr"), (Number)area.get("EAddr"),
+            getInteger(area, "ISA", 0),
+            getBoolean(area, "IsStmt"), getBoolean(area, "BasicBlock"),
+            getBoolean(area, "PrologueEnd"), getBoolean(area, "EpilogueBegin"));
+        }
+
+        private static <font color=#7F0055>int</font> getInteger(Map&lt;String,Object&gt; map, String name, <font color=#7F0055>int</font> def) {
+            Number n = (Number)map.get(name);
+            if (n == null) return def;
+            return n.intValue();
+        }
+
+        private static String getString(Map&lt;String,Object&gt; map, String name, String def) {
+            String s = (String)map.get(name);
+            if (s == null) return def;
+            return s;
+        }
+
+        private static <font color=#7F0055>boolean</font> getBoolean(Map&lt;String,Object&gt; map, String name) {
+            Boolean b = (Boolean)map.get(name);
+            if (b == null) return false;
+            return b.booleanValue();
+        }
+
+        @Override
+        <font color=#7F0055>public</font> <font color=#7F0055>boolean</font> equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof CodeArea)) return false;
+            CodeArea a = (CodeArea)o;
+            if (start_line != a.start_line) return false;
+            if (start_column != a.start_column) return false;
+            if (end_line != a.end_line) return false;
+            if (end_column != a.end_column) return false;
+            if (isa != a.isa) return false;
+            if (is_statement != a.is_statement) return false;
+            if (basic_block != a.basic_block) return false;
+            if (prologue_end != a.prologue_end) return false;
+            if (epilogue_begin != a.epilogue_begin) return false;
+            if (start_address != null && !start_address.equals(a.start_address)) return false;
+            if (start_address == null && a.start_address != null) return false;
+            if (end_address != null && !end_address.equals(a.end_address)) return false;
+            if (end_address == null && a.end_address != null) return false;
+            if (file != null && !file.equals(a.file)) return false;
+            if (file == null && a.file != null) return false;
+            if (directory != null && !directory.equals(a.directory)) return false;
+            if (directory == null && a.directory != null) return false;
+            return true;
+        }
+
+        @Override
+        <font color=#7F0055>public</font> <font color=#7F0055>int</font> hashCode() {
+            <font color=#7F0055>int</font> h = 0;
+            if (file != null) h += file.hashCode();
+            return h + start_line + start_column + end_line + end_column;
+        }
+
+        @Override
+        <font color=#7F0055>public</font> String toString() {
+            StringBuffer bf = new StringBuffer();
+            bf.append('[');
+            if (directory != null) {
+                bf.append(directory);
+                bf.append(':');
+            }
+            if (file != null) {
+                bf.append(file);
+                bf.append(':');
+            }
+            bf.append(start_line);
+            if (start_column != 0) {
+                bf.append('.');
+                bf.append(start_column);
+            }
+            bf.append("..");
+            bf.append(end_line);
+            if (end_column != 0) {
+                bf.append('.');
+                bf.append(end_column);
+            }
+            bf.append(" -&gt; ");
+            if (start_address != null) {
+                bf.append("0x");
+                bf.append(JSON.toBigInteger(start_address).toString(16));
+            }
+            else {
+                bf.append('0');
+            }
+            bf.append("..");
+            if (end_address != null) {
+                bf.append("0x");
+                bf.append(JSON.toBigInteger(end_address).toString(16));
+            }
+            else {
+                bf.append('0');
+            }
+            if (isa != 0) {
+                bf.append(",isa ");
+                bf.append(isa);
+            }
+            if (is_statement) {
+                bf.append(",statement");
+            }
+            if (basic_block) {
+                bf.append(",basic block");
+            }
+            if (prologue_end) {
+                bf.append(",prologue end");
+            }
+            if (epilogue_begin) {
+                bf.append(",epilogue begin");
+            }
+            bf.append(']');
+            return bf.toString();
+        }
+    }
+
+    IToken mapToSource(String context_id, Number start_address, Number end_address, DoneMapToSource done);
+
+    <font color=#7F0055>interface</font> DoneMapToSource {
+        <font color=#7F0055>void</font> doneMapToSource(IToken token, Exception error, CodeArea[] areas);
+    }
+
+    IToken mapToMemory(String context_id, String file, <font color=#7F0055>int</font> line, <font color=#7F0055>int</font> column, DoneMapToMemory done);
+
+    <font color=#7F0055>interface</font> DoneMapToMemory {
+        <font color=#7F0055>void</font> doneMapToMemory(IToken token, Exception error, CodeArea[] areas);
+    }
+}
 </pre>
 
 </body>

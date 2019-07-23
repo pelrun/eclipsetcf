@@ -347,9 +347,18 @@ E &bull; Memory &bull; memoryChanged &bull; <i>&lt;string: context ID&gt;</i> &b
 <pre>
 <font color=#3F5FBF>/**
  * IMemory service provides basic operations to read/write memory on a target.
+ *
+ * The service represents memory addresses in number of bytes, regardless of actual addressable unit size.
+ * Clients can translate between byte and word addresses using value of "AddressableUnitSize".
+ * Byte is 8 bits.
+ *
+ * <font color=#7F9FBF>@noimplement</font> This interface is not intended to be implemented by clients.
  */</font>
-<font color=#7F0055>public interface</font> Memory <font color=#7F0055>extends</font> Service {
+<font color=#7F0055>public interface</font> IMemory <font color=#7F0055>extends</font> IService {
 
+    <font color=#3F5FBF>/**
+     * This service name, as it appears on the wire - a TCF name of the service.
+     */</font>
     <font color=#7F0055>static final</font> String NAME = "Memory";
 
     <font color=#3F5FBF>/**
@@ -365,6 +374,10 @@ E &bull; Memory &bull; memoryChanged &bull; <i>&lt;string: context ID&gt;</i> &b
         PROP_START_BOUND = "StartBound",        <font color=#3F5FBF>/** Number, lowest address (inclusive) which is valid for the context */</font>
         PROP_END_BOUND = "EndBound",            <font color=#3F5FBF>/** Number, highest address (inclusive) which is valid for the context */</font>
         PROP_ACCESS_TYPES = "AccessTypes";      <font color=#3F5FBF>/** Array of String, the access types allowed for this context */</font>
+    <font color=#3F5FBF>/** <font color=#7F9FBF>@since</font> 1.3*/
+    <font color=#7F0055>static final</font> String
+        PROP_ADDRESSABLE_UNIT_SIZE = "AddressableUnitSize", <font color=#3F5FBF>/** Number, addressable unit size in number of bytes */</font>
+        PROP_DEFAULT_WORD_SIZE = "DefaultWordSize"; <font color=#3F5FBF>/** Number, default word size in number of bytes */</font>
 
     <font color=#3F5FBF>/**
      * Values of "AccessTypes".
@@ -390,19 +403,20 @@ E &bull; Memory &bull; memoryChanged &bull; <i>&lt;string: context ID&gt;</i> &b
     <font color=#3F5FBF>/**
      * Retrieve context info for given context ID.
      *
-     * <font color=#7F9FBF>@param</font> id &ndash; context ID.
-     * <font color=#7F9FBF>@param</font> done - callback interface called when operation is completed.
+     * <font color=#7F9FBF>@param</font> id - context ID.
+     * <font color=#7F9FBF>@param</font> done - call back interface called when operation is completed.
+     * <font color=#7F9FBF>@return</font> - pending command handle.
      */</font>
     IToken getContext(String id, DoneGetContext done);
 
     <font color=#3F5FBF>/**
-     * Client callback interface for getContext().
+     * Client call back interface for getContext().
      */</font>
     <font color=#7F0055>interface</font> DoneGetContext {
         <font color=#3F5FBF>/**
-         * Called when contexts data retrieval is done.
-         * <font color=#7F9FBF>@param</font> error &ndash; error description if operation failed, null if succeeded.
-         * <font color=#7F9FBF>@param</font> context &ndash; context data.
+         * Called when context data retrieval is done.
+         * <font color=#7F9FBF>@param</font> error - error description if operation failed, null if succeeded.
+         * <font color=#7F9FBF>@param</font> context - context data.
          */</font>
         <font color=#7F0055>void</font> doneGetContext(IToken token, Exception error, MemoryContext context);
     }
@@ -417,21 +431,22 @@ E &bull; Memory &bull; memoryChanged &bull; <i>&lt;string: context ID&gt;</i> &b
      * with same IDs, however, each service accesses its own subset of context's
      * attributes and functionality, which is relevant to that service.
      *
-     * <font color=#7F9FBF>@param</font> parent_context_id &ndash; parent context ID. Can be null &ndash;
+     * <font color=#7F9FBF>@param</font> parent_context_id - parent context ID. Can be null -
      * to retrieve top level of the hierarchy, or one of context IDs retrieved
-     * by previous getContexts commands.
-     * <font color=#7F9FBF>@param</font> done - callback interface called when operation is completed.
+     * by previous getChildren commands.
+     * <font color=#7F9FBF>@param</font> done - call back interface called when operation is completed.
+     * <font color=#7F9FBF>@return</font> - pending command handle.
      */</font>
     IToken getChildren(String parent_context_id, DoneGetChildren done);
 
     <font color=#3F5FBF>/**
-     * Client callback interface for getChildren().
+     * Client call back interface for getChildren().
      */</font>
     <font color=#7F0055>interface</font> DoneGetChildren {
         <font color=#3F5FBF>/**
-         * Called when contexts data retrieval is done.
-         * <font color=#7F9FBF>@param</font> error &ndash; error description if operation failed, null if succeeded.
-         * <font color=#7F9FBF>@param</font> contexts &ndash; array of available context IDs.
+         * Called when context list retrieval is done.
+         * <font color=#7F9FBF>@param</font> error - error description if operation failed, null if succeeded.
+         * <font color=#7F9FBF>@param</font> context_ids - array of available context IDs.
          */</font>
         <font color=#7F0055>void</font> doneGetChildren(IToken token, Exception error, String[] context_ids);
     }
@@ -442,14 +457,17 @@ E &bull; Memory &bull; memoryChanged &bull; <i>&lt;string: context ID&gt;</i> &b
      * return MemoryError at the end if any of the bytes
      * were not processed correctly.
      */</font>
-    <font color=#7F0055>final static int</font> MODE_CONTINUEONERROR = 0x1;
+    <font color=#7F0055>static final int</font> MODE_CONTINUEONERROR = 0x1;
 
     <font color=#3F5FBF>/**
      * Memory access mode:
      * Verify result of memory operations (by reading and comparing).
      */</font>
-    <font color=#7F0055>final static int</font> MODE_VERIFY = 0x2;
+    <font color=#7F0055>static final int</font> MODE_VERIFY = 0x2;
 
+    <font color=#3F5FBF>/**
+     * <font color=#7F9FBF>@noimplement</font> This interface is not intended to be implemented by clients.
+     */</font>
     <font color=#7F0055>interface</font> MemoryContext {
 
         <font color=#3F5FBF>/**
@@ -471,10 +489,10 @@ E &bull; Memory &bull; memoryChanged &bull; <i>&lt;string: context ID&gt;</i> &b
         String getProcessID();
 
         <font color=#3F5FBF>/**
-         * Get memory endianess.
-         * <font color=#7F9FBF>@return</font> true if memory id big-endian.
+         * Get memory endianness.
+         * <font color=#7F9FBF>@return</font> true if memory is big-endian.
          */</font>
-        boolean isBigEndian();
+        <font color=#7F0055>boolean</font> isBigEndian();
 
         <font color=#3F5FBF>/**
          * Get memory address size.
@@ -505,43 +523,67 @@ E &bull; Memory &bull; memoryChanged &bull; <i>&lt;string: context ID&gt;</i> &b
          * Get the access types allowed for this context.
          * <font color=#7F9FBF>@return</font> collection of access type names.
          */</font>
-        Collection&lt;String> getAccessTypes();
+        Collection&lt;String&gt; getAccessTypes();
+
+        <font color=#3F5FBF>/**
+         * Get this memory context's addressable unit size in number of bytes.
+         * The addressable size indicates the minimum number of bytes that
+         * can be retrieved as a single unit.
+         * <font color=#7F9FBF>@return</font> addressable unit size in bytes.
+         * <font color=#7F9FBF>@since</font> 1.3
+         */</font>
+        <font color=#7F0055>int</font> getAddressableUnitSize();
+
+        <font color=#3F5FBF>/**
+         * Get default word size in number of bytes.
+         * The size is supposed to be used as the default memory view word representation.
+         * Returns zero is word size is unknown.
+         * <font color=#7F9FBF>@return</font> word size in bytes.
+         * <font color=#7F9FBF>@since</font> 1.3
+         */</font>
+        <font color=#7F0055>int</font> getDefaultWordSize();
 
         <font color=#3F5FBF>/**
          * Get context properties.
          * <font color=#7F9FBF>@return</font> all available context properties.
          */</font>
-        Map&lt;String,Object> getProperties();
+        Map&lt;String,Object&gt; getProperties();
 
         <font color=#3F5FBF>/**
          * Set target memory.
          * If 'word_size' is 0 it means client does not care about word size.
          */</font>
-        <font color=#7F0055>void</font> set(long addr, <font color=#7F0055>int</font> word_size, byte[] buf,
-                         <font color=#7F0055>int</font> offs, <font color=#7F0055>int</font> size, <font color=#7F0055>int</font> mode, DoneMemory done);
+        IToken set(Number addr, <font color=#7F0055>int</font> word_size, <font color=#7F0055>byte</font>[] buf,
+                <font color=#7F0055>int</font> offs, <font color=#7F0055>int</font> size, <font color=#7F0055>int</font> mode, DoneMemory done);
 
         <font color=#3F5FBF>/**
          * Read target memory.
          */</font>
-        <font color=#7F0055>void</font> get(long addr, <font color=#7F0055>int</font> word_size, byte[] buf,
-                         <font color=#7F0055>int</font> offs, <font color=#7F0055>int</font> size, <font color=#7F0055>int</font> mode, DoneMemory done);
+        IToken get(Number addr, <font color=#7F0055>int</font> word_size, <font color=#7F0055>byte</font>[] buf,
+                <font color=#7F0055>int</font> offs, <font color=#7F0055>int</font> size, <font color=#7F0055>int</font> mode, DoneMemory done);
 
         <font color=#3F5FBF>/**
          * Fill target memory with given pattern.
          * 'size' is number of bytes to fill.
          */</font>
-        <font color=#7F0055>void</font> fill(long addr, <font color=#7F0055>int</font> word_size, byte[] value,
-                          <font color=#7F0055>int</font> size, <font color=#7F0055>int</font> mode, DoneMemory done);
+        IToken fill(Number addr, <font color=#7F0055>int</font> word_size, <font color=#7F0055>byte</font>[] value,
+                <font color=#7F0055>int</font> size, <font color=#7F0055>int</font> mode, DoneMemory done);
     }
 
     <font color=#3F5FBF>/**
-     * Client callback interface for set(), get() and fill().
+     * Client call back interface for set(), get() and fill() commands.
      */</font>
     <font color=#7F0055>interface</font> DoneMemory {
-        <font color=#7F0055>void</font> doneMemory(MemoryError error);
+        <font color=#7F0055>public</font> <font color=#7F0055>void</font> doneMemory(IToken token, MemoryError error);
     }
 
     <font color=#7F0055>class</font> MemoryError <font color=#7F0055>extends</font> Exception {
+
+        <font color=#7F0055>private static final long</font> serialVersionUID = 1L;
+
+        <font color=#7F0055>public</font> MemoryError(String msg) {
+            super(msg);
+        }
     }
 
     <font color=#3F5FBF>/**
@@ -558,12 +600,18 @@ E &bull; Memory &bull; memoryChanged &bull; <i>&lt;string: context ID&gt;</i> &b
     <font color=#7F0055>interface</font> ErrorOffset {
 
         // Error may have per byte information
-        <font color=#7F0055>final static int</font>
+        <font color=#7F0055>static final int</font>
             BYTE_VALID        = 0x00,
             BYTE_UNKNOWN      = 0x01, // e.g. out of range
             BYTE_INVALID      = 0x02,
             BYTE_CANNOT_READ  = 0x04,
             BYTE_CANNOT_WRITE = 0x08;
+
+        <font color=#7F0055>static final</font> String
+            RANGE_KEY_ADDR  = "addr",
+            RANGE_KEY_SIZE  = "size",
+            RANGE_KEY_STAT  = "stat",
+            RANGE_KEY_MSG   = "msg";
 
         <font color=#7F0055>int</font> getStatus(<font color=#7F0055>int</font> offset);
 
@@ -597,12 +645,12 @@ E &bull; Memory &bull; memoryChanged &bull; <i>&lt;string: context ID&gt;</i> &b
         <font color=#3F5FBF>/**
          * Called when a new memory access context(s) is created.
          */</font>
-        <font color=#7F0055>void</font> contextAdded(Context[] contexts);
+        <font color=#7F0055>void</font> contextAdded(MemoryContext[] contexts);
 
         <font color=#3F5FBF>/**
-         * Called when a new memory access context(s) properties changed.
+         * Called when a memory access context(s) properties changed.
          */</font>
-        <font color=#7F0055>void</font> contextChanged(Context[] contexts);
+        <font color=#7F0055>void</font> contextChanged(MemoryContext[] contexts);
 
         <font color=#3F5FBF>/**
          * Called when memory access context(s) is removed.
@@ -615,10 +663,9 @@ E &bull; Memory &bull; memoryChanged &bull; <i>&lt;string: context ID&gt;</i> &b
          * corresponding cached memory data.
          * Not every change is notified - it is not possible,
          * only those, which are not caused by normal execution of the debuggee.
-         * &lsquo;addr&rsquo; and &lsquo;size&rsquo; can be null if unknown.
+         * 'addr' and 'size' can be null if unknown.
          */</font>
-        <font color=#7F0055>void</font> memoryChanged(String context_id,
-               long[] addr, long[] size);
+        <font color=#7F0055>void</font> memoryChanged(String context_id, Number[] addr, <font color=#7F0055>long</font>[] size);
     }
 }
 </pre>

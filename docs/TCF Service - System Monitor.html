@@ -321,14 +321,26 @@ R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull; <i>&lt;a
 <h2><a name='API'>API</a></h2>
 
 <pre>
+<font color=#3F5FBF>/**
+ * This is optional service that can be implemented by a peer.
+ * If implemented, the service can be used for monitoring system activity and utilization.
+ * It provides list of running processes, different process attributes like command line, environment, etc.,
+ * and some resource utilization data. The service can be used by a client to provide functionality
+ * similar to Unix 'top' utility or Windows 'Task Manager'.
+ *
+ * <font color=#7F9FBF>@noimplement</font> This interface is not intended to be implemented by clients.
+ */</font>
 <font color=#7F0055>public interface</font> ISysMonitor <font color=#7F0055>extends</font> IService {
 
-   <font color=#7F0055>static final</font> String NAME = "SysMonitor";
+    <font color=#3F5FBF>/**
+     * This service name, as it appears on the wire - a TCF name of the service.
+     */</font>
+   static final String NAME = "SysMonitor";
 
     <font color=#3F5FBF>/**
      * Retrieve context info for given context ID.
      *
-     * <font color=#7F9FBF>@param</font> id &ndash; context ID.
+     * <font color=#7F9FBF>@param</font> id - context ID.
      * <font color=#7F9FBF>@param</font> done - callback interface called when operation is completed.
      */</font>
     IToken getContext(String id, DoneGetContext done);
@@ -338,9 +350,9 @@ R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull; <i>&lt;a
      */</font>
     <font color=#7F0055>interface</font> DoneGetContext {
         <font color=#3F5FBF>/**
-         * Called when contexts data retrieval is done.
-         * <font color=#7F9FBF>@param</font> error &ndash; error description if operation failed, null if succeeded.
-         * <font color=#7F9FBF>@param</font> context &ndash; context data.
+         * Called when context data retrieval is done.
+         * <font color=#7F9FBF>@param</font> error - error description if operation failed, null if succeeded.
+         * <font color=#7F9FBF>@param</font> context - context data.
          */</font>
         <font color=#7F0055>void</font> doneGetContext(IToken token, Exception error, SysMonitorContext context);
     }
@@ -348,7 +360,7 @@ R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull; <i>&lt;a
     <font color=#3F5FBF>/**
      * Retrieve children of given context.
      *
-     * <font color=#7F9FBF>@param</font> parent_context_id &ndash; parent context ID. Can be null &ndash;
+     * <font color=#7F9FBF>@param</font> parent_context_id - parent context ID. Can be null -
      * to retrieve top level of the hierarchy, or one of context IDs retrieved
      * by previous getContext or getChildren commands.
      * <font color=#7F9FBF>@param</font> done - callback interface called when operation is completed.
@@ -360,9 +372,9 @@ R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull; <i>&lt;a
      */</font>
     <font color=#7F0055>interface</font> DoneGetChildren {
         <font color=#3F5FBF>/**
-         * Called when contexts data retrieval is done.
-         * <font color=#7F9FBF>@param</font> error &ndash; error description if operation failed, null if succeeded.
-         * <font color=#7F9FBF>@param</font> context_ids &ndash; array of available context IDs.
+         * Called when context list retrieval is done.
+         * <font color=#7F9FBF>@param</font> error - error description if operation failed, null if succeeded.
+         * <font color=#7F9FBF>@param</font> context_ids - array of available context IDs.
          */</font>
         <font color=#7F0055>void</font> doneGetChildren(IToken token, Exception error, String[] context_ids);
     }
@@ -404,7 +416,7 @@ R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull; <i>&lt;a
         <font color=#3F5FBF>/** One character from the string "RSDZTW"  where  R  is  running,  S  is
          *  sleeping  in  an  interruptible wait, D is waiting in uninterruptible
          *  disk sleep, Z is zombie, T is traced or stopped (on a signal), and  W
-         *  is paging.*/</font>
+         *  is paging. */</font>
         PROP_STATE = "State",
 
         <font color=#3F5FBF>/** System ID of the parent process */</font>
@@ -530,6 +542,29 @@ R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull; <i>&lt;a
         <font color=#3F5FBF>/** Scheduling policy */</font>
         PROP_POLICY = "Policy";
 
+    <font color=#3F5FBF>/**
+     * Context property extension.
+     * <font color=#7F9FBF>@since</font> 1.4
+     */</font>
+    <font color=#7F0055>static final</font> String
+        <font color=#3F5FBF>/** Full path to executable file of the process */</font>
+        PROP_EXE = "Exe",
+
+        <font color=#3F5FBF>/** Executable type (integer). Value is one of:
+         *  0 = user process
+         *  1 = kernel thread
+         *  2 = access denied
+         * See also EXETYPE_* constants */</font>
+        PROP_EXETYPE = "ExeType";
+
+    <font color=#3F5FBF>/**
+     * ExeType property values.
+     * <font color=#7F9FBF>@since</font> 1.4
+     */</font>
+    <font color=#7F0055>static final int</font>
+        EXETYPE_USER = 0,
+        EXETYPE_KERNEL = 1,
+        EXETYPE_ACCESS_DENIED = 2;
 
     <font color=#3F5FBF>/**
      * A context corresponds to an execution thread, process, address space, etc.
@@ -544,115 +579,115 @@ R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull; <i>&lt;a
 
         <font color=#3F5FBF>/**
          * Get context ID.
-         * Same as getProperties().get(&ldquo;ID&rdquo;)
+         * Same as getProperties().get("ID")
          */</font>
         String getID();
 
         <font color=#3F5FBF>/**
          * Get parent context ID.
-         * Same as getProperties().get(&ldquo;ParentID&rdquo;)
+         * Same as getProperties().get("ParentID")
          */</font>
         String getParentID();
 
         <font color=#3F5FBF>/**
          * Get process group ID.
-         * Same as getProperties().get(&ldquo;PGRP&rdquo;)
+         * Same as getProperties().get("PGRP")
          */</font>
         <font color=#7F0055>long</font> getPGRP();
 
         <font color=#3F5FBF>/**
          * Get process ID.
-         * Same as getProperties().get(&ldquo;PID&rdquo;)
+         * Same as getProperties().get("PID")
          */</font>
         <font color=#7F0055>long</font> getPID();
 
         <font color=#3F5FBF>/**
          * Get process parent ID.
-         * Same as getProperties().get(&ldquo;PPID&rdquo;)
+         * Same as getProperties().get("PPID")
          */</font>
         <font color=#7F0055>long</font> getPPID();
 
         <font color=#3F5FBF>/**
          * Get process TTY group ID.
-         * Same as getProperties().get(&ldquo;TGID&rdquo;)
+         * Same as getProperties().get("TGID")
          */</font>
         <font color=#7F0055>long</font> getTGID();
 
         <font color=#3F5FBF>/**
          * Get tracer process ID.
-         * Same as getProperties().get(&ldquo;TracerPID&rdquo;)
+         * Same as getProperties().get("TracerPID")
          */</font>
         <font color=#7F0055>long</font> getTracerPID();
 
         <font color=#3F5FBF>/**
          * Get process owner user ID.
-         * Same as getProperties().get(&ldquo;UID&rdquo;)
+         * Same as getProperties().get("UID")
          */</font>
         <font color=#7F0055>long</font> getUID();
 
         <font color=#3F5FBF>/**
          * Get process owner user name.
-         * Same as getProperties().get(&ldquo;UserName&rdquo;)
+         * Same as getProperties().get("UserName")
          */</font>
         String getUserName();
 
         <font color=#3F5FBF>/**
          * Get process owner user group ID.
-         * Same as getProperties().get(&ldquo;UGID&rdquo;)
+         * Same as getProperties().get("UGID")
          */</font>
         <font color=#7F0055>long</font> getUGID();
 
         <font color=#3F5FBF>/**
          * Get process owner user group name.
-         * Same as getProperties().get(&ldquo;GroupName&rdquo;)
+         * Same as getProperties().get("GroupName")
          */</font>
         String getGroupName();
 
         <font color=#3F5FBF>/**
          * Get process state.
-         * Same as getProperties().get(&ldquo;State&rdquo;)
+         * Same as getProperties().get("State")
          */</font>
         String getState();
 
         <font color=#3F5FBF>/**
          * Get process virtual memory size in bytes.
-         * Same as getProperties().get(&ldquo;VSize&rdquo;)
+         * Same as getProperties().get("VSize")
          */</font>
         <font color=#7F0055>long</font> getVSize();
 
         <font color=#3F5FBF>/**
          * Get process virtual memory page size in bytes.
-         * Same as getProperties().get(&ldquo;PSize&rdquo;)
+         * Same as getProperties().get("PSize")
          */</font>
         <font color=#7F0055>long</font> getPSize();
 
         <font color=#3F5FBF>/**
          * Get number of memory pages in process resident set.
-         * Same as getProperties().get(&ldquo;RSS&rdquo;)
+         * Same as getProperties().get("RSS")
          */</font>
         <font color=#7F0055>long</font> getRSS();
 
         <font color=#3F5FBF>/**
          * Get context executable file.
-         * Same as getProperties().get(&ldquo;File&rdquo;)
+         * Same as getProperties().get("File")
          */</font>
         String getFile();
 
         <font color=#3F5FBF>/**
          * Get context current file system root.
-         * Same as getProperties().get(&ldquo;Root&rdquo;)
+         * Same as getProperties().get("Root")
          */</font>
         String getRoot();
 
         <font color=#3F5FBF>/**
          * Get context current working directory.
-         * Same as getProperties().get(&ldquo;CWD&rdquo;)
+         * Same as getProperties().get("CWD")
          */</font>
         String getCurrentWorkingDirectory();
 
         <font color=#3F5FBF>/**
          * Get all available context properties.
-         * @return Map 'property name' -> 'property value'
+         * <font color=#7F9FBF>@return</font> Map 'property name' -&gt; 'property value'
          */</font>
         Map&lt;String,Object&gt; getProperties();
     }
