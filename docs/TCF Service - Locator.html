@@ -1,0 +1,435 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+    <title>Target Communication Framework Services - Locator</title>
+</head>
+<body lang='EN-US'>
+
+<h1>Target Communication Framework Services - Locator</h1>
+
+<ul>
+    <li><a href='#VersionHistory'>Version History</a>
+    <li><a href='#Overview'>Overview</a>
+    <li><a href='#Cmds'>Commands</a>
+    <li><a href='#Interfaces'>Interfaces</a>
+    <li><a href='#API'>API</a>
+</ul>
+
+<h1>Locator Service</h1>
+
+<h2><a name='VersionHistory'>Version History</a></h2>
+
+<table border=1 cellpadding=8>
+    <tr>
+        <th>Version
+        <th>Date
+        <th>Change
+    <tr>
+        <td>1.0
+        <td>2008-05-06
+        <td>Initial
+</table>
+
+<h2><a name='Overview'>Overview</a></h2>
+
+<p>The Locator service uses the transport layer to search for peers and to collect data about
+the peer's attributes and capabilities (services).  The discovery mechanism depends on the transport
+protocol and is part of that protocol handler. Targets, known by other hosts, are
+added to local list of peers. <font color=red>Security? </font>Automatically discovered
+targets require no further configuration. Additional targets can be configured manually.</p>
+
+<p>All TCF peers must implement Locator service. The implementation is part of the framework itself.
+It is the only required service, all other services are optional and, formally, not part of the framework.</p>
+
+<h2><a name='LocatorPeer'>Peer Attributes</a></h2>
+
+<p><i>&lt;object: peer data&gt;</i> is collection of peer attributes. It should, at least, contain member
+<b><font face="Courier New" size=2 color=#333399>"ID" : <i>&lt;string&gt;</i></font></b>.
+It can also contain a number of components describing peer properties and capabilities.
+Predefined attributes are:</p>
+
+<ul>
+    <li><code><b><font face="Courier New" size=2 color=#333399>"ID" : <i>&lt;string&gt;</i></font></b></code>
+    - unique ID of the peer.
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"ServiceManagerID" : <i>&lt;string&gt;</i></font></b></code>
+    - unique ID of service manager that is represented by this peer.
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"AgentID" : <i>&lt;string&gt;</i></font></b></code>
+    - agent unique ID.
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"Name" : <i>&lt;string&gt;</i></font></b></code>
+    - human readable peer name.
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"OSName" : <i>&lt;string&gt;</i></font></b></code>
+    - peer OS name, if applicable.
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"TransportName" : <i>&lt;string&gt;</i></font></b></code>
+    - name of a trasport protocol to use to connect to this peer, for example: TCP.
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"Host" : <i>&lt;string&gt;</i></font></b></code>
+    - peer host name, if transport is TCP or UDP.
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"Aliases" : <i>&lt;string&gt;</i></font></b></code>
+    - peer host name aliases, if transport is TCP or UDP.
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"Addresses" : <i>&lt;string&gt;</i></font></b></code>
+    - peer IP addresses, if transport is TCP or UDP.
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"Port" : <i>&lt;string&gt;</i></font></b></code>
+    - peer port number, if transport is TCP or UDP.
+</ul>
+
+<p>Most clients do not need to know any peer attributes other than ID and Name. Clients are expected to call the IPeer.openChannel()
+method and let the framework check peer attributes and create appropriate communication channel that is best suited for
+communication with the peer. After a channel is established, a client can learn the peer capabilities by looking
+at what services it implements (use IChannel.getRemoteServices() method to get a map of services).</p>
+
+<p>The service uses standard format for error reports,
+see <a href='TCF Error Report Format.html'>Error Report Format</a>.</p>
+
+<h2><a name='Cmds'>Commands</a></h2>
+
+<h3><a name='CmdRedirect'>redirect</a></h3>
+
+<pre><b><font face="Courier New" size=2 color=#333399>
+C &bull; <i>&lt;token&gt;</i> &bull; Locator &bull; redirect &bull; <i>&lt;peer&gt;</i> &bull;
+
+<i>&lt;peer&gt;</i>
+    &rArr; <i>&lt;string: peer ID&gt;</i>
+    &rArr; <i>&lt;object: peer data&gt;</i>
+</font></b></pre>
+
+<p>The command redirects the channel to become connected to the given peer.
+The Locator service starts acting as a proxy.</p>
+
+<p>Reply:</p>
+
+<pre><b><font face="Courier New" size=2 color=#333399>
+R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull;
+</font></b></pre>
+
+<h3><a name='CmdSync'>sync</a></h3>
+
+<pre><b><font face="Courier New" size=2 color=#333399>
+C &bull; <i>&lt;token&gt;</i> &bull; Locator &bull; sync &bull;
+</font></b></pre>
+
+<p>The sync command does nothing and simply returns back an empty result. The command is used for
+cross channel synchronization. Since commands are executed in order they were issued, by waiting
+for sync result a client makes sure that all commands, that were issued before sync, are fully processed.</p>
+
+<p>Reply:</p>
+
+<pre><b><font face="Courier New" size=2 color=#333399>
+R &bull; <i>&lt;token&gt;</i> &bull;
+</font></b></pre>
+
+<h3><a name='CmdGetAgentID'>Get Agent ID</a></h3>
+
+<pre><b><font face="Courier New" size=2 color=#333399>
+C &bull; <i>&lt;token&gt;</i> &bull; Locator &bull; getAgentID &bull;
+</font></b></pre>
+
+<p>Get agent ID of the agent providing the locator service.
+The agent ID can be used to identify the agent among all the peers.</p>
+
+<p>Reply:</p>
+
+<pre><b><font face="Courier New" size=2 color=#333399>
+R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull; <i>&lt;string: agent ID&gt;</i> &bull;
+</font></b></pre>
+
+<h2><a name='LocatorEvents'>Locator Service Events</a></h2>
+
+<pre><b><font face="Courier New" size=2 color=#333399>
+E &bull; Locator &bull; Hello &bull; <i>&lt;array: service names&gt;</i> &bull;
+E &bull; Locator &bull; peerAdded &bull; <i>&lt;object: peer data&gt;</i> &bull;
+E &bull; Locator &bull; peerChanged &bull; <i>&lt;object: peer data&gt;</i> &bull;
+E &bull; Locator &bull; peerRemoved &bull; <i>&lt;string: peer ID&gt;</i> &bull;
+E &bull; Locator &bull; peerHeartBeat &bull; <i>&lt;string: peer ID&gt;</i> &bull;
+</font></b></pre>
+
+<dl>
+    <dt><b>Hello</b>
+        <dd>is the first message sent by the framework after establishing a communication channel.
+        The message lets other side of the channel know capabilities of this peer.
+        Message data consists of an array of service names that are provided by the peer.
+        The service name list is a complete and unambiguous declaration of peer's capabilities.
+        To avoid ambiguity, different services (even slightly different, like versions of same service)
+        must have different names. Framework delays all other communications between peers until exchange
+        of Hello messages is complete.
+    <dt><b>peerAdded</b>
+        <dd>is sent when the service discovers a new peer.
+    <dt><b>peerChanged</b>
+        <dd>is sent when peer attributes change.
+    <dt><b>peerRemoved</b>
+        <dd>is sent when the service deletes information about a peer.
+    <dt><b>peerHeartBeat</b>
+        <dd>is sent periodically when the service receives a communication from the peer
+                that confirms that the peer is still alive.
+</dl>
+
+<h2><a name='Interfaces'>Interfaces</a></h2>
+
+<pre>
+<font color=#3F5FBF>/**
+ * Base interface for all service interfaces. A client can get list of available services
+ * by calling IChannel.getLocalServices() and IChannel.getRemoteServices().
+ *
+ * Remote services are represented by a proxy objects that implement service interfaces by
+ * translating method calls to TCF messages and sending them to a remote peer.
+ * When communication channel is open, TCF automatically creates proxies for standard services.
+ * TCF clients can provides addition proxies for non-standard services by calling IChannel.setServiceProxy().
+ */</font>
+<font color=#7F0055>public</font> interface IService {
+
+    <font color=#3F5FBF>/**
+     * Get unique name of this service.
+     */</font>
+    String getName();
+}
+
+<font color=#3F5FBF>/**
+ * Both hosts and targets are represented by objects
+ * implementing IPeer interface. A peer can act as host or
+ * target depending on services it implements.
+ * List of currently known peers can be retrieved by
+ * calling ILocator.getPeers()
+ *
+ * A TCF agent houses one or more service managers. A service manager has a one or more
+ * services to expose to the world. The service manager creates one or more peers
+ * to represent itself, one for every access path the agent is
+ * reachable by. For example, in agents accessible via TCP/IP, the
+ * service manger would create a peer for every subnet it wants to participate in.
+ * All peers of particular service manager represent identical sets of services.
+ *
+ * @noimplement This interface is not intended to be implemented by clients.
+ * Client can extends the abstract IPeer implementation: AbstractPeer.
+ */</font>
+<font color=#7F0055>public interface</font> IPeer {
+
+    <font color=#3F5FBF>/**
+     * Peer property names. Implementation can define additional properties.
+     */</font>
+    <font color=#7F0055>static final</font> String
+        <font color=#3F5FBF>/** Peer unique ID */</font>
+        <i><font color=#0000C0>ATTR_ID</font></i> = <font color=#2A00FF>"ID"</font>,
+
+        <font color=#3F5FBF>/** Unique ID of service manager that is represented by this peer */</font>
+        <i><font color=#0000C0>ATTR_SERVICE_MANGER_ID</font></i> = <font color=#2A00FF>"ServiceManagerID"</font>,
+
+        <font color=#3F5FBF>/** Agent unique ID */</font>
+        <i><font color=#0000C0>ATTR_AGENT_ID</font></i> = <font color=#2A00FF>"AgentID"</font>,
+
+        <font color=#3F5FBF>/** Peer name */</font>
+        <i><font color=#0000C0>ATTR_NAME</font></i> = <font color=#2A00FF>"Name"</font>,
+
+        <font color=#3F5FBF>/** Name of the peer operating system */</font>
+        <i><font color=#0000C0>ATTR_OS_NAME</font></i> = <font color=#2A00FF>"OSName"</font>,
+
+        <font color=#3F5FBF>/** Transport name, for example TCP, SSL */</font>
+        <i><font color=#0000C0>ATTR_TRANSPORT_NAME</font></i> = <font color=#2A00FF>"TransportName"</font>,
+
+        <font color=#3F5FBF>/** If present, indicates that the peer can forward traffic to other peers */</font>
+        <i><font color=#0000C0>ATTR_PROXY</font></i> = <font color=#2A00FF>"Proxy"</font>,
+
+        <font color=#3F5FBF>/** Host DNS name or IP address */</font>
+        <i><font color=#0000C0>ATTR_IP_HOST</font></i> = <font color=#2A00FF>"Host"</font>,
+
+        <font color=#3F5FBF>/** Optional list of host aliases */</font>
+        <i><font color=#0000C0>ATTR_IP_ALIASES</font></i> = <font color=#2A00FF>"Aliases"</font>,
+
+        <font color=#3F5FBF>/** Optional list of host addresses */</font>
+        <i><font color=#0000C0>ATTR_IP_ADDRESSES</font></i> = <font color=#2A00FF>"Addresses"</font>,
+
+        <font color=#3F5FBF>/** IP port number, must be decimal number */</font>
+        <i><font color=#0000C0>ATTR_IP_PORT</font></i> = <font color=#2A00FF>"Port"</font>;
+
+
+    <font color=#3F5FBF>/**
+     * <font color=#7F9FBF>@return</font> map of peer attributes
+     */</font>
+    Map&lt;String, String&gt; getAttributes();
+
+    <font color=#3F5FBF>/**
+     * <font color=#7F9FBF>@return</font> peer unique ID, same as getAttributes().get(ATTR_ID)
+     */</font>
+    String getID();
+
+    <font color=#3F5FBF>/**
+     * <font color=#7F9FBF>@return</font> service manager unique ID, same as getAttributes().get(ATTR_SERVICE_MANAGER_ID)
+     */</font>
+    String getServiceManagerID();
+
+    <font color=#3F5FBF>/**
+     * <font color=#7F9FBF>@return</font> agent unique ID, same as getAttributes().get(ATTR_AGENT_ID)
+     */</font>
+    String getAgentID();
+
+    <font color=#3F5FBF>/**
+     * <font color=#7F9FBF>@return</font> peer name, same as getAttributes().get(ATTR_NAME)
+     */</font>
+    String getName();
+
+    <font color=#3F5FBF>/**
+     * <font color=#7F9FBF>@return</font> agent OS name, same as getAttributes().get(ATTR_OS_NAME)
+     */</font>
+    String getOSName();
+
+    <font color=#3F5FBF>/**
+     * <font color=#7F9FBF>@return</font> transport name, same as getAttributes().get(ATTR_TRANSPORT_NAME)
+     */</font>
+    String getTransportName();
+
+    <font color=#3F5FBF>/**
+     * Open channel to communicate with this peer.
+     * Note: the channel is not fully open yet when this method returns.
+     * It's state is IChannel.STATE_OPENNING.
+     * Protocol.Listener will be called when the channel will be opened or closed.
+     */</font>
+    IChannel openChannel() <font color=#7F0055>throws</font> IOException;
+}
+</pre>
+
+<h2><a name='API'>API</a></h2>
+
+<pre>
+<font color=#3F5FBF>/**
+ * ILocator service uses transport layer to search for peers and to collect data about
+ * peer's attributes and capabilities (services). Discovery mechanism depends on transport protocol
+ * and is part of that protocol handler. Targets, known to other hosts, can be found through
+ * remote instances of ILocator service. Automatically discovered targets require no further
+ * configuration. Additional targets can be configured manually.
+ *
+ * Clients should use Protocol.getLocator() to obtain local instance of ILocator,
+ * then ILocator.getPeers() can be used to get list of available peers (hosts and targets).
+ *
+ * <font color=#7F9FBF>@noimplement</font> This interface is not intended to be implemented by clients.
+ */</font>
+<font color=#7F0055>public interface</font> ILocator <font color=#7F0055>extends</font> IService {
+
+    <font color=#7F0055>static final</font> String NAME = "Locator";
+
+    <font color=#3F5FBF>/**
+     * Peer data retention period in milliseconds.
+     */</font>
+    <font color=#7F0055>static final</font> <font color=#7F0055>long</font> DATA_RETENTION_PERIOD = 60 * 1000;
+
+    <font color=#3F5FBF>/**
+     * Auto-configuration protocol version.
+     */</font>
+    static char CONF_VERSION = '2';
+
+    <font color=#3F5FBF>/**
+     * Auto-configuration command and response codes.
+     */</font>
+    <font color=#7F0055>static final int</font>
+        CONF_REQ_INFO = 1,
+        CONF_PEER_INFO = 2,
+        CONF_REQ_SLAVES = 3,
+        CONF_SLAVES_INFO = 4,
+        CONF_PEERS_REMOVED = 5;
+
+    <font color=#3F5FBF>/**
+     * <font color=#7F9FBF>@return</font> Locator service name: "Locator"
+     */</font>
+    String getName();
+
+    <font color=#3F5FBF>/**
+     * Get map (ID -&gt; IPeer) of available peers (hosts and targets).
+     * The method return cached (currently known to the framework) list of peers.
+     * The list is updated according to event received from transport layer
+     */</font>
+    Map&lt;String,IPeer&gt; getPeers();
+
+    <font color=#3F5FBF>/**
+     * Redirect this service channel to given peer using this service as a proxy.
+     * <font color=#7F9FBF>@param</font> peer_id - Peer ID.
+     */</font>
+    IToken redirect(String peer_id, DoneRedirect done);
+
+    <font color=#3F5FBF>/**
+     * Redirect this service channel to given peer using this service as a proxy.
+     * <font color=#7F9FBF>@param</font> peer - Peer attributes.
+     */</font>
+    IToken redirect(Map&lt;String,String&gt; peer, DoneRedirect done);
+
+    <font color=#7F0055>interface</font> DoneRedirect {
+        <font color=#7F0055>void</font> doneRedirect(IToken token, Exception error);
+    }
+
+    <font color=#3F5FBF>/**
+     * Call back after TCF messages sent to this target up to this moment are delivered.
+     * This method is intended for synchronization of messages
+     * across multiple channels.
+     *
+     * Note: Cross channel synchronization can reduce performance and throughput.
+     * Most clients don't need channel synchronization and should not call this method.
+     *
+     * <font color=#7F9FBF>@param</font> done will be executed by dispatch thread after communication
+     * messages are delivered to corresponding targets.
+     *
+     * This is internal API, TCF clients should use {@code org.eclipse.tcf.protocol.Protocol}.
+     */</font>
+    IToken sync(DoneSync done);
+
+    <font color=#7F0055>interface</font> DoneSync {
+        <font color=#7F0055>void</font> doneSync(IToken token);
+    }
+
+    <font color=#3F5FBF>/**
+     * Get agent ID of the agent providing the locator service.
+     *
+     * The agent ID can be used to identify the agent among all the peers
+     * returned by {@link #getPeers()}.
+     */</font>
+    IToken getAgentID(DoneGetAgentID done);
+
+    <font color=#7F0055>interface</font> DoneGetAgentID {
+        <font color=#7F0055>void</font> doneGetAgentID(IToken token, Exception error, String agentID);
+    }
+
+    <font color=#3F5FBF>/**
+     * Add a listener for ILocator service events.
+     */</font>
+    <font color=#7F0055>void</font> addListener(LocatorListener listener);
+
+    <font color=#3F5FBF>/**
+     * Remove a listener for ILocator service events.
+     */</font>
+    <font color=#7F0055>void</font> removeListener(LocatorListener listener);
+
+    <font color=#3F5FBF>/**
+     * ILocator service event listener interface
+     */</font>
+    <font color=#7F0055>interface</font> LocatorListener {
+        <font color=#3F5FBF>/**
+         * A new peer is added into locator peer table.
+         * <font color=#7F9FBF>@param</font> peer
+         */</font>
+        <font color=#7F0055>void</font> peerAdded(IPeer peer);
+
+        <font color=#3F5FBF>/**
+         * Peer attributes have changed.
+         * <font color=#7F9FBF>@param</font> peer
+         */</font>
+        <font color=#7F0055>void</font> peerChanged(IPeer peer);
+
+        <font color=#3F5FBF>/**
+         * A peer is removed from locator peer table.
+         * <font color=#7F9FBF>@param</font> id - peer ID
+         */</font>
+        <font color=#7F0055>void</font> peerRemoved(String id);
+
+        <font color=#3F5FBF>/**
+         * Peer heart beat detected.
+         * <font color=#7F9FBF>@param</font> id - peer ID
+         */</font>
+        <font color=#7F0055>void</font> peerHeartBeat(String id);
+    }
+}
+</pre>
+
+</body>
+</html>

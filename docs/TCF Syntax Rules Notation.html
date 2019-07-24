@@ -1,0 +1,75 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+    <title>Syntax Rules Notation</title>
+</head>
+
+<body lang='EN-US'>
+
+<h1>Syntax Rules Notation</h1>
+
+<p>Copyright (c) 2007-2019 Wind River Systems, Inc. and others. Made available under the EPL v1.0<br/>
+Agent portion made available under your choice of EPL v1.0 or EDL v1.0 dual-license.</p>
+<p>Direct comments, questions to the <a href="https://dev.eclipse.org/mailman/listinfo/tcf-dev">tcf-dev@eclipse.org</a> mailing list</p>
+
+<h2>Table of Contents</h2>
+<ul>
+    <li><a href='#VersionHistory'>Version History</a></li>
+    <li><a href='#Syntax'>Syntax Rules Notation</a></li>
+</ul>
+
+<h2><a name='VersionHistory'>Version History</a></h2>
+
+<table border=1 cellpadding=8>
+    <tr>
+        <th>Version</th>
+        <th>Date</th>
+        <th>Change</th>
+    </tr>
+    <tr>
+        <td>0.1</td>
+        <td>2008-01-10</td>
+        <td>Initial contribution</td>
+    </tr>
+    <tr>
+        <td>1.0</td>
+        <td>2008-05-06</td>
+        <td>Approved</td>
+    </tr>
+</table>
+
+<h2><a name='Syntax'>Syntax Rules Notation</a></h2>
+
+<p>Format of the protocol messages is defined by syntax rules. Syntax is described
+using a simple variant of Backus-Naur Form. In particular:</p>
+
+<ul type='disc'>
+    <li>Italic lower case words in a courier font, enclosed into angular brackets, are
+    used to denote syntactic categories, for example:&nbsp;<b><i><font face="Courier New" size="2" color="#333399">&lt;token&gt;.
+    </font></i></b>Category name can be followed by colon and a text, which explains semantics
+    of the category, for example: <b><i><font face="Courier New" size="2" color="#333399">&lt;int:
+    error code&gt;</font></i></b> has same meaning as <b><i><font face="Courier New" size="2" color="#333399">&lt;int&gt;</font></i></b>,
+    but denotes that the integer number used to indicate an "error code".</li>
+
+    <li>A syntax rule consists of a category designation followed by one or more syntax
+    definitions for the category. The category name and each definition are placed on
+    separate lines, bullets are used to denote definitions, for example:</li>
+</ul>
+
+<pre><b><font face="Courier New" size="2" color="#333399">
+<i>&lt;chars&gt;</i>
+    &rArr; <i>&lt;char&gt;</i>
+    &rArr; <i>&lt;chars&gt; &lt;char&gt;</i>
+</font></b></pre>
+
+<ul type='disc'>
+    <li>Spaces are added for readability only and they are not part of the syntax.</li>
+
+    <li>All text in the category definition, other than categories and spaces, is UTF-8
+    based representation of a message bytes.</li>
+
+    <li>The symbol &lsquo;&bull;&rsquo; designates a zero byte.</li>
+</ul>
+
+</body>
+</html>

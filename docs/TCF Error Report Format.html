@@ -1,0 +1,162 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+    <title>Error Report Format</title>
+</head>
+
+<body lang='EN-US'>
+
+<h1>Error Report Format</h1>
+
+<p>Copyright (c) 2007-2019 Wind River Systems, Inc. and others. Made available under the EPL v1.0<br/>
+Agent portion made available under your choice of EPL v1.0 or EDL v1.0 dual-license.</p>
+<p>Direct comments, questions to the <a href="https://dev.eclipse.org/mailman/listinfo/tcf-dev">tcf-dev@eclipse.org</a> mailing list</p>
+
+<h2>Table of Contents</h2>
+<ul>
+    <li><a href='#VersionHistory'>Version History</a></li>
+    <li><a href='#ErrorFormat'>Error Report Format</a></li>
+</ul>
+
+<h2><a name='VersionHistory'>Version History</a></h2>
+
+<table border=1 cellpadding=8>
+    <tr>
+        <th>Version</th>
+        <th>Date</th>
+        <th>Change</th>
+    </tr>
+    <tr>
+        <td>0.1</td>
+        <td>2008-01-10</td>
+        <td>Initial contribution</td>
+    </tr>
+    <tr>
+        <td>1.0</td>
+        <td>2008-05-06</td>
+        <td>Approved</td>
+    </tr>
+    <tr>
+        <td>1.1</td>
+        <td>2008-06-25</td>
+        <td>Enhanced error reporting format, see <a href='http://bugs.eclipse.org/bugs/show_bug.cgi?id=232410'>Bug 232410</a></td>
+    </tr>
+</table>
+
+
+<h2><a name='ErrorFormat'>Error Report Format</a></h2>
+
+<p>TCF standard services use same format for error reporting:</p>
+
+<pre><b><font face="Courier New" size="2" color="#333399">
+<i>&lt;error report&gt;</i>
+    &rArr;
+    &rArr; null
+    &rArr; <i>&lt;object: error description&gt;</i>
+</font></b></pre>
+
+<p>Error reports use JSON for message encoding, see
+<a href='TCF JSON.html'>JSON - Preferred Marshaling</a>.</p>
+
+<p>Empty or null error report means success. Error description provides error details, including
+error code and a short, localizable, human readable explanation of the error.</p>
+
+<p>Error description properties are:</p>
+<dl>
+    <dt><b><font face="Courier New" size="2" color="#333399">"Code" : <i>&lt;integer&gt;</i></font></b></dt>
+    <dd>Error code. Can belong to one of predefined ranges:
+        <ul>
+        <li> 0x0-0xffff Standard TCF codes, includes a limited subset of POSIX errors, and OTHER error code, which
+             can be used together with "AltCode"</li>
+        <li> 0x10000-0x1ffff Service specific codes</li>
+        <li> 0x20000-0x2ffff Reserved codes - will never be used by the TCF standard</li>
+        </ul>
+    </dd>
+
+    <dt><b><font face="Courier New" size="2" color="#333399">"Time" : <i>&lt;integer&gt;</i></font></b></dt>
+    <dd> Error timestamp, in milliseconds since midnight, January 1, 1970 UTC</dd>
+
+    <dt><b><font face="Courier New" size="2" color="#333399">"Service" : <i>&lt;string&gt;</i></font></b></dt>
+    <dd> Name of the service that reported the error. Required when "Code" is service specific code.</dd>
+
+    <dt><b><font face="Courier New" size="2" color="#333399">"Format" : <i>&lt;string&gt;</i></font></b></dt>
+    <dd> Error description format supports separation between constant and variable parts
+        of error message ("Format" and "Params"). This is done to support localization.
+        Format string is expected to allow translation into foreign languages by means of string table lookup.
+        The format string syntax is defined in the Java language library
+        <b><font face="Courier New" size="2">java.text.MessageFormat</font></b>.
+        In order to simplify clients written in other languages, only a subset of the syntax is supported:
+         <ul>
+         <li> Supported format types: (none), number</li>
+         <li> Supported format styles:
+             <ul>
+             <li> number: (none), "integer", "percent"</li>
+             </ul>
+         </li>
+         </ul>
+    </dd>
+
+    <dt><b><font face="Courier New" size="2" color="#333399">"Params" : <i>&lt;array&gt;</i></font></b></dt>
+    <dd> An array of values to be used together with "Format" to create the error message.</dd>
+
+    <dt><b><font face="Courier New" size="2" color="#333399">"Severity" : <i>&lt;integer&gt;</i></font></b></dt>
+    <dd> Predefined severity values:
+        <ul>
+        <li>0 - error (default)</li>
+        <li>1 - warning</li>
+        <li>2 - fatal</li>
+        </ul>
+    </dd>
+    <dt><b><font face="Courier New" size="2" color="#333399">"AltCode" : <i>&lt;integer&gt;</i></font></b></dt>
+    <dd> Alternative error code.  This can be used to represent,
+    for example, OS, POSIX, or other vendor specific error codes</dd>
+
+    <dt><b><font face="Courier New" size="2" color="#333399">"AltOrg" : <i>&lt;string&gt;</i></font></b></dt>
+    <dd> ID of organization defining "AltCode", for example "Linux", "VxWorks", "Wind River", etc</dd>
+
+    <dt><b><font face="Courier New" size="2" color="#333399">"CausedBy" : <i>&lt;object: error description&gt;</i></font></b></dt>
+    <dd> A nested error description. Can be used to describe a root cause of this error.</dd>
+</dl>
+
+<p>All fields except "Code" are optional.</p>
+
+<p>Standard error codes:</p>
+<pre><code>
+    OTHER               = 1
+    JSON_SYNTAX         = 2
+    PROTOCOL            = 3
+    BUFFER_OVERFLOW     = 4
+    CHANNEL_CLOSED      = 5
+    COMMAND_CANCELLED   = 6
+    UNKNOWN_PEER        = 7
+    BASE64              = 8
+    EOF                 = 9
+    ALREADY_STOPPED     = 10
+    ALREADY_EXITED      = 11
+    ALREADY_RUNNING     = 12
+    ALREADY_ATTACHED    = 13
+    IS_RUNNING          = 14
+    INV_DATA_SIZE       = 15
+    INV_CONTEXT         = 16
+    INV_ADDRESS         = 17
+    INV_EXPRESSION      = 18
+    INV_FORMAT          = 19
+    INV_NUMBER          = 20
+    INV_DWARF           = 21
+    SYM_NOT_FOUND       = 22
+    UNSUPPORTED         = 23
+    INV_DATA_TYPE       = 24
+    INV_COMMAND         = 25
+</code></pre>
+
+<p>Service specific error code definitions, if any, are part of service specfications.
+Standard and service specific error codes can be extended over time.  A
+client that does not recognize a specific error code should treat it in the
+same way as "OTHER".</p>
+
+<p>For encoding of <b><i><font face="Courier New" size="2" color="#333399">&lt;object&gt;</font></i></b>,
+<b><i><font face="Courier New" size="2" color="#333399">&lt;string&gt;</font></i></b>, etc., see
+<a href='TCF JSON.html'>JSON - Preferred Marshaling</a>.</p>
+
+</body>
+</html>

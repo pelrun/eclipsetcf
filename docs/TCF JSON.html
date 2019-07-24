@@ -1,0 +1,157 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+    <title>JSON - Preferred Marshaling</title>
+</head>
+<body lang='EN-US'>
+
+<h1>JSON - Preferred Marshaling</h1>
+
+<p>The TCF message data format is service specific. Since service specifications are
+separate from the protocol specification, a service designer can choose any data format that
+suits the service requirements best. However, to promote better compatibility and to
+simplify service design and implementation, we recommend using <b>JSON</b> for data formatting.</p>
+
+<p><b>JSON</b> (pronounced like the
+English given name <i>Jason</i>), which stands for "<b>J</b>ava<b>S</b>cript <b>O</b>bject
+<b>N</b>otation", is a lightweight, text-based, language-independent computer data
+interchange format. <b>JSON</b> is a subset of the object literal notation of JavaScript
+but its use does not require JavaScript.</p>
+
+<p><b>JSON</b> represents data with the same basic types that programming languages
+use. <b>JSON</b>'s basic types are:</p>
+
+<ul type='disc'>
+    <li>Number (integer, real, or floating-point)
+
+    <li>String (double-quoted with backslash escapement)
+
+    <li>Boolean (<code>true</code> and <code>false</code>)
+
+    <li>Array (an ordered sequence of values)
+
+    <li>Object (collection of key/value pairs)
+
+    <li><code>null</code>
+ </ul>
+
+<p>The structures used in most programming languages easily map directly onto JSON's
+structures, and back again.</p>
+
+<p>JSON maps data onto Unicode string. Then the string is mapped onto array of bytes
+using UTF-8 encoding.</p>
+
+<p>JSON specification:</p>
+
+<pre><b><font face="Courier New" size=2 color=#333399>
+<i>&lt;object&gt;</i>
+    &rArr; {}
+    &rArr; { <i>&lt;members&gt;</i> }
+
+<i>&lt;members&gt;</i>
+    &rArr; <i>&lt;string&gt;</i> : <i>&lt;value&gt;</i>
+    &rArr; <i>&lt;members&gt;</i> , <i>&lt;string&gt;</i> : <i>&lt;value&gt;</i>
+
+<i>&lt;array&gt;</i>
+    &rArr; []
+    &rArr; [ <i>&lt;elements&gt;</i> ]
+
+<i>&lt;elements&gt;</i>
+    &rArr; <i>&lt;value&gt;</i>
+    &rArr; <i>&lt;elements</i>&gt; , <i>&lt;value&gt;</i>
+
+<i>&lt;value&gt;</i>
+    &rArr; <i>&lt;string&gt;</i>
+    &rArr; <i>&lt;number&gt;</i>
+    &rArr; <i>&lt;object&gt;</i>
+    &rArr; <i>&lt;array&gt;</i>
+    &rArr; <i>&lt;boolean&gt;</i>
+    &rArr; null
+
+<i>&lt;boolean&gt;</i>
+    &rArr; true
+    &rArr; false
+
+<i>&lt;string&gt;</i>
+    &rArr; ""
+    &rArr; " <i>&lt;chars&gt;</i> "
+
+<i>&lt;chars&gt;</i>
+    &rArr; <i>&lt;char&gt;</i>
+    &rArr; <i>&lt;chars&gt; &lt;char&gt;</i>
+
+<i>&lt;char</i>&gt;
+    &rArr; <i>&lt;any Unicode except " or \ or control&gt;</i>
+    &rArr; \"<i></i>
+    &rArr; \\<i></i>
+    &rArr; \/<i></i>
+    &rArr; \b<i></i>
+    &rArr; \f<i></i>
+    &rArr; \n<i></i>
+    &rArr; \r<i></i>
+    &rArr; \t<i></i>
+    &rArr; \u <i>&lt;four-hex-digits&gt;</i>
+
+<i>&lt;number</i>&gt;
+    &rArr; <i>&lt;int&gt;</i>
+    &rArr; &lt;<i>int&gt; &lt;fraction&gt;</i>
+    &rArr; &lt;<i>int&gt; &lt;exponent&gt;</i>
+    &rArr; &lt;<i>int&gt; &lt;fraction&gt; &lt;exponent&gt;</i>
+
+<i>&lt;int&gt;</i>
+    &rArr; <i>&lt;digit&gt;</i>
+    &rArr; &lt;<i>digit 1-9&gt; &lt;digits&gt;</i>
+    &rArr; - &lt;<i>digit&gt;</i>
+    &rArr; - &lt;<i>digit 1-9&gt; &lt;digits</i>&gt;
+
+<i>&lt;fraction&gt;</i>
+    &rArr; . <i>&lt;digits&gt;</i>
+
+<i>&lt;exponent&gt;</i>
+    &rArr; <i>&lt;e&gt;</i> <i>&lt;digits&gt;</i>
+
+<i>&lt;digits&gt;</i>
+    &rArr; <i>&lt;digit&gt;</i>
+    &rArr; &lt;<i>digits&gt;</i> &lt;<i>digit&gt;</i>
+
+<i>&lt;e&gt;</i>
+    &rArr; e
+    &rArr; e+
+    &rArr; e-
+    &rArr; E
+    &rArr; E+
+    &rArr; E-
+
+</font></b></pre>
+
+<p>See <a href='http://www.json.org/'>www.json.org</a> for more details.</p>
+
+<h2><a name='JSONExamples'>Examples</a></h2>
+
+<p>This is a JSON array containing two objects:</p>
+
+<pre>
+   [
+       {
+          "Precision": "zip",
+          "Latitude":  37.7668,
+          "Longitude": -122.3959,
+          "City":      "SAN FRANCISCO",
+          "State":     "CA",
+          "Zip":       "94107",
+          "Country":   "US"
+       },
+       {
+          "Precision": "zip",
+          "Latitude":  37.371991,
+          "Longitude": -122.026020,
+          "City":      "SUNNYVALE",
+          "State":     "CA",
+          "Zip":       "94085",
+          "Country":   "US"
+       }
+   ]
+</pre>
+
+</body>
+</html>
