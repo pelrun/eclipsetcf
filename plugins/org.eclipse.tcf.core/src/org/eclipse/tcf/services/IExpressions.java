@@ -245,15 +245,10 @@ public interface IExpressions extends IService {
     /**
      * Retrieve children IDs for given parent ID.
      * Meaning of the operation depends on parent kind:
-     * 1. expression with type of a struct, union, or class - fields;
-     * 2. expression with type of an enumeration - enumerators;
-     * 3. expression with type of an array - array elements;
-     * 4. stack frame - function arguments and local variables;
-     * 5. thread - top stack frame function arguments and local variables;
-     * 6. process - global variables;
-     *
-     * Children list does *not* include IDs of expressions that were created by clients
-     * using "create" command.
+     * 1. stack frame - function arguments and local variables;
+     * 2. thread - top stack frame function arguments and local variables;
+     * 3. expression with type of a struct, union, or class - fields;
+     * 4. expression with type of an enumeration - enumerators;
      *
      * @param parent_context_id - parent context ID.
      * @param done - call back interface called when operation is completed.

@@ -109,13 +109,13 @@ Context data is expected to be cached by clients.</p>
     Evaluation of such expressions resumes and suspends target thread or CPU.
 
     <li><code><b><font face="Courier New" size=2 color=#333399>"Class" : <i>&lt;number&gt;</i></font></b></code>
-    - .
+    - symbol class of the expression type. See <a href='TCF Service - Symbols.html'>Symbols Service</a> for definition of symbol classes.
 
     <li><code><b><font face="Courier New" size=2 color=#333399>"Type" : <i>&lt;string&gt;</i></font></b></code>
-    - .
+    - symbol ID of the expression type.
 
     <li><code><b><font face="Courier New" size=2 color=#333399>"Size" : <i>&lt;number&gt;</i></font></b></code>
-    - .
+    - size (in bytes) of the expression value.
 </ul>
 
 <h3><a name='CmdGetChildren'>Get Children</a></h3>
@@ -124,7 +124,144 @@ Context data is expected to be cached by clients.</p>
 C &bull; <i>&lt;token&gt;</i> &bull; Expressions &bull; getChildren &bull; <i>&lt;string: parent context ID&gt;</i> &bull;
 </font></b></pre>
 
-<p><font color=#FF7000>TBD</font></p>
+<p>Retrieve children IDs for given parent ID.
+   Meaning of the operation depends on parent kind:</p>
+<ol>
+    <li>parent is stack frame: children are function arguments and local variables</li>
+    <li>parent is thread: children are top stack frame function arguments and local variables</li>
+    <li>parent is expression with type of a struct, union, or class: children are symbol IDs of fields</li>
+    <li>parent is expression with type of an enumeration: children are symbol IDs of enumerators</li>
+</ol>
+<p>Children list does not include IDs of expressions that were created by clients using "create" command.</p>
+
+<p>Reply:</p>
+
+<pre><b><font face="Courier New" size=2 color=#333399>
+R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull; <i>&lt;array: children IDs&gt;</i> &bull;
+</font></b></pre>
+
+<h3><a name='CmdCreate'>Create</a></h3>
+
+<pre><b><font face="Courier New" size=2 color=#333399>
+C &bull; <i>&lt;token&gt;</i> &bull; Expressions &bull; create &bull; <i>&lt;string: parent context ID&gt;</i> &bull; <i>&lt;string: language&gt;</i> &bull; <i>&lt;string: expression&gt;</i> &bull;
+</font></b></pre>
+
+<p>Create an expression context. The context should be disposed after use.</p>
+<p>"parent context ID" is a context ID that can be used to resolve symbol names. It can be process, thread or stack frame.
+<p>"language" - language of expression script, null means default language.</p>
+<p>"expression" - the expression script.</p>
+
+<p>Reply:</p>
+
+<pre><b><font face="Courier New" size=2 color=#333399>
+R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull; <i>&lt;string: expression context ID&gt;</i> &bull;
+</font></b></pre>
+
+<h3><a name='CmdCreateInScope'>Create In Scope</a></h3>
+
+<pre><b><font face="Courier New" size=2 color=#333399>
+C &bull; <i>&lt;token&gt;</i> &bull; Expressions &bull; createInScope &bull; <i>&lt;object: scope&gt;</i> &bull; <i>&lt;string: expression&gt;</i> &bull;
+</font></b></pre>
+
+<p>Create an expression context in a scope. The context should be disposed after use.</p>
+<p>"scope" controls symbols resolution and and interpretation of the expression script.</p>
+<p>Predefined properties of the expression scope are:</p>
+<ul>
+    <li><code><b><font face="Courier New" size=2 color=#333399>"ContextID" : <i>&lt;string&gt;</i></font></b></code>
+    - context ID that can be used to resolve symbol names. It can be process, thread or stack frame.
+    <li><code><b><font face="Courier New" size=2 color=#333399>"Address" : <i>&lt;string&gt;</i></font></b></code>
+    - code instruction address in the parent context. The address identifies compilation unit, function and/or basic block to be used as expression evaluation environment.
+    <li><code><b><font face="Courier New" size=2 color=#333399>"Language" : <i>&lt;string&gt;</i></font></b></code>
+    - language of expression script.
+</ul>
+<p>"expression" - the expression script.</p>
+
+<p>Reply:</p>
+
+<pre><b><font face="Courier New" size=2 color=#333399>
+R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull; <i>&lt;string: expression context ID&gt;</i> &bull;
+</font></b></pre>
+
+<h3><a name='CmdDispose'>Dispose</a></h3>
+
+<pre><b><font face="Courier New" size=2 color=#333399>
+C &bull; <i>&lt;token&gt;</i> &bull; Expressions &bull; dispose &bull; <i>&lt;string: expression ID&gt;</i> &bull;
+</font></b></pre>
+
+<p>Dispose an expression context that was created by "create" or "createInScope" commands.</p>
+
+<p>Reply:</p>
+
+<pre><b><font face="Courier New" size=2 color=#333399>
+R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull;
+</font></b></pre>
+
+<h3><a name='CmdEvaluate'>Evaluate</a></h3>
+
+<pre><b><font face="Courier New" size=2 color=#333399>
+C &bull; <i>&lt;token&gt;</i> &bull; Expressions &bull; evaluate &bull; <i>&lt;string: expression ID&gt;</i> &bull;
+</font></b></pre>
+
+<p>Evaluate value of an expression.</p>
+
+<p>Reply:</p>
+
+<pre><b><font face="Courier New" size=2 color=#333399>
+R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;array of bytes: value&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull; <i>&lt;object: value properties&gt;</i> &bull;
+</font></b></pre>
+
+<p>Predefined properties of the expression value are:</p>
+<ul>
+    <li><code><b><font face="Courier New" size=2 color=#333399>"Class" : <i>&lt;number&gt;</i></font></b></code>
+    - symbol class of the expression value type. See <a href='TCF Service - Symbols.html'>Symbols Service</a> for definition of symbol classes.
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"Type" : <i>&lt;string&gt;</i></font></b></code>
+    - symbol ID of the expression value type.
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"Symbol" : <i>&lt;string&gt;</i></font></b></code>
+    - symbol ID if the expression designates a symbol.
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"BitStride" : <i>&lt;number&gt;</i></font></b></code>
+    - if the value is an array, and if the amount of storage allocated to hold each element of the array is different from
+      the amount of storage that is normally allocated to hold an individual object of the indicated element type,
+      then BitStride is the size (in bits) of each element of the array.
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"BinaryScale" : <i>&lt;number&gt;</i></font></b></code>
+    - if the value is a fixed point binary number, BinaryScale is the exponent of the base two scale factor to be applied to the value.
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"DecimalScale" : <i>&lt;number&gt;</i></font></b></code>
+    - if the value is a fixed point decimal number, DecimalScale is the exponent of the base ten scale factor to be applied to the value.
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"ImplicitPointer" : <i>&lt;boolean&gt;</i></font></b></code>
+    - true if the value is result of implicit pointer dereference.
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"Register" : <i>&lt;string&gt;</i></font></b></code>
+    - register ID if the expression designates a register.
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"Address" : <i>&lt;number&gt;</i></font></b></code>
+    - memory address if the expression designates a location in the parent context memory.
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"Pieces" : <i>&lt;array&gt;</i></font></b></code>
+    - <font color=#FF7000>TBD</font>
+
+    <li><code><b><font face="Courier New" size=2 color=#333399>"BigEndian" : <i>&lt;boolean&gt;</i></font></b></code>
+    - true if the value is big endian.
+
+</ul>
+
+<h3><a name='CmdAssign'>Assign</a></h3>
+
+<pre><b><font face="Courier New" size=2 color=#333399>
+C &bull; <i>&lt;token&gt;</i> &bull; Expressions &bull; assign &bull; <i>&lt;string: expression ID&gt;</i> &bull; <i>&lt;array of bytes: value&gt;</i> &bull;
+</font></b></pre>
+
+<p>Assign a value to memory location determined by an expression.</p>
+
+<p>Reply:</p>
+
+<pre><b><font face="Courier New" size=2 color=#333399>
+R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull;
+</font></b></pre>
 
 <h2><a name='API'>API</a></h2>
 
@@ -359,15 +496,10 @@ C &bull; <i>&lt;token&gt;</i> &bull; Expressions &bull; getChildren &bull; <i>&l
     <font color=#3F5FBF>/**
      * Retrieve children IDs for given parent ID.
      * Meaning of the operation depends on parent kind:
-     * 1. expression with type of a struct, union, or class - fields;
-     * 2. expression with type of an enumeration - enumerators;
-     * 3. expression with type of an array - array elements;
-     * 4. stack frame - function arguments and local variables;
-     * 5. thread - top stack frame function arguments and local variables;
-     * 6. process - global variables;
-     *
-     * Children list does *not* include IDs of expressions that were created by clients
-     * using "create" command.
+     * 1. stack frame - function arguments and local variables;
+     * 2. thread - top stack frame function arguments and local variables;
+     * 3. expression with type of a struct, union, or class - fields;
+     * 4. expression with type of an enumeration - enumerators;
      *
      * <font color=#7F9FBF>@param</font> parent_context_id - parent context ID.
      * <font color=#7F9FBF>@param</font> done - call back interface called when operation is completed.
