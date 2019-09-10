@@ -416,7 +416,7 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
         final Request request = new Request();
         if (!request.check()) return;
         try {
-            BigInteger address = new TCFTask<BigInteger>(request.ctx.getChannel()) {
+            BigInteger address = !fSuspended ? null : new TCFTask<BigInteger>(request.ctx.getChannel()) {
                 public void run() {
                     if (targetFrame == 0) {
                         TCFDataCache<BigInteger> addr = request.ctx.getAddress();
