@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008-2018 Wind River Systems, Inc. and others.
+ * Copyright (c) 2008-2019 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -106,6 +106,8 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
         "tcf_test_func2",
         "tcf_test_func3",
         "tcf_test_func4",
+        "tcf_test_tls",
+        "tcf_test_tls2",
         "func2_label",
     };
 
@@ -192,6 +194,10 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
         "func2_label",
         "&func2_label",
         "&func2_label!=0",
+        "tcf_test_tls",
+        "tcf_test_tls==1",
+        "tcf_test_tls2==2",
+        "&tcf_test_tls!=0",
     };
 
     private static final String[] test_dprintfs = {
@@ -562,14 +568,17 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
         if (srv_syms != null && local_var_expr_ids.length > 0) {
             for (final String nm : global_var_names) {
                 if (!global_var_ids.containsKey(nm)) {
-                    cmds.add(srv_syms.find(process_id, stack_frames[stack_frames.length - 2].getInstructionAddress(), nm, new ISymbols.DoneFind() {
+                    boolean tls = nm.startsWith("tcf_test_tls");
+                    cmds.add(srv_syms.find(tls ? thread_id : process_id,
+                            stack_frames[stack_frames.length - 2].getInstructionAddress(), nm,
+                            new ISymbols.DoneFind() {
                         public void doneFind(IToken token, Exception error, String symbol_id) {
                             cmds.remove(token);
                             if (error != null) {
                                 if (error instanceof IErrorReport &&
                                         ((IErrorReport)error).getErrorCode() == IErrorReport.TCF_ERROR_SYM_NOT_FOUND) {
                                     if (nm.startsWith("tcf_cpp_") || nm.equals("tcf_test_array_field") || nm.equals("tcf_test_func4") ||
-                                            nm.startsWith("tcf_test_int") || nm.startsWith("func2_label")) {
+                                            nm.startsWith("tcf_test_int") || nm.startsWith("func2_label") || nm.startsWith("tcf_test_tls")) {
                                         global_var_ids.put(nm, null);
                                         runTest();
                                         return;
