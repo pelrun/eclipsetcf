@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Xilinx, Inc. and others.
+ * Copyright (c) 2017-2020 Xilinx, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -136,20 +136,6 @@ class TestThread extends Thread {
                 throw new Exception("Invalid 'mon ps' reply: cnt < 1");
             if (!std_err.lst.get(0).startsWith("1: "))
                 throw new Exception("Invalid 'mon ps' reply: list");
-
-            cmd("detach");
-            if (std_out.lst.size() < 1)
-                throw new Exception("Invalid 'detach' reply: cnt < 1");
-            if (!std_out.lst.get(0).startsWith("Detaching from program"))
-                throw new Exception("Invalid 'detach' reply");
-
-            cmd("disconnect");
-            if (std_out.lst.size() < 1)
-                throw new Exception("Invalid 'disconnect' reply: cnt < 1");
-            if (!std_out.lst.get(0).startsWith("Ending remote debugging"))
-                throw new Exception("Invalid 'disconnect' reply");
-
-            cmd("target extended-remote " + host + ":" + port);
 
             for (int pass = 0; pass < 10; pass++) {
 
@@ -345,6 +331,12 @@ class TestThread extends Thread {
                 throw new Exception("Invalid 'infor thread' reply: cnt != 1");
             if (!std_out.lst.get(0).startsWith("No threads."))
                 throw new Exception("Invalid 'info threads' reply");
+
+            cmd("disconnect");
+            if (std_out.lst.size() < 1)
+                throw new Exception("Invalid 'disconnect' reply: cnt < 1");
+            if (!std_out.lst.get(0).startsWith("Ending remote debugging"))
+                throw new Exception("Invalid 'disconnect' reply");
 
             cmd("quit");
             prs.waitFor();
