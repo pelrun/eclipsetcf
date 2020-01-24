@@ -203,7 +203,6 @@
 		<Or>
 			<Class name="org.eclipse.tcf.te.runtime.processes.ProcessOutputReaderThread"/>
 			<Class name="org.eclipse.tcf.te.tcf.launch.cdt.utils.TEHelper"/>
-			<Class name="org.eclipse.tcf.te.tcf.remote.core.TCFConnectionManager"/>
 		</Or>
 	</Match>
 	

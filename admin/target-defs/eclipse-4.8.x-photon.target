@@ -46,10 +46,6 @@
 <repository location="http://download.eclipse.org/tools/orbit/downloads/drops/R20180606145124/repository"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.remote.feature.group" version="3.0.0.201803121903"/>
-<repository location="http://download.eclipse.org/tools/ptp/builds/remote/photon/milestones"/>
-</location>
-<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
 <unit id="org.eclipse.launchbar.feature.group" version="2.2.0.201805041956"/>
 <repository location="https://ci.eclipse.org/cdt/view/LaunchBar/job/launchbar-master/lastSuccessfulBuild/artifact/repo/target/repository/"/>
 </location>

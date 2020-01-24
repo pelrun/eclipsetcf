@@ -47,10 +47,6 @@
 <repository location="http://download.eclipse.org/tools/orbit/R-builds/R20170516192513/repository"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.remote.feature.group" version="3.0.0.201706052031"/>
-<repository location="http://download.eclipse.org/tools/ptp/builds/remote/oxygen/milestones"/>
-</location>
-<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
 <unit id="org.eclipse.launchbar.feature.group" version="2.2.0.201711162100"/>
 <repository location="http://download.eclipse.org/tools/cdt/launchbar/oxygen.2"/>
 </location>

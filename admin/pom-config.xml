@@ -71,7 +71,6 @@
         <cdt-site>http://download.eclipse.org/tools/cdt/releases/kepler</cdt-site>
         <tm-site>http://download.eclipse.org/tm/updates/4.0</tm-site>
         <terminal-site>http://download.eclipse.org/tm/terminal/updates/4.0</terminal-site>
-        <remote-site>http://download.eclipse.org/tools/ptp/builds/remote/2.0.0</remote-site>
         <!-- TCF needs gson-2.2.4 which was added to Orbit in Luna SR2 -->
         <orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20150124073747/repository/</orbit-site>
         <!-- SWTBot-2.4 and later require an e4-based Eclipse eg Juno or later: -->
@@ -114,11 +113,6 @@
         <repository>
             <id>swtbot</id>
             <url>${swtbot-site}</url>
-            <layout>p2</layout>
-        </repository>
-        <repository>
-            <id>remote</id>
-            <url>${remote-site}</url>
             <layout>p2</layout>
         </repository>
     </repositories>
@@ -193,7 +187,6 @@
                 <platform-site>http://download.eclipse.org/eclipse/updates/4.6</platform-site>
                 <orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20170307180635/repository</orbit-site>
                 <cdt-site>http://download.eclipse.org/tools/cdt/releases/9.2</cdt-site>
-                <remote-site>http://download.eclipse.org/tools/ptp/builds/remote/2.1.1</remote-site>
                 <terminal-site>http://download.eclipse.org/tm/terminal/updates/4.2</terminal-site>
                 <tm-site>http://download.eclipse.org/tm/updates/4.2</tm-site>
                 <swtbot-site>http://download.eclipse.org/technology/swtbot/releases/2.5.0</swtbot-site>
@@ -220,7 +213,6 @@
                 <platform-site>http://download.eclipse.org/eclipse/updates/4.7</platform-site>
                 <orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20170516192513/repository</orbit-site>
                 <cdt-site>http://download.eclipse.org/tools/cdt/releases/9.3</cdt-site>
-                <remote-site>http://download.eclipse.org/tools/ptp/builds/remote/3.0.0</remote-site>
                 <terminal-site>http://download.eclipse.org/tm/terminal/updates/4.3</terminal-site>
                 <tm-site>http://download.eclipse.org/tm/updates/4.3milestones</tm-site>
                 <swtbot-site>http://download.eclipse.org/technology/swtbot/releases/2.6.0/</swtbot-site>
@@ -235,7 +227,6 @@
                 <platform-site>http://download.eclipse.org/eclipse/updates/4.8</platform-site>
                 <orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20180606145124/repository</orbit-site>
                 <cdt-site>http://download.eclipse.org/tools/cdt/releases/9.4</cdt-site>
-                <remote-site>http://download.eclipse.org/tools/ptp/builds/remote/3.0.0</remote-site>
                 <terminal-site>http://download.eclipse.org/tm/terminal/updates/4.4milestones</terminal-site>
                 <tm-site>http://download.eclipse.org/tm/updates/4.3milestones</tm-site>
                 <swtbot-site>http://download.eclipse.org/technology/swtbot/releases/2.7.0</swtbot-site>
@@ -250,7 +241,6 @@
                 <platform-site>http://download.eclipse.org/releases/2018-09</platform-site>
                 <orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20180606145124/repository</orbit-site>
                 <cdt-site>http://download.eclipse.org/tools/cdt/releases/9.5</cdt-site>
-                <remote-site>http://download.eclipse.org/tools/ptp/builds/remote/3.0.0</remote-site>
                 <terminal-site>http://download.eclipse.org/tm/terminal/updates/4.4milestones</terminal-site>
                 <tm-site>http://download.eclipse.org/tm/updates/4.5.0-SNAPSHOT/repository</tm-site>
                 <swtbot-site>http://download.eclipse.org/technology/swtbot/releases/2.7.0</swtbot-site>
