@@ -374,7 +374,7 @@ E &bull; Memory &bull; memoryChanged &bull; <i>&lt;string: context ID&gt;</i> &b
         PROP_START_BOUND = "StartBound",        <font color=#3F5FBF>/** Number, lowest address (inclusive) which is valid for the context */</font>
         PROP_END_BOUND = "EndBound",            <font color=#3F5FBF>/** Number, highest address (inclusive) which is valid for the context */</font>
         PROP_ACCESS_TYPES = "AccessTypes";      <font color=#3F5FBF>/** Array of String, the access types allowed for this context */</font>
-    <font color=#3F5FBF>/** <font color=#7F9FBF>@since</font> 1.3*/
+    <font color=#3F5FBF>/** <font color=#7F9FBF>@since</font> 1.3 */</font>
     <font color=#7F0055>static final</font> String
         PROP_ADDRESSABLE_UNIT_SIZE = "AddressableUnitSize", <font color=#3F5FBF>/** Number, addressable unit size in number of bytes */</font>
         PROP_DEFAULT_WORD_SIZE = "DefaultWordSize"; <font color=#3F5FBF>/** Number, default word size in number of bytes */</font>
@@ -464,6 +464,30 @@ E &bull; Memory &bull; memoryChanged &bull; <i>&lt;string: context ID&gt;</i> &b
      * Verify result of memory operations (by reading and comparing).
      */</font>
     <font color=#7F0055>static final int</font> MODE_VERIFY = 0x2;
+
+    <font color=#3F5FBF>/**
+     * Memory access mode:
+     * Don't block access when memory address is known to be invalid.
+     * Note: can crash or hang target system.
+     * <font color=#7F9FBF>@since</font> 1.7
+     */</font>
+    <font color=#7F0055>static final int</font> MODE_BYPASS_ADDR_CHECK = 0x4;
+
+    <font color=#3F5FBF>/**
+     * Memory access mode:
+     * Don't flush or invalidate caches.
+     * Note: can compromise data coherence.
+     * <font color=#7F9FBF>@since</font> 1.7
+     */</font>
+    <font color=#7F0055>static final int</font> MODE_BYPASS_CACHE_SYNC = 0x8;
+
+    <font color=#3F5FBF>/**
+     * Memory access mode:
+     * Don't stop contexts in the process group.
+     * Note: can compromise data coherence.
+     * <font color=#7F9FBF>@since</font> 1.7
+     */</font>
+    <font color=#7F0055>static final int</font> MODE_DONT_STOP = 0x10;
 
     <font color=#3F5FBF>/**
      * <font color=#7F9FBF>@noimplement</font> This interface is not intended to be implemented by clients.

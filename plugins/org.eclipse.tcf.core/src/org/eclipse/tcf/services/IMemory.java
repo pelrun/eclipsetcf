@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007-2019 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007-2020 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -46,7 +46,7 @@ public interface IMemory extends IService {
         PROP_START_BOUND = "StartBound",        /** Number, lowest address (inclusive) which is valid for the context */
         PROP_END_BOUND = "EndBound",            /** Number, highest address (inclusive) which is valid for the context */
         PROP_ACCESS_TYPES = "AccessTypes";      /** Array of String, the access types allowed for this context */
-    /** @since 1.3*/
+    /** @since 1.3 */
     static final String
         PROP_ADDRESSABLE_UNIT_SIZE = "AddressableUnitSize", /** Number, addressable unit size in number of bytes */
         PROP_DEFAULT_WORD_SIZE = "DefaultWordSize"; /** Number, default word size in number of bytes */
@@ -136,6 +136,30 @@ public interface IMemory extends IService {
      * Verify result of memory operations (by reading and comparing).
      */
     static final int MODE_VERIFY = 0x2;
+
+    /**
+     * Memory access mode:
+     * Don't block access when memory address is known to be invalid.
+     * Note: can crash or hang target system.
+     * @since 1.7
+     */
+    static final int MODE_BYPASS_ADDR_CHECK = 0x4;
+
+    /**
+     * Memory access mode:
+     * Don't flush or invalidate caches.
+     * Note: can compromise data coherence.
+     * @since 1.7
+     */
+    static final int MODE_BYPASS_CACHE_SYNC = 0x8;
+
+    /**
+     * Memory access mode:
+     * Don't stop contexts in the process group.
+     * Note: can compromise data coherence.
+     * @since 1.7
+     */
+    static final int MODE_DONT_STOP = 0x10;
 
     /**
      * @noimplement This interface is not intended to be implemented by clients.
