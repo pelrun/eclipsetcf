@@ -37,11 +37,7 @@
 
     <properties>
         <!-- Define version id's to be used in the plugins section -->
-        <!-- We use tycho-0.23 for https://bugs.eclipse.org/bugs/show_bug.cgi?id=459873 -->
-        <!-- We cannot use tycho-0.25 or later since it doesn't support Java 7 for building -->
-        <!-- Using Java 8 for Tycho with a Java 7 target should be possible but takes some config -->
-        <!-- See https://bugs.eclipse.org/bugs/show_bug.cgi?id=518104 for reference -->
-        <tycho-version>0.23.1</tycho-version>
+        <tycho-version>1.3.0</tycho-version>
         <tycho-extras-version>${tycho-version}</tycho-extras-version>
         <maven-resources-version>2.7</maven-resources-version>
         <maven-antrun-version>1.8</maven-antrun-version>
