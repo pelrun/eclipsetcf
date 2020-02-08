@@ -641,10 +641,11 @@
          </activeWhen>
          <enabledWhen>
             <with variable="selection">
-               <iterate 
-                     operator="and" 
-                     ifEmpty="false">
-                  <test property="org.eclipse.tcf.te.launch.ui.model.canDelete"/>
+               <iterate operator="and" ifEmpty="false">
+                  <and>
+                     <instanceof value="org.eclipse.tcf.te.launch.ui.model.LaunchNode"/>
+                     <test property="org.eclipse.tcf.te.launch.ui.model.canDelete"/>
+                  </and>
                </iterate>
             </with>
          </enabledWhen>
