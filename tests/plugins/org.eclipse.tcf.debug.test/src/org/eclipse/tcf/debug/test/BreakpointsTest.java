@@ -1,8 +1,8 @@
 /*******************************************************************************
  * Copyright (c) 2012 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
- * of the Eclipse Public License v1.0 which accompanies this distribution, and is
- * available at http://www.eclipse.org/legal/epl-v10.html
+ * of the Eclipse Public License 2.0 which accompanies this distribution, and is
+ * available at https://www.eclipse.org/legal/epl-2.0/
  *
  * Contributors:
  * Wind River Systems - initial API and implementation
@@ -70,13 +70,13 @@ public class BreakpointsTest extends AbstractTcfUITest
         return new Transaction<CodeArea>() {
             @Override
             protected CodeArea process() throws InvalidCacheException, ExecutionException {
-            	ContextState state = validate ( fRunControlCM.getState(processInfo.fThreadId) );
+                ContextState state = validate ( fRunControlCM.getState(processInfo.fThreadId) );
                 String symId = validate ( fSymbolsCM.find(processInfo.fProcessId, new BigInteger(state.pc), "tcf_test_func0") );
                 Symbol sym = validate ( fSymbolsCM.getContext(symId) );
                 CodeArea[] area = validate ( fLineNumbersCM.mapToSource(
                     processInfo.fProcessId,
-                		sym.getAddress(),
-                		new BigInteger(sym.getAddress().toString()).add(BigInteger.valueOf(1))) );
+                        sym.getAddress(),
+                        new BigInteger(sym.getAddress().toString()).add(BigInteger.valueOf(1))) );
                 return area[0];
             }
         }.get();
@@ -123,18 +123,18 @@ public class BreakpointsTest extends AbstractTcfUITest
     public void testForeignBreakpointCreate() throws Exception {
         initProcessModel("tcf_test_func0");
 
-        final List<IBreakpoint> addedBps = Collections.synchronizedList(new ArrayList<IBreakpoint>()); 
-        
+        final List<IBreakpoint> addedBps = Collections.synchronizedList(new ArrayList<IBreakpoint>());
+
         IBreakpointsListener listener = new IBreakpointsListener() {
             @Override
             public void breakpointsAdded(IBreakpoint[] breakpoints) {
                 for (IBreakpoint bp : breakpoints) addedBps.add(bp);
                 addedBps.notify();
             }
-            
+
             @Override
             public void breakpointsChanged(IBreakpoint[] breakpoints, IMarkerDelta[] deltas) {}
-            
+
             @Override
             public void breakpointsRemoved(IBreakpoint[] breakpoints, IMarkerDelta[] deltas) {
                 for (IBreakpoint bp : breakpoints) addedBps.remove(bp);
@@ -158,7 +158,7 @@ public class BreakpointsTest extends AbstractTcfUITest
                     validate( fBreakpointsCM.add(bp, this) );
                     return validate( fBreakpointsCM.waitContextAdded(this) );
                 }}.get(60, TimeUnit.SECONDS);
-    
+
             long timeout = System.currentTimeMillis() + TIMEOUT_DEFAULT;
             wait: while(System.currentTimeMillis() < timeout) {
                 synchronized(addedBps) {
@@ -171,7 +171,7 @@ public class BreakpointsTest extends AbstractTcfUITest
                     }
                 }
             }
-    
+
             if (System.currentTimeMillis() > timeout) {
                 Assert.fail("timed out");
             }
@@ -179,6 +179,6 @@ public class BreakpointsTest extends AbstractTcfUITest
             DebugPlugin.getDefault().getBreakpointManager().removeBreakpointListener(listener);
         }
     }
-    
-    
+
+
 }

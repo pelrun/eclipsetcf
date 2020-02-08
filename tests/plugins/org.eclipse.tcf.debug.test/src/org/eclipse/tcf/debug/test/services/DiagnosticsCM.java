@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2011, 2012 Wind River Systems and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- * 
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
  * Contributors:
  *     Wind River Systems - initial API and implementation
  *******************************************************************************/
@@ -18,16 +18,16 @@ import org.eclipse.tcf.services.IDiagnostics;
 import org.eclipse.tcf.services.IDiagnostics.ISymbol;
 
 /**
- * 
+ *
  */
 public class DiagnosticsCM extends AbstractCacheManager{
     private IDiagnostics fService;
-    
+
     public DiagnosticsCM(IChannel channel, IDiagnostics service) {
         super(channel);
         fService = service;
     }
-    
+
     @Override
     public void dispose() {
         super.dispose();
@@ -44,12 +44,12 @@ public class DiagnosticsCM extends AbstractCacheManager{
                 set(token, s, error);
             }
         };
-        
+
         return mapCache(new CommandKey<MyCache>(MyCache.class, clientId) {
                 @Override MyCache createCache() { return new MyCache(); }
             });
     }
-    
+
     public ICache<String[]> getTestList() {
         class MyCache extends TokenCache<String[]> implements IDiagnostics.DoneGetTestList {
             MyCache() { super(fChannel); }
@@ -61,12 +61,12 @@ public class DiagnosticsCM extends AbstractCacheManager{
                 set(token, list, error);
             }
         };
-        
+
         return mapCache(new Key<MyCache>(MyCache.class) {
                 @Override MyCache createCache() { return new MyCache(); }
             });
     }
-    
+
     public ICache<String> runTest(final String name, Object clientId) {
         class MyCache extends TokenCache<String> implements IDiagnostics.DoneRunTest {
             MyCache() { super(fChannel); }
@@ -78,7 +78,7 @@ public class DiagnosticsCM extends AbstractCacheManager{
                 set(token, context_id, error);
             }
         };
-         
+
         return mapCache(new CommandKey<MyCache>(MyCache.class, clientId) {
                 @Override MyCache createCache() { return new MyCache(); }
             });
@@ -95,34 +95,34 @@ public class DiagnosticsCM extends AbstractCacheManager{
                 set(token, null, error);
             }
         };
-        
+
         return mapCache(new CommandKey<MyCache>(MyCache.class, clientId) {
                 @Override MyCache createCache() { return new MyCache(); }
-            });        
+            });
     }
 
     abstract class SymbolKey<V> extends IdKey<V> {
         String fSymbolName;
-        
+
         public SymbolKey(Class<V> clazz, String id, String symbolName) {
             super(clazz, id);
             fSymbolName = symbolName;
         }
-        
+
         @Override
         public boolean equals(Object obj) {
             if (super.equals(obj) && obj instanceof SymbolKey<?>) {
                 return ((SymbolKey<?>)obj).fSymbolName.equals(fSymbolName);
-            } 
-            return false;        
+            }
+            return false;
         }
-        
+
         @Override
         public int hashCode() {
             return super.hashCode() + fSymbolName.hashCode();
         }
     }
-    
+
     public ICache<IDiagnostics.ISymbol> getSymbol(final String context_id, final String symbol_name) {
         class MyCache extends TokenCache<IDiagnostics.ISymbol> implements IDiagnostics.DoneGetSymbol {
             MyCache() { super(fChannel); }
@@ -134,10 +134,10 @@ public class DiagnosticsCM extends AbstractCacheManager{
                 set(token, symbol, error);
             }
         };
-        
+
         return mapCache(new SymbolKey<MyCache>(MyCache.class, context_id, symbol_name) {
                 @Override MyCache createCache() { return new MyCache(); }
             });
     }
-    
+
 }

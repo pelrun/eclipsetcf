@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2009, 2012 Wind River Systems and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- * 
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
  * Contributors:
  *     Wind River Systems - initial API and implementation
  *******************************************************************************/
@@ -36,25 +36,25 @@ import org.eclipse.jface.viewers.TreePath;
 
 /**
  * Copied from org.eclipse.cdt.tests.dsf
- * 
+ *
  */
 @SuppressWarnings("restriction")
-public class ViewerUpdatesListener 
+public class ViewerUpdatesListener
     implements IViewerUpdateListener, ILabelUpdateListener, IModelChangedListener, IViewerUpdatesListenerConstants,
         IStateUpdateListener
 {
     private ITreeModelViewer fViewer;
-    
+
     private boolean fFailOnRedundantUpdates;
     private Set<IViewerUpdate> fRedundantUpdates = new HashSet<IViewerUpdate>();
-    
+
     private boolean fFailOnMultipleModelUpdateSequences;
     private boolean fMultipleModelUpdateSequencesObserved;
     private boolean fFailOnMultipleLabelUpdateSequences;
     private boolean fMultipleLabelUpdateSequencesObserved;
-    
+
     private boolean fDelayContentUntilProxyInstall;
-    
+
     private Set<TreePath> fHasChildrenUpdatesScheduled = makeTreePathSet();
     private Set<IViewerUpdate> fHasChildrenUpdatesRunning = new HashSet<IViewerUpdate>();
     private Set<IViewerUpdate> fHasChildrenUpdatesCompleted = new HashSet<IViewerUpdate>();
@@ -82,16 +82,16 @@ public class ViewerUpdatesListener
     private int fContentUpdatesCounter;
     private int fLabelUpdatesCounter;
     private int fTimeoutInterval = TIMEOUT_DEFAULT;
-	private long fTimeoutTime;
-	
-	protected Set<TreePath> makeTreePathSet() {
-	    return new HashSet<TreePath>();
-	}
-	    
-	protected <V> Map<TreePath, V> makeTreePathMap() {
-	    return new HashMap<TreePath, V>();
-	}
-	
+    private long fTimeoutTime;
+
+    protected Set<TreePath> makeTreePathSet() {
+        return new HashSet<TreePath>();
+    }
+
+    protected <V> Map<TreePath, V> makeTreePathMap() {
+        return new HashMap<TreePath, V>();
+    }
+
     public ViewerUpdatesListener(ITreeModelViewer viewer, boolean failOnRedundantUpdates, boolean failOnMultipleModelUpdateSequences) {
         this(viewer);
         setFailOnRedundantUpdates(failOnRedundantUpdates);
@@ -102,25 +102,25 @@ public class ViewerUpdatesListener
         // No viewer to register with.  Client will have to register the listener manually.
     }
 
-	public ViewerUpdatesListener(ITreeModelViewer viewer) {
-	    fViewer = viewer;
+    public ViewerUpdatesListener(ITreeModelViewer viewer) {
+        fViewer = viewer;
         fViewer.addLabelUpdateListener(this);
         fViewer.addModelChangedListener(this);
         fViewer.addStateUpdateListener(this);
         fViewer.addViewerUpdateListener(this);
     }
 
-	public void dispose() {
-	    if (fViewer != null) {
+    public void dispose() {
+        if (fViewer != null) {
             fViewer.removeLabelUpdateListener(this);
             fViewer.removeModelChangedListener(this);
             fViewer.removeStateUpdateListener(this);
             fViewer.removeViewerUpdateListener(this);
             fViewer = null;
-	    }
-	}
-	
-	
+        }
+    }
+
+
     public synchronized void setFailOnRedundantUpdates(boolean failOnRedundantUpdates) {
         fFailOnRedundantUpdates = failOnRedundantUpdates;
     }
@@ -132,25 +132,25 @@ public class ViewerUpdatesListener
     public synchronized void setFailOnMultipleLabelUpdateSequences(boolean failOnMultipleLabelUpdateSequences) {
         fFailOnMultipleLabelUpdateSequences = failOnMultipleLabelUpdateSequences;
     }
-    
+
     /**
      * Causes the content sequence started/ended notifications to be ignored
      * until the model proxy is installed.  This flag has to be set again after
      * every reset.
-     * @param delay If true, listener will delay. 
+     * @param delay If true, listener will delay.
      */
     public synchronized void setDelayContentUntilProxyInstall(boolean delay) {
         fDelayContentUntilProxyInstall = delay;
     }
 
     /**
-     * Sets the the maximum amount of time (in milliseconds) that the update listener 
-     * is going to wait. If set to -1, the listener will wait indefinitely. 
+     * Sets the the maximum amount of time (in milliseconds) that the update listener
+     * is going to wait. If set to -1, the listener will wait indefinitely.
      */
     public synchronized void setTimeoutInterval(int milis) {
         fTimeoutInterval = milis;
     }
-    
+
     public void reset() {
         fRedundantUpdates.clear();
         fMultipleLabelUpdateSequencesObserved = false;
@@ -181,11 +181,11 @@ public class ViewerUpdatesListener
         fTimeoutTime = System.currentTimeMillis() + fTimeoutInterval;
         resetModelChanged();
     }
-    
+
     public void resetModelChanged() {
         fModelChangedComplete = false;
     }
-    
+
     public void addHasChildrenUpdate(TreePath path) {
         fHasChildrenUpdatesScheduled.add(path);
     }
@@ -249,15 +249,15 @@ public class ViewerUpdatesListener
     protected boolean matchPath(TreePath patternPath, TreePath elementPath) {
         return elementPath.equals(patternPath);
     }
-    
+
     public boolean isFinished() {
         return isFinished(ALL_UPDATES_COMPLETE);
     }
-    
+
     public synchronized boolean isTimedOut() {
         return fTimeoutInterval > 0 && fTimeoutTime < System.currentTimeMillis();
     }
-    
+
     public void waitTillFinished(int flags) throws InterruptedException {
         synchronized(this) {
             while(!isFinished(flags)) {
@@ -265,12 +265,12 @@ public class ViewerUpdatesListener
             }
         }
     }
-    
+
     public synchronized boolean isFinished(int flags) {
         if (isTimedOut()) {
             throw new RuntimeException("Timed Out: " + toString(flags) + "\nViewer:\n" + fViewer.toString());
         }
-        
+
         if (fFailOnRedundantUpdates && !fRedundantUpdates.isEmpty()) {
             Assert.fail("Redundant Updates: " + fRedundantUpdates.toString());
         }
@@ -334,57 +334,57 @@ public class ViewerUpdatesListener
         }
         if ( (flags & VIEWER_UPDATES_RUNNING) != 0) {
             if (fContentUpdatesCounter != 0) {
-            	return false;
+                return false;
             }
         }
         if ( (flags & LABEL_UPDATES_RUNNING) != 0) {
             if (fLabelUpdatesCounter != 0) {
-            	return false;
+                return false;
             }
         }
-        
+
         return true;
     }
-    
+
     public synchronized void updateStarted(IViewerUpdate update) {
         synchronized (this) {
-        	fContentUpdatesCounter++;
+            fContentUpdatesCounter++;
             if (update instanceof IHasChildrenUpdate) {
                 fHasChildrenUpdatesRunning.add(update);
             } if (update instanceof IChildrenCountUpdate) {
                 fChildCountUpdatesRunning.add(update);
             } else if (update instanceof IChildrenUpdate) {
                 fChildCountUpdatesRunning.add(update);
-            } 
+            }
         }
         notifyAll();
     }
-    
+
     public synchronized void updateComplete(IViewerUpdate update) {
         synchronized (this) {
-        	fContentUpdatesCounter--;
+            fContentUpdatesCounter--;
         }
 
         if (!update.isCanceled()) {
             if (update instanceof IHasChildrenUpdate) {
                 fHasChildrenUpdatesRunning.remove(update);
-                fHasChildrenUpdatesCompleted.add(update);                
+                fHasChildrenUpdatesCompleted.add(update);
                 if (!fHasChildrenUpdatesScheduled.remove(update.getElementPath()) && fFailOnRedundantUpdates) {
                     fRedundantUpdates.add(update);
                 }
             } if (update instanceof IChildrenCountUpdate) {
                 fChildCountUpdatesRunning.remove(update);
-                fChildCountUpdatesCompleted.add(update);                
+                fChildCountUpdatesCompleted.add(update);
                 if (!fChildCountUpdatesScheduled.remove(update.getElementPath()) && fFailOnRedundantUpdates) {
                     fRedundantUpdates.add(update);
                 }
             } else if (update instanceof IChildrenUpdate) {
                 fChildrenUpdatesRunning.remove(update);
-                fChildrenUpdatesCompleted.add(update);                
-                
+                fChildrenUpdatesCompleted.add(update);
+
                 int start = ((IChildrenUpdate)update).getOffset();
                 int end = start + ((IChildrenUpdate)update).getLength();
-                
+
                 Set<Integer> childrenIndexes = fChildrenUpdatesScheduled.get(update.getElementPath());
                 if (childrenIndexes != null) {
                     for (int i = start; i < end; i++) {
@@ -396,11 +396,11 @@ public class ViewerUpdatesListener
                 } else if (fFailOnRedundantUpdates) {
                     fRedundantUpdates.add(update);
                 }
-            } 
+            }
         }
         notifyAll();
     }
-    
+
     public synchronized void viewerUpdatesBegin() {
         if (fDelayContentUntilProxyInstall && !fModelProxyInstalled) return;
         if (fFailOnMultipleModelUpdateSequences && fContentSequenceComplete) {
@@ -409,7 +409,7 @@ public class ViewerUpdatesListener
         fContentSequenceStarted = true;
         notifyAll();
     }
-    
+
     public synchronized void viewerUpdatesComplete() {
         if (fDelayContentUntilProxyInstall && !fModelProxyInstalled) return;
         fContentSequenceComplete = true;
@@ -419,7 +419,7 @@ public class ViewerUpdatesListener
     public synchronized void labelUpdateComplete(ILabelUpdate update) {
         fLabelUpdatesRunning.remove(update);
         fLabelUpdatesCompleted.add(update);
-    	fLabelUpdatesCounter--;
+        fLabelUpdatesCounter--;
         if (!update.isCanceled() && !fLabelUpdates.remove(update.getElementPath()) && fFailOnRedundantUpdates) {
             fRedundantUpdates.add(update);
         }
@@ -428,7 +428,7 @@ public class ViewerUpdatesListener
 
     public synchronized void labelUpdateStarted(ILabelUpdate update) {
         fLabelUpdatesRunning.add(update);
-    	fLabelUpdatesCounter++;
+        fLabelUpdatesCounter++;
         notifyAll();
     }
 
@@ -447,7 +447,7 @@ public class ViewerUpdatesListener
 
     public synchronized void modelChanged(IModelDelta delta, IModelProxy proxy) {
         fModelChangedComplete = true;
-        
+
         if (!fModelProxyInstalled) {
             delta.accept(new IModelDeltaVisitor() {
                 public boolean visit(IModelDelta delta, int depth) {
@@ -461,17 +461,17 @@ public class ViewerUpdatesListener
         }
         notifyAll();
     }
-    
+
     public synchronized void stateRestoreUpdatesBegin(Object input) {
         fStateRestoreStarted = true;
         notifyAll();
     }
-    
+
     public synchronized void stateRestoreUpdatesComplete(Object input) {
         fStateRestoreComplete = true;
         notifyAll();
     }
-    
+
     public synchronized void stateSaveUpdatesBegin(Object input) {
         fStateSaveStarted = true;
         notifyAll();
@@ -481,13 +481,13 @@ public class ViewerUpdatesListener
         fStateSaveComplete = true;
         notifyAll();
     }
-    
+
     public void stateUpdateComplete(Object input, IViewerUpdate update) {
     }
-    
+
     public void stateUpdateStarted(Object input, IViewerUpdate update) {
     }
-    
+
     private synchronized  String toString(int flags) {
         StringBuffer buf = new StringBuffer("Viewer Update Listener");
 
@@ -634,7 +634,7 @@ public class ViewerUpdatesListener
         }
         return buf.toString();
     }
-    
+
     private String toStringTreePath(TreePath path) {
         if (path.getSegmentCount() == 0) {
             return "/";
@@ -646,12 +646,10 @@ public class ViewerUpdatesListener
         }
         return buf.toString();
     }
-    
+
     @Override
     public String toString() {
-        return toString(ALL_UPDATES_COMPLETE | MODEL_CHANGED_COMPLETE | STATE_RESTORE_COMPLETE | 
+        return toString(ALL_UPDATES_COMPLETE | MODEL_CHANGED_COMPLETE | STATE_RESTORE_COMPLETE |
             VIEWER_UPDATES_STARTED | LABEL_SEQUENCE_STARTED);
     }
 }
-
-

@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2012 Wind River Systems and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- * 
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
  * Contributors:
  *     Wind River Systems - initial API and implementation
  *******************************************************************************/
@@ -21,11 +21,11 @@ import org.eclipse.tcf.protocol.IChannel;
 abstract public class ChannelQuery<V> extends Query<V> {
 
     private final IChannel fChannel;
-    
+
     public ChannelQuery(IChannel channel) {
         fChannel = channel;
     }
-    
+
     @Override
     final protected void execute(final DataCallback<V> callback) {
         final AtomicBoolean done = new AtomicBoolean(false);
@@ -43,7 +43,7 @@ abstract public class ChannelQuery<V> extends Query<V> {
             public void onChannelOpened() {}
         };
         fChannel.addChannelListener(channelListener);
-        
+
         channelExecute(new DataCallback<V>(callback) {
             @Override
             protected void handleCompleted() {
@@ -53,7 +53,7 @@ abstract public class ChannelQuery<V> extends Query<V> {
                }
             }
         });
-        
+
     }
 
     abstract protected void channelExecute(final DataCallback<V> callback);

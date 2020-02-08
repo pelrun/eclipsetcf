@@ -1,8 +1,8 @@
 /*******************************************************************************
  * Copyright (c) 2012 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
- * of the Eclipse Public License v1.0 which accompanies this distribution, and is
- * available at http://www.eclipse.org/legal/epl-v10.html
+ * of the Eclipse Public License 2.0 which accompanies this distribution, and is
+ * available at https://www.eclipse.org/legal/epl-2.0/
  *
  * Contributors:
  * Wind River Systems - initial API and implementation
@@ -102,7 +102,7 @@ public abstract class AbstractCMTest extends TcfTestCase implements IViewerUpdat
     protected ISymbols syms;
     protected IStackTrace stk;
     protected IRunControl rc;
-    protected IBreakpoints bp;    
+    protected IBreakpoints bp;
     protected IMemory fMemory;
     protected IMemoryMap fMemoryMap;
     protected ILineNumbers fLineNumbers;
@@ -117,7 +117,7 @@ public abstract class AbstractCMTest extends TcfTestCase implements IViewerUpdat
     protected LineNumbersCM fLineNumbersCM;
     protected RegistersCM fRegistersCM;
     protected ProcessesCM fProcessesCM;
-    
+
 
     /* (non-Javadoc)
      * @see org.eclipse.tcf.te.tests.CoreTestCase#getTestBundle()
@@ -148,7 +148,7 @@ public abstract class AbstractCMTest extends TcfTestCase implements IViewerUpdat
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        
+
         fTestRunKey = new Object();
 
         // Launch the agent
@@ -296,7 +296,7 @@ public abstract class AbstractCMTest extends TcfTestCase implements IViewerUpdat
                 rc = channels[0].getRemoteService(IRunControl.class);
                 bp = channels[0].getRemoteService(IBreakpoints.class);
                 fMemory = channels[0].getRemoteService(IMemory.class);
-                fMemoryMap = channels[0].getRemoteService(IMemoryMap.class);                
+                fMemoryMap = channels[0].getRemoteService(IMemoryMap.class);
                 fLineNumbers = channels[0].getRemoteService(ILineNumbers.class);
                 fRegisters = channels[0].getRemoteService(IRegisters.class);
                 fProcesses = channels[0].getRemoteService(IProcesses.class);
@@ -492,7 +492,7 @@ public abstract class AbstractCMTest extends TcfTestCase implements IViewerUpdat
                 RunControlContext threadCtx = validate( fRunControlCM.getContext(threadId) );
 
                 Assert.assertTrue("Invalid thread context", threadCtx.hasState());
-                
+
                 return new TestProcessInfo(testId, testCtx, processId, threadId, threadCtx);
             };
         }.get();
@@ -575,8 +575,8 @@ public abstract class AbstractCMTest extends TcfTestCase implements IViewerUpdat
         }.get();
     }
 
-    protected void createBreakpoint(final String bpId, final String testFunc) 
-        throws InterruptedException, ExecutionException 
+    protected void createBreakpoint(final String bpId, final String testFunc)
+        throws InterruptedException, ExecutionException
     {
         new Transaction<Object>() {
             private Map<String,Object> fBp;
@@ -602,7 +602,7 @@ public abstract class AbstractCMTest extends TcfTestCase implements IViewerUpdat
                     Assert.fail("Invalid BP status: " + s);
                 }
                 @SuppressWarnings("unchecked")
-                Collection<Map<String,Object>> list = 
+                Collection<Map<String,Object>> list =
                     (Collection<Map<String,Object>>)status.get(IBreakpoints.STATUS_INSTANCES);
                 if (list != null) {
                     String err = null;

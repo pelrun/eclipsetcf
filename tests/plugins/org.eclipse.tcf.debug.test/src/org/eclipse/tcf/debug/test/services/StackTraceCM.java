@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2011, 2012 Wind River Systems and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- * 
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
  * Contributors:
  *     Wind River Systems - initial API and implementation
  *******************************************************************************/
@@ -34,7 +34,7 @@ import org.eclipse.tcf.services.IStackTrace;
 import org.eclipse.tcf.services.IStackTrace.StackTraceContext;
 
 /**
- * 
+ *
  */
 public class StackTraceCM extends AbstractCacheManager {
     private IStackTrace fService;
@@ -43,7 +43,7 @@ public class StackTraceCM extends AbstractCacheManager {
     private IMemoryMap fMemoryMap;
     private final ResetMap fRunControlStateResetMap = new ResetMap();
     private final ResetMap fMemoryResetMap = new ResetMap();
-    
+
     /**
      * Listener public for testing purposes only.
      */
@@ -74,7 +74,7 @@ public class StackTraceCM extends AbstractCacheManager {
 
         @Override
         public void containerSuspended(String context, String pc, String reason, Map<String, Object> params,
-            String[] suspended_ids) 
+            String[] suspended_ids)
         {
             for (String id : suspended_ids) fRunControlStateResetMap.reset(id);
         }
@@ -89,28 +89,28 @@ public class StackTraceCM extends AbstractCacheManager {
             fRunControlStateResetMap.reset(context);
         }
     };
-    
+
     public final IMemory.MemoryListener fMemoryListener = new IMemory.MemoryListener() {
-        
+
         @Override
         public void contextAdded(MemoryContext[] contexts) {
         }
-        
+
         @Override
         public void contextChanged(MemoryContext[] contexts) {
             for (MemoryContext context : contexts) fMemoryResetMap.reset(context.getID());
         }
-        
+
         public void contextRemoved(String[] context_ids) {
             for (String context_id : context_ids) fMemoryResetMap.reset(context_id);
-            
+
         };
-        
+
         @Override
         public void memoryChanged(String context_id, Number[] addr, long[] size) {
             fMemoryResetMap.reset(context_id);
         }
-        
+
     };
 
     public final IMemoryMap.MemoryMapListener fMemoryMapListener = new IMemoryMap.MemoryMapListener() {
@@ -120,7 +120,7 @@ public class StackTraceCM extends AbstractCacheManager {
             fMemoryResetMap.reset(context_id);
         }
     };
-    
+
     public StackTraceCM(IChannel channel, IStackTrace service, RunControlCM runControlCM, IMemory memory, IMemoryMap memoryMap) {
         super(channel);
         fService = service;
@@ -145,20 +145,20 @@ public class StackTraceCM extends AbstractCacheManager {
 
             class InnerCache extends TokenCache<String[]> implements IStackTrace.DoneGetChildren {
                 InnerCache() { super(fChannel); }
-                
+
                 @Override
                 protected IToken retrieveToken() {
                     return fService.getChildren(id, this);
                 }
-                
+
                 @Override
                 public void doneGetChildren(IToken token, Exception error, String[] context_ids) {
                     set(token, context_ids, error);
                 }
             };
-            
+
             private final InnerCache fInner = new InnerCache();
-            
+
             @Override
             protected String[] process() throws InvalidCacheException, ExecutionException {
                 RunControlContext rcContext = validate(fRunControlCM.getContext(id));
@@ -175,7 +175,7 @@ public class StackTraceCM extends AbstractCacheManager {
     }
 
     public RangeCache<StackTraceContext> getContextRange(final String parentId) {
-        
+
         class MyCache extends RangeCache<StackTraceContext> implements IResettable {
             boolean fIsValid = false;
             @Override
@@ -185,7 +185,7 @@ public class StackTraceCM extends AbstractCacheManager {
                     protected List<StackTraceContext> process() throws InvalidCacheException, ExecutionException {
                         String[] ids = validate(getChildren(parentId));
                         int adjustedCount = Math.min(count, ids.length + (int)offset);
-                        String[] subIds = new String[adjustedCount]; 
+                        String[] subIds = new String[adjustedCount];
                         System.arraycopy(ids, (int)offset, subIds, 0, adjustedCount);
                         StackTraceContext[] contexts = validate(getContexts(subIds));
                         RunControlContext rcContext = validate(fRunControlCM.getContext(parentId));
@@ -194,44 +194,44 @@ public class StackTraceCM extends AbstractCacheManager {
                             fMemoryResetMap.addValid(rcContext.getProcessID(), MyCache.this);
                         }
                         return Arrays.asList(contexts);
-                        
+
                     }
                 }.request(rm);
             }
-            
+
             public void reset() {
                 fIsValid = false;
                 @SuppressWarnings("unchecked")
                 List<StackTraceContext> emptyData = (List<StackTraceContext>)Collections.EMPTY_LIST;
                 set(0, 0, emptyData, new Throwable("Cache invalid") );
             }
-            
+
         };
 
         return mapCache(new IdKey<MyCache>(MyCache.class, parentId) {
-            @Override MyCache createCache() { return new MyCache(); }        
+            @Override MyCache createCache() { return new MyCache(); }
         });
     }
-    
+
     public ICache<StackTraceContext[]> getContexts(final String[] ids) {
         assert ids.length != 0;
-        
+
         class MyCache extends TransactionCache<StackTraceContext[]> {
             class InnerCache extends TokenCache<StackTraceContext[]> implements IStackTrace.DoneGetContext {
                 InnerCache() { super(fChannel); }
-                
+
                 @Override
                 protected IToken retrieveToken() {
                     return fService.getContext(ids, this);
                 }
-                
+
                 public void doneGetContext(IToken token, Exception error, StackTraceContext[] contexts) {
                     set(token, contexts, error);
                 }
             }
-            
+
             private InnerCache fInner = new InnerCache();
-            
+
             @Override
             protected StackTraceContext[] process() throws InvalidCacheException, ExecutionException {
                 StackTraceContext[] contexts = validate(fInner);
@@ -243,11 +243,11 @@ public class StackTraceCM extends AbstractCacheManager {
                 return contexts;
             }
         }
-        
+
         return mapCache(new IdKey<MyCache>(MyCache.class, Arrays.toString(ids)) {
-            @Override MyCache createCache() { return new MyCache(); }        
+            @Override MyCache createCache() { return new MyCache(); }
         });
     }
-    
-    
+
+
 }

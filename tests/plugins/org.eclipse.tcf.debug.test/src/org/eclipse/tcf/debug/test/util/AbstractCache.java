@@ -1,9 +1,9 @@
 /*******************************************************************************
  * Copyright (c) 2008, 2012 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
  *
  * Contributors:
  *     Wind River Systems - initial API and implementation
@@ -53,15 +53,15 @@ public abstract class AbstractCache<V> implements ICache<V>, IResettable {
 
     private Object fWaitingList;
 
-	/**
-	 * Sub-classes should override this method to retrieve the cache data from
-	 * its source. The implementation should call {@link #set(Object, IStatus)}
-	 * to store the newly retrieved data when it arrives (or an error, if one
-	 * occurred retrieving the data)
-	 *
-	 * @param rm
-	 *            Request monitor for completion of data retrieval.
-	 */
+    /**
+     * Sub-classes should override this method to retrieve the cache data from
+     * its source. The implementation should call {@link #set(Object, IStatus)}
+     * to store the newly retrieved data when it arrives (or an error, if one
+     * occurred retrieving the data)
+     *
+     * @param rm
+     *            Request monitor for completion of data retrieval.
+     */
     abstract protected void retrieve();
 
     protected void invokeInDispatchThread(Runnable runnable) {
@@ -274,41 +274,41 @@ public abstract class AbstractCache<V> implements ICache<V>, IResettable {
         return canceled;
     }
 
-	/**
-	 * Resets the cache, setting the data to null and the status to
-	 * INVALID_STATUS. When in the invalid state, neither the data nor the
-	 * status can be queried.
-	 */
+    /**
+     * Resets the cache, setting the data to null and the status to
+     * INVALID_STATUS. When in the invalid state, neither the data nor the
+     * status can be queried.
+     */
     public void reset() {
         set(null, INVALID_STATUS, false);
     }
 
-	/**
-	 * Sets data and error values into the cache, and optionally puts in valid
-	 * state. Note that data may be null and status may be an error status.
-	 * 'Valid' simply means that our data is not stale. In other words, if the
-	 * request to the source encounters an error, the cache object becomes valid
-	 * all the same. The status indicates what error was encountered.
-	 *
-	 * <p>
-	 * This method is called internally, typically in response to having
-	 * obtained the result from the asynchronous request to the source. The
-	 * data/status will remain valid until the cache object receives an event
-	 * notification from the source indicating otherwise.
-	 *
-	 * @param data
-	 *            The data that should be returned to any clients waiting for
-	 *            cache data and for clients requesting data until the cache is
-	 *            invalidated.
-	 * @param error The status that should be returned to any clients waiting for
-	 *         cache data and for clients requesting data until the cache is
-	 *         invalidated
-	 * @param valid Whether the cache should bet set in valid state.  If false,
-	 *            any callback waiting for data are completed but the cache
-	 *            is moved back to invalid state.
-	 *
-	 * @see #reset
-	 */
+    /**
+     * Sets data and error values into the cache, and optionally puts in valid
+     * state. Note that data may be null and status may be an error status.
+     * 'Valid' simply means that our data is not stale. In other words, if the
+     * request to the source encounters an error, the cache object becomes valid
+     * all the same. The status indicates what error was encountered.
+     *
+     * <p>
+     * This method is called internally, typically in response to having
+     * obtained the result from the asynchronous request to the source. The
+     * data/status will remain valid until the cache object receives an event
+     * notification from the source indicating otherwise.
+     *
+     * @param data
+     *            The data that should be returned to any clients waiting for
+     *            cache data and for clients requesting data until the cache is
+     *            invalidated.
+     * @param error The status that should be returned to any clients waiting for
+     *         cache data and for clients requesting data until the cache is
+     *         invalidated
+     * @param valid Whether the cache should bet set in valid state.  If false,
+     *            any callback waiting for data are completed but the cache
+     *            is moved back to invalid state.
+     *
+     * @see #reset
+     */
     public void set(V data, Throwable error, boolean valid) {
         assert Protocol.isDispatchThread();
 

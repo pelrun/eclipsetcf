@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2011, 2012 Wind River Systems and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- * 
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
  * Contributors:
  *     Wind River Systems - initial API and implementation
  *******************************************************************************/
@@ -28,17 +28,17 @@ import org.eclipse.tcf.services.ISymbols;
 import org.eclipse.tcf.services.ISymbols.Symbol;
 
 /**
- * 
+ *
  */
 public class SymbolsCM extends AbstractCacheManager {
-    
+
     private ResetMap fRunControlResetMap = new ResetMap();
     private ResetMap fMemoryResetMap = new ResetMap();
-    
+
     private ISymbols fService;
     private IMemoryMap fMemoryMap;
     private RunControlCM fRunControlCM;
-    
+
     public SymbolsCM(IChannel channel, ISymbols service, RunControlCM runControl, IMemoryMap memoryMap) {
         super(channel);
         fService = service;
@@ -54,15 +54,15 @@ public class SymbolsCM extends AbstractCacheManager {
         fMemoryMap.removeListener(fMemoryListener);
         super.dispose();
     }
-    
+
 
     abstract private class SymbolCache<V> extends TransactionCache<V> {
         protected final AbstractCache<V> fInner;
-        
+
         public SymbolCache(AbstractCache<V> inner) {
             fInner = inner;
         }
-        
+
         abstract protected String getSymbolId();
 
         @Override
@@ -72,17 +72,17 @@ public class SymbolsCM extends AbstractCacheManager {
             addPending(sym, fInner);
             RunControlContext rcContext = validate(fRunControlCM.getContext(sym.getOwnerID()));
             addValid(sym, rcContext, fInner);
-            return validate(fInner);            
+            return validate(fInner);
         }
     }
-        
+
     private void addPending(Symbol sym, IResettable cache) {
         if (sym.getUpdatePolicy() == ISymbols.UPDATE_ON_EXE_STATE_CHANGES) {
             fRunControlResetMap.addPending(cache);
         }
         fMemoryResetMap.addPending(cache);
     }
-    
+
     private void addValid(Symbol sym, RunControlContext rcContext, IResettable cache) {
         if (sym.getUpdatePolicy() == ISymbols.UPDATE_ON_EXE_STATE_CHANGES) {
             String ownerId = sym.getOwnerID();
@@ -90,25 +90,25 @@ public class SymbolsCM extends AbstractCacheManager {
         }
         fMemoryResetMap.addValid(rcContext.getProcessID(), cache);
     }
-    
+
     private class ChildrenCache extends SymbolCache<String[]> {
         public ChildrenCache(InnerChildrenCache inner) {
             super(inner);
         }
-        
+
         @Override
         protected String getSymbolId() {
             return ((InnerChildrenCache)fInner).fId;
         }
-    }        
-    
+    }
+
     private class InnerChildrenCache extends TokenCache<String[]> implements ISymbols.DoneGetChildren {
         private final String fId;
         public InnerChildrenCache(String id) {
             super(fChannel);
             fId = id;
         }
-        
+
         @Override
         protected IToken retrieveToken() {
             fRunControlResetMap.addPending(this);
@@ -123,9 +123,9 @@ public class SymbolsCM extends AbstractCacheManager {
         public ChildrenCacheKey(String id) {
             super(ChildrenCache.class, id);
         }
-        @Override ChildrenCache createCache() { return new ChildrenCache( new InnerChildrenCache(fId) ); }        
+        @Override ChildrenCache createCache() { return new ChildrenCache( new InnerChildrenCache(fId) ); }
     }
-    
+
     public ICache<String[]> getChildren(String id) {
         return mapCache(new ChildrenCacheKey(id));
     }
@@ -135,20 +135,20 @@ public class SymbolsCM extends AbstractCacheManager {
 
             class InnerCache extends TokenCache<Symbol> implements ISymbols.DoneGetContext{
                 InnerCache() { super(fChannel); }
-                
+
                 @Override
                 protected IToken retrieveToken() {
                     return fService.getContext(id, this);
                 }
-                
+
                 @Override
                 public void doneGetContext(IToken token, Exception error, Symbol context) {
                     set(token, context, error);
                 }
             };
-            
+
             private final InnerCache fInner = new InnerCache();
-            
+
             @Override
             protected Symbol process() throws InvalidCacheException, ExecutionException {
                 Symbol sym = validate(fInner);
@@ -168,12 +168,12 @@ public class SymbolsCM extends AbstractCacheManager {
 
         class InnerCache extends TokenCache<Map<String,Object>> implements ISymbols.DoneGetLocationInfo {
             InnerCache() { super(fChannel); }
-            
+
             @Override
             protected IToken retrieveToken() {
                 return fService.getLocationInfo(symbol_id, this);
             }
-            
+
             public void doneGetLocationInfo(IToken token, Exception error, Map<String,Object> props) {
                 set(token, props, error);
             }
@@ -221,7 +221,7 @@ public class SymbolsCM extends AbstractCacheManager {
         private final String fId;
         private final Number fIp;
         private final String fName;
-        
+
         public InnerFindCache(String id, Number ip, String name) {
             super(fChannel);
             fId = id;
@@ -232,23 +232,23 @@ public class SymbolsCM extends AbstractCacheManager {
         protected IToken retrieveToken() {
             return fService.find(fId, fIp, fName, this);
         }
-        
+
         public void doneFind(IToken token, Exception error, String symbol_id) {
             set(token, symbol_id, error);
         }
     }
-    
+
     private class FindCacheKey extends IdKey<FindCache> {
         private final Number fIp;
-        private final String fName;        
-        
+        private final String fName;
+
         public FindCacheKey(String id, Number ip, String name) {
             super(FindCache.class, id);
             fIp = ip;
             fName = name;
         }
         @Override FindCache createCache() { return new FindCache(new InnerFindCache(fId, fIp, fName)); }
-        
+
         @Override
         public boolean equals(Object obj) {
             if (super.equals(obj) && obj instanceof FindCacheKey) {
@@ -268,11 +268,11 @@ public class SymbolsCM extends AbstractCacheManager {
     }
 
     private class FindByAddrCache extends SymbolCache<String>  {
-        
+
         public FindByAddrCache(InnerFindByAddrCache inner) {
             super(inner);
         }
-        
+
         @Override
         protected String getSymbolId() {
             return fInner.getData();
@@ -282,7 +282,7 @@ public class SymbolsCM extends AbstractCacheManager {
     private class InnerFindByAddrCache extends TokenCache<String> implements ISymbols.DoneFind {
         private final String fId;
         private final Number fAddr;
-        
+
         public InnerFindByAddrCache(String id, Number addr) {
             super(fChannel);
             fId = id;
@@ -292,21 +292,21 @@ public class SymbolsCM extends AbstractCacheManager {
         protected IToken retrieveToken() {
             return fService.findByAddr(fId, fAddr, this);
         }
-        
+
         public void doneFind(IToken token, Exception error, String symbol_id) {
             set(token, symbol_id, error);
         }
     }
-    
+
     private class FindByAddrCacheKey extends IdKey<FindByAddrCache> {
         private final Number fAddr;
-        
+
         public FindByAddrCacheKey(String id, Number addr) {
             super(FindByAddrCache.class, id);
             fAddr = addr;
         }
         @Override FindByAddrCache createCache() { return new FindByAddrCache(new InnerFindByAddrCache(fId, fAddr)); }
-        
+
         @Override
         public boolean equals(Object obj) {
             if (super.equals(obj) && obj instanceof FindByAddrCacheKey) {
@@ -320,51 +320,51 @@ public class SymbolsCM extends AbstractCacheManager {
             return super.hashCode() + fAddr.hashCode();
         }
     }
-    
+
     public ICache<String> findByAddr(String context_id, Number addr) {
         return mapCache(new FindByAddrCacheKey(context_id, addr));
     }
 
     private RunControlListener fRunControlListener = new RunControlListener() {
-    
+
         public void contextAdded(RunControlContext[] contexts) {
         }
-    
+
         public void contextChanged(RunControlContext[] contexts) {
             for (RunControlContext context : contexts) {
                 resetRunControlContext(context.getID());
             }
         }
-    
+
         public void contextRemoved(String[] context_ids) {
             for (String id : context_ids) {
                 resetRunControlContext(id);
                 fMemoryResetMap.reset(id);
             }
         }
-    
+
         public void contextSuspended(String context, String pc, String reason, Map<String, Object> params) {
             resetRunControlContext(context);
         }
-    
+
         public void contextResumed(String context) {
             resetRunControlContext(context);
         }
-    
+
         public void containerSuspended(String context, String pc, String reason, Map<String, Object> params,
-            String[] suspended_ids) 
+            String[] suspended_ids)
         {
             for (String id : suspended_ids) {
                 resetRunControlContext(id);
             }
         }
-    
+
         public void containerResumed(String[] context_ids) {
             for (String id : context_ids) {
                 resetRunControlContext(id);
             }
         }
-    
+
         public void contextException(String context, String msg) {
             resetRunControlContext(context);
         }

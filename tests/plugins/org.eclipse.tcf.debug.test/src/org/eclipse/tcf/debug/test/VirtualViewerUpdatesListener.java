@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2009, 2012 Wind River Systems and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- * 
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
  * Contributors:
  *     Wind River Systems - initial API and implementation
  *******************************************************************************/
@@ -25,12 +25,12 @@ import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.tcf.debug.ui.ITCFObject;
 
 /**
- * Extends base listener to use virtual viewer capabilities. 
+ * Extends base listener to use virtual viewer capabilities.
  */
 @SuppressWarnings("restriction")
 public class VirtualViewerUpdatesListener extends ViewerUpdatesListener {
     private final VirtualTreeModelViewer fVirtualViewer;
-    
+
     public VirtualViewerUpdatesListener(VirtualTreeModelViewer viewer) {
         super(viewer, false, false);
         fVirtualViewer  = viewer;
@@ -39,7 +39,7 @@ public class VirtualViewerUpdatesListener extends ViewerUpdatesListener {
     public VirtualItem findElement(Pattern[] patterns) {
         return findElement(fVirtualViewer.getTree(), patterns);
     }
-    
+
     public VirtualItem findElement(VirtualItem parent, Pattern[] patterns) {
         return findElement(parent, patterns, 0);
     }
@@ -48,8 +48,8 @@ public class VirtualViewerUpdatesListener extends ViewerUpdatesListener {
         if (patternIdx >= patterns.length) return parent;
         for (VirtualItem child : parent.getItems()) {
             String[] label = (String[])child.getData(VirtualItem.LABEL_KEY);
-            if (label != null && label.length >= 1 && label[0] != null && 
-                patterns[patternIdx].matcher(label[0]).matches()) 
+            if (label != null && label.length >= 1 && label[0] != null &&
+                patterns[patternIdx].matcher(label[0]).matches())
             {
                 VirtualItem item = findElement(child, patterns, patternIdx+1);
                 if (item != null) {
@@ -64,12 +64,12 @@ public class VirtualViewerUpdatesListener extends ViewerUpdatesListener {
     protected Set<TreePath> makeTreePathSet() {
         return new MatchingSet();
     }
-    
+
     protected boolean matchPath(TreePath patternPath, TreePath elementPath) {
         if (patternPath.getSegmentCount() != elementPath.getSegmentCount()) {
             return false;
         }
-        
+
         for (int i = 0; i < patternPath.getSegmentCount(); i++) {
             Object patternSegment = patternPath.getSegment(i);
             Object elementSegment = elementPath.getSegment(i);
@@ -79,13 +79,13 @@ public class VirtualViewerUpdatesListener extends ViewerUpdatesListener {
                 continue;
             } else if (patternSegment.equals(elementSegment)) {
                 continue;
-            } 
+            }
             return false;
         }
         return true;
     }
 
-    
+
     private final IElementComparer fPatternComparer = new IElementComparer() {
         public boolean equals(Object a, Object b) {
             Pattern pattern = null;
@@ -102,7 +102,7 @@ public class VirtualViewerUpdatesListener extends ViewerUpdatesListener {
             }
             return false;
         }
-        
+
         private boolean elementMatches(Object element, Pattern pattern) {
             VirtualItem[] items = fVirtualViewer.findItems(element);
             if (items.length >= 0) {
@@ -113,7 +113,7 @@ public class VirtualViewerUpdatesListener extends ViewerUpdatesListener {
             }
             return false;
         }
-        
+
         public int hashCode(Object element) {
             throw new UnsupportedOperationException();
         }
@@ -135,11 +135,11 @@ public class VirtualViewerUpdatesListener extends ViewerUpdatesListener {
             }
             return false;
         }
-        
+
         private boolean elementMatches(ITCFObject element, ITCFObject pattern) {
             return element != null && element.getID().equals(pattern.getID());
         }
-        
+
         public int hashCode(Object element) {
             throw new UnsupportedOperationException();
         }
@@ -147,7 +147,7 @@ public class VirtualViewerUpdatesListener extends ViewerUpdatesListener {
 
     class MatchingSet extends AbstractSet<TreePath> {
         List<TreePath> fList = new ArrayList<TreePath>(4);
-        
+
         @Override
         public Iterator<TreePath> iterator() {
             return fList.iterator();
@@ -157,17 +157,17 @@ public class VirtualViewerUpdatesListener extends ViewerUpdatesListener {
         public int size() {
             return fList.size();
         }
-        
+
         @Override
         public boolean add(TreePath o) {
             return fList.add(o);
         }
-        
+
         @Override
         public void clear() {
             fList.clear();
         }
-        
+
         @Override
         public boolean contains(Object o) {
             if (o instanceof TreePath) {
@@ -175,7 +175,7 @@ public class VirtualViewerUpdatesListener extends ViewerUpdatesListener {
             }
             return false;
         }
-        
+
         @Override
         public boolean remove(Object o) {
             if (o instanceof TreePath) {
@@ -187,7 +187,7 @@ public class VirtualViewerUpdatesListener extends ViewerUpdatesListener {
             }
             return false;
         }
-        
+
         private int find(TreePath path) {
             for (int i = 0; i < fList.size(); i++) {
                 if (matchPath(fList.get(i), path)) {
@@ -196,6 +196,6 @@ public class VirtualViewerUpdatesListener extends ViewerUpdatesListener {
             }
             return -1;
         }
-        
+
     }
 }

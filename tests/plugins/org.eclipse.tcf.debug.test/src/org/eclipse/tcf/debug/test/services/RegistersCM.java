@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2011, 2012 Wind River Systems and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- * 
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
  * Contributors:
  *     Wind River Systems - initial API and implementation
  *******************************************************************************/
@@ -22,14 +22,14 @@ import org.eclipse.tcf.services.IRunControl;
 import org.eclipse.tcf.services.IRunControl.RunControlContext;
 
 /**
- * 
+ *
  */
 public class RegistersCM extends AbstractCacheManager implements IRunControl.RunControlListener, IRegisters.RegistersListener  {
     private IRegisters fService;
     private IRunControl fRunControl;
     private final ResetMap fRunControlStateResetMap = new ResetMap();
     private final ResetMap fRegistersMap = new ResetMap();
-    
+
     public RegistersCM(IChannel channel, IRegisters service, IRunControl runControl) {
         super(channel);
         fService = service;
@@ -50,7 +50,7 @@ public class RegistersCM extends AbstractCacheManager implements IRunControl.Run
             protected IToken retrieveToken() {
                 return fService.getChildren(id, this);
             }
-            
+
             public void doneGetChildren(IToken token, Exception error, String[] context_ids) {
                 fRegistersMap.addValid(id, this);
                 set(token, context_ids, error);
@@ -69,7 +69,7 @@ public class RegistersCM extends AbstractCacheManager implements IRunControl.Run
             protected IToken retrieveToken() {
                 return fService.getContext(id, this);
             }
-            
+
             public void doneGetContext(IToken token, Exception error, RegistersContext context) {
                 fRegistersMap.addValid(id, this);
                 set(token, context, error);
@@ -78,9 +78,9 @@ public class RegistersCM extends AbstractCacheManager implements IRunControl.Run
 
         return mapCache(new IdKey<MyCache>(MyCache.class, id) {
             @Override MyCache createCache() { return new MyCache(); }
-        });        
+        });
     }
-    
+
     public ICache<byte[]> getContextValue(final RegistersContext context) {
         class MyCache extends TokenCache<byte[]> implements IRegisters.DoneGet {
             MyCache() { super(fChannel); }
@@ -88,7 +88,7 @@ public class RegistersCM extends AbstractCacheManager implements IRunControl.Run
             protected IToken retrieveToken() {
                 return context.get(this);
             }
-            
+
             public void doneGet(IToken token, Exception error, byte[] value) {
                 fRegistersMap.addValid(context.getID(), this);
                 set(token, value, error);
@@ -97,32 +97,32 @@ public class RegistersCM extends AbstractCacheManager implements IRunControl.Run
 
         return mapCache(new IdKey<MyCache>(MyCache.class, context.getID()) {
             @Override MyCache createCache() { return new MyCache(); }
-        });                
+        });
     }
-    
+
     protected abstract static class ContextCommandKey<V> extends IdKey<V> {
         Object fClientKey;
-        
+
         ContextCommandKey(Class<V> cacheClass, String id, Object clientKey) {
             super(cacheClass, id);
             fClientKey = clientKey;
         }
-        
+
         @Override
         public boolean equals(Object obj) {
             if (super.equals(obj) && obj instanceof ContextCommandKey<?>) {
                 return ((ContextCommandKey<?>)obj).fClientKey.equals(fClientKey);
-            } 
-            return false;        
+            }
+            return false;
         }
-        
+
         @Override
         public int hashCode() {
             return super.hashCode() + fClientKey.hashCode();
         }
     }
 
-    
+
     public ICache<Object> setContextValue(final RegistersContext context, Object clientKey, final byte[] value) {
         class MyCache extends TokenCache<Object> implements IRegisters.DoneSet {
             MyCache() { super(fChannel); }
@@ -130,7 +130,7 @@ public class RegistersCM extends AbstractCacheManager implements IRunControl.Run
             protected IToken retrieveToken() {
                 return context.set(value, this);
             }
-            
+
             public void doneSet(IToken token, Exception error) {
                 fRegistersMap.addValid(context.getID(), this);
                 set(token, null, error);
@@ -139,13 +139,13 @@ public class RegistersCM extends AbstractCacheManager implements IRunControl.Run
 
         return mapCache(new ContextCommandKey<MyCache>(MyCache.class, context.getID(), clientKey) {
             @Override MyCache createCache() { return new MyCache(); }
-        });        
+        });
     }
-    
+
     public void contextChanged() {
-        fRegistersMap.resetAll();     
+        fRegistersMap.resetAll();
     }
-    
+
     public void registerChanged(String id) {
         fRegistersMap.reset(id);
     }
@@ -164,7 +164,7 @@ public class RegistersCM extends AbstractCacheManager implements IRunControl.Run
             fRunControlStateResetMap.reset(context.getID());
         }
     }
-    
+
     public void contextSuspended(String context, String pc, String reason, Map<String, Object> params) {
         fRunControlStateResetMap.reset(context);
     }
@@ -174,7 +174,7 @@ public class RegistersCM extends AbstractCacheManager implements IRunControl.Run
     }
 
     public void containerSuspended(String context, String pc, String reason, Map<String, Object> params,
-        String[] suspended_ids) 
+        String[] suspended_ids)
     {
         for (String id : suspended_ids) {
             fRunControlStateResetMap.reset(id);

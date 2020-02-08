@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2009, 2014 Wind River Systems and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- * 
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
  * Contributors:
  *     Wind River Systems - initial API and implementation
  *******************************************************************************/
@@ -25,7 +25,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 
 /**
- * 
+ *
  */
 @SuppressWarnings("restriction")
 public class VariablesVirtualTreeModelViewer extends VirtualTreeModelViewer implements IDebugContextListener {
@@ -41,7 +41,7 @@ public class VariablesVirtualTreeModelViewer extends VirtualTreeModelViewer impl
     public VariablesVirtualTreeModelViewer(IPresentationContext context, IDebugContextProvider debugContextProvider) {
         super(Display.getDefault(), SWT.NONE, context);
         fInputService = new ViewerInputService(this, new IViewerInputRequestor() {
-            
+
             public void viewerInputComplete(IViewerInputUpdate update) {
                 if (!update.isCanceled()) {
                     setInput(update.getInputElement());
@@ -63,20 +63,20 @@ public class VariablesVirtualTreeModelViewer extends VirtualTreeModelViewer impl
             fInputService.resolveViewerInput(ViewerInputService.NULL_INPUT);
         }
     }
-    
+
     @Override
     public void dispose() {
         fDebugContextProvider.removeDebugContextListener(this);
         fInputService.dispose();
         super.dispose();
     }
-    
+
     public void debugContextChanged(DebugContextEvent event) {
         if (fActive && (event.getFlags() & DebugContextEvent.ACTIVATED) != 0) {
             setActiveContext(event.getContext());
         }
-    }    
-    
+    }
+
     private void setActiveContext(ISelection selection) {
         if (selection instanceof IStructuredSelection) {
             fInputService.resolveViewerInput(((IStructuredSelection)selection).getFirstElement());

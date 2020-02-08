@@ -1,8 +1,8 @@
 /*******************************************************************************
  * Copyright (c) 2012 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
- * of the Eclipse Public License v1.0 which accompanies this distribution, and is
- * available at http://www.eclipse.org/legal/epl-v10.html
+ * of the Eclipse Public License 2.0 which accompanies this distribution, and is
+ * available at https://www.eclipse.org/legal/epl-2.0/
  *
  * Contributors:
  * Wind River Systems - initial API and implementation
@@ -54,14 +54,14 @@ public class RunControlCMTest extends AbstractCMTest {
                     // The state cache should either be invalid, or it should contain updated (running) state.
                     Assert.assertTrue(stateCache.isValid() == false || stateCache.getData().suspended == false);
                     validate(stateCache);
-                    Assert.assertTrue(stateCache.getData().suspended == false);                    
+                    Assert.assertTrue(stateCache.getData().suspended == false);
                 }
                 validate(waitSuspend);
                 // The state cache should either be invalid again, or it should contain updated (suspended) state.
                 Assert.assertTrue(stateCache.isValid() == false || stateCache.getData().suspended == true);
                 validate(stateCache);
                 Assert.assertTrue(stateCache.getData().suspended == true);
-                
+
                 return null;
             }
         }.get();
@@ -87,12 +87,12 @@ public class RunControlCMTest extends AbstractCMTest {
                 IWaitForEventCache<String[]> wait = fRunControlCM.waitForContextRemoved(processInfo.fProcessId, this);
                 validate(fRunControlCM.terminate(processInfo.fTestCtx, this));
                 validate(wait);
-                
+
                 // The state cache should either be invalid again, or it should contain updated (suspended) state.
                 Assert.assertTrue(stateCache.isValid() == false || stateCache.getError() != null);
                 if (!validateUnchecked(stateCache)) throw new InvalidCacheException();
                 Assert.assertTrue(stateCache.getError() != null);
-                
+
                 return null;
             }
         }.get();
@@ -191,7 +191,7 @@ public class RunControlCMTest extends AbstractCMTest {
 
         removeBreakpoint("testRunControlCMChildrenInvalidation");
     }
-    
+
     public void testChildrenResetOnAddedRemoved() throws Exception {
         final TestProcessInfo processInfo = startProcess("tcf_test_func0");
 
@@ -222,7 +222,7 @@ public class RunControlCMTest extends AbstractCMTest {
                     waitCache.reset();
                     validate(waitCache);
                 }
-                
+
                 // Validate children cache
                 String[] children = validate (childrenCache);
 
@@ -234,7 +234,7 @@ public class RunControlCMTest extends AbstractCMTest {
             }
         }.get();
 
-        // Wait for each thread to suspend, 
+        // Wait for each thread to suspend,
         for (final String thread : threads) {
             new Transaction<Object>() {
                 @Override
@@ -299,12 +299,12 @@ public class RunControlCMTest extends AbstractCMTest {
         // Wait for each threads to start.
         new Transaction<Object>() {
             ICache<Object> fFirstCommandCache;
-            
+
             @Override
             protected Object process() throws InvalidCacheException, ExecutionException {
                 ICache<RunControlContext> contextCache = fRunControlCM.getContext(processInfo.fThreadId);
                 validate(contextCache);
-                
+
                 ICache<Object> resumeCache = fRunControlCM.resume(contextCache.getData(), this, IRunControl.RM_RESUME, 1);
                 if (fFirstCommandCache == null) {
                     // Reset context objet cache to force a new context object to be created and retry.

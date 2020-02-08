@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2012 Wind River Systems and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- * 
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
  * Contributors:
  *     Wind River Systems - initial API and implementation
  *******************************************************************************/
@@ -40,18 +40,18 @@ import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 /**
- * 
+ *
  */
 public class SourceDisplayListener implements IPartListener, IAnnotationModelListener {
 
     private static final String ANNOTATION_TOP_FRAME = "org.eclipse.tcf.debug.top_frame";
-    
+
     private IWorkbenchPage fPage;
     private IEditorPart fActiveEditor;
-    
+
     private IPath fExpectedFile;
     private int fExpectedLine;
-    
+
     private boolean fFileFound = false;
     private boolean fAnnotationFound = false;
     private IAnnotationModel fAnnotationModel = null;
@@ -59,7 +59,7 @@ public class SourceDisplayListener implements IPartListener, IAnnotationModelLis
     private int fTimeoutInterval = 60000;
     private long fTimeoutTime;
 
-    
+
     public SourceDisplayListener() {
         IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
         fPage = window.getActivePage();
@@ -70,7 +70,7 @@ public class SourceDisplayListener implements IPartListener, IAnnotationModelLis
             }
         });
     }
-    
+
     public void dispose() {
         if (fAnnotationModel != null) {
             fAnnotationModel.removeAnnotationModelListener(this);
@@ -78,13 +78,13 @@ public class SourceDisplayListener implements IPartListener, IAnnotationModelLis
         }
         fPage.removePartListener(this);
     }
-    
+
     public void reset() {
         fFileFound = false;
         fAnnotationFound = false;
         fTimeoutTime = System.currentTimeMillis() + fTimeoutInterval;
     }
-    
+
     public void setCodeArea(CodeArea area) {
         fExpectedFile = new Path(area.file);
         fExpectedLine = area.start_line;
@@ -102,25 +102,25 @@ public class SourceDisplayListener implements IPartListener, IAnnotationModelLis
             }
         }
     }
-    
+
     public synchronized boolean isFinished() {
         if (isTimedOut()) {
             throw new RuntimeException("Timed Out: "  + toString());
         }
-        
+
         return fFileFound && fAnnotationFound;
     }
-    
+
     public void partActivated(IWorkbenchPart part) {
         partBroughtToTop(part);
     }
-    
+
     public void partBroughtToTop(IWorkbenchPart part) {
         fActiveEditor = null;
         if (fAnnotationModel != null) {
             fAnnotationModel.removeAnnotationModelListener(this);
         }
-        
+
         if (part instanceof IEditorPart) {
             fActiveEditor = ((IEditorPart)part);
             checkFile();
@@ -134,38 +134,38 @@ public class SourceDisplayListener implements IPartListener, IAnnotationModelLis
 
     public void partOpened(IWorkbenchPart part) {
     }
-    
+
     public void modelChanged(IAnnotationModel model) {
         checkAnnotations();
     }
-    
+
     private synchronized void checkFile() {
         if (fActiveEditor == null) return;
         IEditorInput input = fActiveEditor.getEditorInput();
         IPath location = null;
-        
+
         if (input instanceof IFileEditorInput) {
             IFile file = ((IFileEditorInput)input).getFile();
             location = file.getLocation();
         } else if (input instanceof FileStoreEditorInput) {
-            location = URIUtil.toPath(((FileStoreEditorInput)input).getURI()); 
+            location = URIUtil.toPath(((FileStoreEditorInput)input).getURI());
         } else if (input instanceof CommonSourceNotFoundEditorInput) {
             Object artifact = ((CommonSourceNotFoundEditorInput)input).getArtifact();
             if (artifact instanceof CSourceNotFoundElement) {
                 location = new Path( ((CSourceNotFoundElement)artifact).getFile() );
             }
         }
-        
+
         if (location != null && fExpectedFile != null &&
-            location.lastSegment().equals(fExpectedFile.lastSegment())) 
+            location.lastSegment().equals(fExpectedFile.lastSegment()))
         {
             fFileFound = true;
-            
-            if (fActiveEditor instanceof ITextEditor) { 
+
+            if (fActiveEditor instanceof ITextEditor) {
                 IDocumentProvider docProvider = ((ITextEditor)fActiveEditor).getDocumentProvider();
                 fAnnotationModel = docProvider.getAnnotationModel(fActiveEditor.getEditorInput());
                 fAnnotationModel.addAnnotationModelListener(this);
-            
+
                 checkAnnotations();
             } else if (fActiveEditor instanceof CommonSourceNotFoundEditor) {
                 // No annotation will be painted if source not found.
@@ -173,30 +173,30 @@ public class SourceDisplayListener implements IPartListener, IAnnotationModelLis
             }
         }
     }
-    
+
     private synchronized void checkAnnotations() {
         Position expectedPosition = calcExpectedPosition();
         if (checkTopFrameAnnotation(expectedPosition)) {
             fAnnotationFound = true;
         }
     }
-    
+
     private Position calcExpectedPosition() {
-    	if (fActiveEditor instanceof ITextEditor) {
-	        IDocument doc = ((ITextEditor)fActiveEditor).getDocumentProvider().getDocument(fActiveEditor.getEditorInput());
-	        if (doc == null) return null;
-	        try {
-	            IRegion region = doc.getLineInformation(fExpectedLine - 1);
-	            return new Position(region.getOffset(), region.getLength());
-	        } catch (BadLocationException e) {
-	        }
-    	}
+        if (fActiveEditor instanceof ITextEditor) {
+            IDocument doc = ((ITextEditor)fActiveEditor).getDocumentProvider().getDocument(fActiveEditor.getEditorInput());
+            if (doc == null) return null;
+            try {
+                IRegion region = doc.getLineInformation(fExpectedLine - 1);
+                return new Position(region.getOffset(), region.getLength());
+            } catch (BadLocationException e) {
+            }
+        }
         return null;
     }
-    
+
     private boolean checkTopFrameAnnotation(Position pos) {
         if (fAnnotationModel == null) return false;
-        
+
         for (Iterator<?> itr = fAnnotationModel.getAnnotationIterator(); itr.hasNext();) {
             Annotation ann = (Annotation)itr.next();
             if ( ANNOTATION_TOP_FRAME.equals(ann.getType()) ) {
@@ -208,7 +208,7 @@ public class SourceDisplayListener implements IPartListener, IAnnotationModelLis
         }
         return false;
     }
-    
+
     @Override
     public String toString() {
         StringBuffer buf = new StringBuffer("Source Display Listener");
@@ -227,5 +227,5 @@ public class SourceDisplayListener implements IPartListener, IAnnotationModelLis
         buf.append(")");
         return buf.toString();
     }
-    
+
 }

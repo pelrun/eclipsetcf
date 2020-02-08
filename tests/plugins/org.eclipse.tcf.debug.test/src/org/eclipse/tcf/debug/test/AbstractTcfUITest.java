@@ -1,8 +1,8 @@
 /*******************************************************************************
  * Copyright (c) 2012 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
- * of the Eclipse Public License v1.0 which accompanies this distribution, and is
- * available at http://www.eclipse.org/legal/epl-v10.html
+ * of the Eclipse Public License 2.0 which accompanies this distribution, and is
+ * available at https://www.eclipse.org/legal/epl-2.0/
  *
  * Contributors:
  * Wind River Systems - initial API and implementation
@@ -197,7 +197,7 @@ public abstract class AbstractTcfUITest extends AbstractCMTest implements IViewe
                 new Pattern[] { Pattern.compile(".*"), Pattern.compile(".*"), Pattern.compile(".*" + processInfo.fProcessId + ".*\\(.*[Bb]reakpoint.*"), Pattern.compile(".*")});
             fDebugViewListener.reset();
         } while (topFrameItem == null && System.currentTimeMillis() < timeout);
-        
+
         if (topFrameItem == null) {
             Assert.fail("Top stack frame not found. \n\nDebug view dump: \n:" + fDebugViewViewer.toString());
         }

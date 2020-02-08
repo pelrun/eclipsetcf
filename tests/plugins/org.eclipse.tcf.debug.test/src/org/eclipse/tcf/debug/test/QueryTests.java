@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2012 Wind River Systems and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- * 
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
  * Contributors:
  *     Wind River Systems - initial API and implementation
  *******************************************************************************/
@@ -29,9 +29,9 @@ import org.junit.Test;
  * Tests that exercise the Query object.
  */
 public class QueryTests  extends TestCase{
-    
+
     public void testSimpleGet() throws InterruptedException, ExecutionException {
-        Query<Integer> q = new Query<Integer>() { 
+        Query<Integer> q = new Query<Integer>() {
             @Override
             protected void execute(DataCallback<Integer> rm) {
                 rm.setData(1);
@@ -41,10 +41,10 @@ public class QueryTests  extends TestCase{
         // Check initial state
         Assert.assertTrue(!q.isDone());
         Assert.assertTrue(!q.isCancelled());
-        
+
         q.invoke();
         Assert.assertEquals(1, (int)q.get());
-        
+
         // Check final state
         Assert.assertTrue(q.isDone());
         Assert.assertTrue(!q.isCancelled());
@@ -53,8 +53,8 @@ public class QueryTests  extends TestCase{
 
     public void testGetError() throws InterruptedException, ExecutionException {
         final String error_message = "Test Error";
-        
-        Query<Integer> q = new Query<Integer>() { 
+
+        Query<Integer> q = new Query<Integer>() {
             @Override
             protected void execute(DataCallback<Integer> rm) {
                 rm.setError(new Throwable(error_message)); //$NON-NLS-1$
@@ -65,27 +65,27 @@ public class QueryTests  extends TestCase{
         // Check initial state
         Assert.assertTrue(!q.isDone());
         Assert.assertTrue(!q.isCancelled());
-        
+
         q.invoke();
-        
+
         try {
             q.get();
             Assert.fail("Expected exception");
         } catch (ExecutionException e) {
             Assert.assertEquals(e.getCause().getMessage(), error_message);
         }
-        
+
         // Check final state
         Assert.assertTrue(q.isDone());
         Assert.assertTrue(!q.isCancelled());
 
     }
-     
+
     public void testGetWithMultipleDispatches() throws InterruptedException, ExecutionException {
-        Query<Integer> q = new Query<Integer>() { 
+        Query<Integer> q = new Query<Integer>() {
             @Override
             protected void execute(final DataCallback<Integer> rm) {
-                Protocol.invokeLater(new Runnable() { 
+                Protocol.invokeLater(new Runnable() {
                     public void run() {
                         rm.setData(1);
                         rm.done();
@@ -98,20 +98,20 @@ public class QueryTests  extends TestCase{
             public String toString() { return super.toString() + "\n       getWithMultipleDispatchesTest() first runnable (query)"; } //$NON-NLS-1$
         };
         q.invoke();
-        Assert.assertEquals(1, (int)q.get()); 
+        Assert.assertEquals(1, (int)q.get());
     }
 
     public void testExceptionOnGet() throws InterruptedException, ExecutionException {
-        Query<Integer> q = new Query<Integer>() { 
+        Query<Integer> q = new Query<Integer>() {
             @Override
             protected void execute(final DataCallback<Integer> rm) {
                 rm.setError(new Throwable("")); //$NON-NLS-1$
                 rm.done();
             }
         };
-        
+
         q.invoke();
-        
+
         try {
             q.get();
             Assert.fail("Excpected ExecutionExeption");
@@ -119,28 +119,28 @@ public class QueryTests  extends TestCase{
         } finally {
             Assert.assertTrue(q.isDone());
             Assert.assertTrue(!q.isCancelled());
-        }            
+        }
     }
 
     public void testCancelBeforeWaiting() throws InterruptedException, ExecutionException {
-        final Query<Integer> q = new Query<Integer>() { 
+        final Query<Integer> q = new Query<Integer>() {
             @Override protected void execute(final DataCallback<Integer> rm) {
                 Assert.fail("Query was cancelled, it should not be called."); //$NON-NLS-1$
                 rm.done();
             }
         };
-        
+
         // Cancel before invoking the query.
         q.cancel(false);
 
         Assert.assertTrue(q.isDone());
-        Assert.assertTrue(q.isCancelled());            
+        Assert.assertTrue(q.isCancelled());
 
         // Start the query.
         q.invoke();
-        
-        
-        
+
+
+
         // Block to retrieve data
         try {
             q.get();
@@ -148,16 +148,16 @@ public class QueryTests  extends TestCase{
             return; // Success
         } finally {
             Assert.assertTrue(q.isDone());
-            Assert.assertTrue(q.isCancelled());            
-        }            
+            Assert.assertTrue(q.isCancelled());
+        }
         Assert.assertTrue("CancellationException should have been thrown", false); //$NON-NLS-1$
     }
 
     public void testCancelWhileWaiting() throws InterruptedException, ExecutionException {
-        final DataCallback<?>[] rmHolder = new DataCallback<?>[1];   
+        final DataCallback<?>[] rmHolder = new DataCallback<?>[1];
         final Boolean[] cancelCalled = new Boolean[] { Boolean.FALSE };
-        
-        final Query<Integer> q = new Query<Integer>() { 
+
+        final Query<Integer> q = new Query<Integer>() {
             @Override protected void execute(final DataCallback<Integer> rm) {
                 synchronized (rmHolder) {
                     rmHolder[0] = rm;
@@ -165,7 +165,7 @@ public class QueryTests  extends TestCase{
                 }
             }
         };
-        
+
         // Start the query.
         q.invoke();
 
@@ -174,24 +174,24 @@ public class QueryTests  extends TestCase{
             while(rmHolder[0] == null) {
                 rmHolder.wait();
             }
-        }        
-        
+        }
+
         // Add a cancel listener to the query RM
         rmHolder[0].addCancelListener(new ICanceledListener() {
-            
+
             public void requestCanceled(Callback rm) {
                 cancelCalled[0] = Boolean.TRUE;
             }
         });
-        
+
         // Cancel running request.
         q.cancel(false);
-        
+
         Assert.assertTrue(cancelCalled[0]);
         Assert.assertTrue(rmHolder[0].isCanceled());
         Assert.assertTrue(q.isCancelled());
         Assert.assertTrue(q.isDone());
-        
+
         // Retrieve data
         try {
             q.get();
@@ -199,16 +199,16 @@ public class QueryTests  extends TestCase{
             return; // Success
         } finally {
             Assert.assertTrue(q.isDone());
-            Assert.assertTrue(q.isCancelled());            
-        }            
-        
+            Assert.assertTrue(q.isCancelled());
+        }
+
         // Complete rm and query.
         @SuppressWarnings("unchecked")
-        DataCallback<Integer> drm = (DataCallback<Integer>)rmHolder[0]; 
+        DataCallback<Integer> drm = (DataCallback<Integer>)rmHolder[0];
         drm.setData(new Integer(1));
         rmHolder[0].done();
-        
-        // Try to retrieve data again, it should still result in 
+
+        // Try to retrieve data again, it should still result in
         // cancellation exception.
         try {
             q.get();
@@ -216,16 +216,16 @@ public class QueryTests  extends TestCase{
             return; // Success
         } finally {
             Assert.assertTrue(q.isDone());
-            Assert.assertTrue(q.isCancelled());            
-        }            
+            Assert.assertTrue(q.isCancelled());
+        }
 
-        
+
         Assert.assertTrue("CancellationException should have been thrown", false); //$NON-NLS-1$
     }
 
-    
+
     public void testGetTimeout() throws InterruptedException, ExecutionException {
-        final Query<Integer> q = new Query<Integer>() { 
+        final Query<Integer> q = new Query<Integer>() {
             @Override
             protected void execute(final DataCallback<Integer> rm) {
                 // Call done with a delay of 1 second, to avoid stalling the tests.
@@ -241,14 +241,14 @@ public class QueryTests  extends TestCase{
 
         // Note: no point in checking isDone() and isCancelled() here, because
         // the value could change on timing.
-        
+
         try {
             q.get(1, TimeUnit.MILLISECONDS);
         } catch (TimeoutException e) {
             return; // Success
         } finally {
             Assert.assertFalse("Query should not be done yet, it should have timed out first.", q.isDone()); //$NON-NLS-1$
-        }            
+        }
         Assert.assertTrue("TimeoutException should have been thrown", false); //$NON-NLS-1$
     }
 

@@ -1,8 +1,8 @@
 /*******************************************************************************
  * Copyright (c) 2012 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
- * of the Eclipse Public License v1.0 which accompanies this distribution, and is
- * available at http://www.eclipse.org/legal/epl-v10.html
+ * of the Eclipse Public License 2.0 which accompanies this distribution, and is
+ * available at https://www.eclipse.org/legal/epl-2.0/
  *
  * Contributors:
  * Wind River Systems - initial API and implementation
@@ -28,12 +28,12 @@ public class StackTraceCMTest extends AbstractCMTest {
         final TestProcessInfo processInfo = startProcess("tcf_test_func2");
         doTestStackTraceCMReset(
             processInfo,
-            new Callable<Object>() { 
+            new Callable<Object>() {
                 public Object call() throws Exception {
                     resumeAndWaitForSuspend(processInfo.fThreadCtx, IRunControl.RM_STEP_OUT);
                     return null;
                 }
-            }, 
+            },
             true);
 
     }
@@ -42,7 +42,7 @@ public class StackTraceCMTest extends AbstractCMTest {
         final TestProcessInfo processInfo = startProcess("tcf_test_func2");
         doTestStackTraceCMReset(
             processInfo,
-            new Callable<Object>() { 
+            new Callable<Object>() {
                 public Object call() throws Exception {
                     Protocol.invokeAndWait(new Runnable() {
                         public void run() {
@@ -51,7 +51,7 @@ public class StackTraceCMTest extends AbstractCMTest {
                     });
                     return null;
                 }
-            }, 
+            },
             false);
     }
 
@@ -59,7 +59,7 @@ public class StackTraceCMTest extends AbstractCMTest {
         final TestProcessInfo processInfo = startProcess("tcf_test_func2");
         doTestStackTraceCMReset(
             processInfo,
-            new Callable<Object>() { 
+            new Callable<Object>() {
                 public Object call() throws Exception {
                     Protocol.invokeAndWait(new Runnable() {
                         public void run() {
@@ -68,7 +68,7 @@ public class StackTraceCMTest extends AbstractCMTest {
                     });
                     return null;
                 }
-            }, 
+            },
             false);
     }
 
@@ -76,7 +76,7 @@ public class StackTraceCMTest extends AbstractCMTest {
         final TestProcessInfo processInfo = startProcess("tcf_test_func2");
         doTestStackTraceCMReset(
             processInfo,
-            new Callable<Object>() { 
+            new Callable<Object>() {
                 public Object call() throws Exception {
                     Protocol.invokeAndWait(new Runnable() {
                         public void run() {
@@ -85,19 +85,19 @@ public class StackTraceCMTest extends AbstractCMTest {
                     });
                     return null;
                 }
-            }, 
+            },
             false);
     }
 
-    private void doTestStackTraceCMReset(final TestProcessInfo processInfo, Callable<?> resetCallable, 
-        final boolean pcShouldChange) throws Exception 
+    private void doTestStackTraceCMReset(final TestProcessInfo processInfo, Callable<?> resetCallable,
+        final boolean pcShouldChange) throws Exception
     {
         // Retrieve the current PC and top frame for use later
         final String pc = new Transaction<String>() {
             @Override
             protected String process() throws InvalidCacheException, ExecutionException {
                 return validate(fRunControlCM.getState(processInfo.fThreadId)).pc;
-                
+
             }
         }.get();
 
@@ -142,15 +142,15 @@ public class StackTraceCMTest extends AbstractCMTest {
                 return null;
             }
         }.get();
-        
+
         new Transaction<Object>() {
             @Override
             protected Object process() throws InvalidCacheException, ExecutionException {
                 String[] frameIds = validate( fStackTraceCM.getChildren(processInfo.fThreadId) );
-                
+
                 RangeCache<StackTraceContext> framesRange = fStackTraceCM.getContextRange(processInfo.fThreadId);
                 List<StackTraceContext> frames = validate(framesRange.getRange(frameIds.length - 1, 1));
-                if (pcShouldChange) { 
+                if (pcShouldChange) {
                     StackTraceContext topFrame = frames.get(0);
                     Assert.assertFalse("Expected PC to be updated", pc.equals(topFrame.getInstructionAddress().toString()));
                 }

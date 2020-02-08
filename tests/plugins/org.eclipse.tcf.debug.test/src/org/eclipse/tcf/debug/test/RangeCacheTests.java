@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2012 Wind River Systems and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- * 
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
  * Contributors:
  *     Wind River Systems - initial API and implementation
  *******************************************************************************/
@@ -33,12 +33,12 @@ import org.eclipse.tcf.protocol.Protocol;
 public class RangeCacheTests extends TestCase {
 
     class TestRangeCache extends RangeCache<Integer> {
-        
+
         @Override
         protected void retrieve(long offset, int count, DataCallback<List<Integer>> rm) {
             fRetrieveInfos.add(new RetrieveInfo(offset, count, rm));
         }
-        
+
         @Override
         public void reset() {
             super.reset();
@@ -52,8 +52,8 @@ public class RangeCacheTests extends TestCase {
         TestQuery(long offset, int count) {
             fOffset = offset;
             fCount = count;
-        }        
-        
+        }
+
         @Override
         protected void execute(final DataCallback<List<Integer>> rm) {
             fRangeCache = fTestCache.getRange(fOffset, fCount);
@@ -82,7 +82,7 @@ public class RangeCacheTests extends TestCase {
             fCount = count;
             fRm = rm;
         }
-        
+
         public int compareTo(RetrieveInfo o) {
             if (fOffset > o.fOffset) {
                 return 1;
@@ -94,10 +94,10 @@ public class RangeCacheTests extends TestCase {
         }
     }
 
-    TestRangeCache fTestCache;    
+    TestRangeCache fTestCache;
     SortedSet<RetrieveInfo> fRetrieveInfos;
     ICache<List<Integer>> fRangeCache;
-    
+
     private List<Integer> makeList(long offset, int count) {
         List<Integer> list = new ArrayList<Integer>(count);
         for (int i = 0; i < count; i++) {
@@ -105,7 +105,7 @@ public class RangeCacheTests extends TestCase {
         }
         return list;
     }
-    
+
     /**
      * There's no rule on how quickly the cache has to start data retrieval
      * after it has been requested.  It could do it immediately, or it could
@@ -118,17 +118,17 @@ public class RangeCacheTests extends TestCase {
                     wait(100);
                 } catch (InterruptedException e) {
                     return;
-                } 
+                }
             }
         }
     }
-    
+
     protected void setUp() throws Exception {
         fTestCache = new TestRangeCache();
         fRetrieveInfos = new TreeSet<RetrieveInfo>();
         fRangeCache = null;
-    }   
-    
+    }
+
     protected void tearDown() throws ExecutionException, InterruptedException {
         fTestCache = null;
     }
@@ -143,7 +143,7 @@ public class RangeCacheTests extends TestCase {
         Assert.assertTrue(cache.isValid());
         Assert.assertFalse(cache.getError() == null);
     }
-    
+
     private void assertCacheWaiting(ICache<List<Integer>> cache) {
         Assert.assertFalse(cache.isValid());
         try {
@@ -164,11 +164,11 @@ public class RangeCacheTests extends TestCase {
             }
         });
     }
-            
+
     private void getRange(long queryOffset, int queryCount, long[] retrieveOffsets, int retrieveCounts[]) throws InterruptedException, ExecutionException {
         assert retrieveOffsets.length == retrieveCounts.length;
         int retrieveCount = retrieveOffsets.length;
-        
+
         // Request data from cache
         TestQuery q = new TestQuery(queryOffset, queryCount);
 
@@ -176,33 +176,33 @@ public class RangeCacheTests extends TestCase {
         fRetrieveInfos.clear();
 
         q.invoke();
-        
+
         // Wait until the cache requests the data.
         waitForRetrieveRm(retrieveOffsets.length);
-        
+
         if (retrieveCount != 0) {
             assertCacheWaiting(fRangeCache);
-            
+
             // Set the data
             Assert.assertEquals(retrieveCount, fRetrieveInfos.size());
-            int i = 0; 
+            int i = 0;
             for (RetrieveInfo info : fRetrieveInfos) {
                 completeInfo(info, retrieveOffsets[i], retrieveCounts[i]);
                 i++;
             }
         }
-        
+
         // Wait for data.
         Assert.assertEquals(makeList(queryOffset, queryCount), q.get());
-        
+
         // Check state while waiting for data
         assertCacheValidWithData(fRangeCache, queryOffset, queryCount);
     }
-    
+
     public void testGetOneRangeTest() throws InterruptedException, ExecutionException {
         getRange(0, 100, new long[] { 0 }, new int[] { 100 });
     }
-    
+
     public void testGetMultipleRangesTest() throws InterruptedException, ExecutionException {
         // Retrieve a range in-between two cached ranges
         getRange(0, 100, new long[] { 0 }, new int[] { 100 });
@@ -226,10 +226,10 @@ public class RangeCacheTests extends TestCase {
         int queryCount = 100;
         long[] retrieveOffsets = new long[] { 0 };
         int retrieveCounts[] = new int[] { 50 };
-    
+
         assert retrieveOffsets.length == retrieveCounts.length;
         int retrieveCount = retrieveOffsets.length;
-        
+
         // Request data from cache
         TestQuery q = new TestQuery(queryOffset, queryCount);
 
@@ -237,22 +237,22 @@ public class RangeCacheTests extends TestCase {
         fRetrieveInfos.clear();
 
         q.invoke();
-        
+
         // Wait until the cache requests the data.
         waitForRetrieveRm(retrieveOffsets.length);
-        
+
         if (retrieveCount != 0) {
             assertCacheWaiting(fRangeCache);
-            
+
             // Set the data
             Assert.assertEquals(retrieveCount, fRetrieveInfos.size());
-            int i = 0; 
+            int i = 0;
             for (RetrieveInfo info : fRetrieveInfos) {
                 completeInfo(info, retrieveOffsets[i], retrieveCounts[i]);
                 i++;
             }
         }
-        
+
         // Wait for data.
         List<Integer> data = q.get();
         Assert.assertEquals(100, data.size());
@@ -265,39 +265,39 @@ public class RangeCacheTests extends TestCase {
         }
     }
 
-    
+
     private void cancelRange(long queryOffset, int queryCount, long[] retrieveOffsets, int retrieveCounts[]) throws Exception {
         int retrieveCount = retrieveOffsets.length;
-        
+
         // Request data from cache
         TestQuery q = new TestQuery(queryOffset, queryCount);
 
         fRangeCache = null;
         fRetrieveInfos.clear();
-        
+
         q.invoke();
-        
+
         // Wait until the cache requests the data.
         waitForRetrieveRm(retrieveCount);
-        
+
         assertCacheWaiting(fRangeCache);
 
         // Set the data without using an executor.
         Assert.assertEquals(retrieveCount, fRetrieveInfos.size());
-        int i = 0; 
+        int i = 0;
         for (RetrieveInfo info : fRetrieveInfos) {
             Assert.assertEquals(retrieveOffsets[i], info.fOffset);
             Assert.assertEquals(retrieveCounts[i], info.fCount);
             Assert.assertFalse(info.fRm.isCanceled());
             i++;
         }
-        
+
         q.cancel(true);
         try {
             q.get();
             Assert.fail("Expected a cancellation exception");
         } catch (CancellationException e) {} // Expected exception;
-        
+
         for (RetrieveInfo info : fRetrieveInfos) {
             Assert.assertTrue(info.fRm.isCanceled());
         }
@@ -311,32 +311,32 @@ public class RangeCacheTests extends TestCase {
         // Cancel a couple of ranges.
         cancelRange(0, 100, new long[] { 0 }, new int[] { 100 });
         cancelRange(200, 100, new long[] { 200 }, new int[] { 100 });
-        
+
         // Cancel a range overlapping two previously canceled ranges.
         cancelRange(0, 300, new long[] { 0 }, new int[] { 300 });
     }
 
     public void testGetAndCancelMultipleRangesTest() throws Exception {
-        // Cancel a range, then retrieve the same range 
+        // Cancel a range, then retrieve the same range
         cancelRange(0, 100, new long[] { 0 }, new int[] { 100 });
         getRange(0, 100, new long[] { 0 }, new int[] { 100 });
-        
+
         // Cancel a range overlapping a cached range.
         cancelRange(0, 200, new long[] { 100 }, new int[] { 100 });
     }
 
     public void testResetOneRangeTest() throws InterruptedException, ExecutionException {
         getRange(0, 100, new long[] { 0 }, new int[] { 100 });
-        
+
         Protocol.invokeAndWait(new Runnable() {
             public void run() {
                 fTestCache.reset();
             };
         });
-        
+
         getRange(0, 100, new long[] { 0 }, new int[] { 100 });
     }
-    
+
     public void testResetMultipleRangesTest() throws InterruptedException, ExecutionException {
         // Retrieve a range in-between two cached ranges
         getRange(0, 100, new long[] { 0 }, new int[] { 100 });
@@ -353,13 +353,13 @@ public class RangeCacheTests extends TestCase {
         getRange(2000, 50, new long[] {}, new int[] {});
         getRange(2025, 50, new long[] {}, new int[] {});
         getRange(2050, 50, new long[] {}, new int[] {});
-        
+
         Protocol.invokeAndWait(new Runnable() {
             public void run() {
                 fTestCache.reset();
             };
         });
-        
+
         // Retrieve a range in-between two cached ranges
         getRange(0, 100, new long[] { 0 }, new int[] { 100 });
         getRange(200, 100, new long[] { 200 }, new int[] { 100 });
@@ -383,36 +383,36 @@ public class RangeCacheTests extends TestCase {
 
         fRangeCache = null;
         fRetrieveInfos.clear();
-        
+
         q.invoke();
-        
+
         // Wait until the cache requests the data.
         waitForRetrieveRm(1);
-        
+
         assertCacheWaiting(fRangeCache);
-        
+
         Protocol.invokeAndWait(new Runnable() {
             public void run() {
                 fTestCache.reset();
             };
         });
-       
+
         // Set the data without using an executor.
         Assert.assertEquals(1, fRetrieveInfos.size());
         completeInfo(fRetrieveInfos.first(), 10, 100);
-        
+
         // Wait for data.
         Assert.assertEquals(makeList(10, 100), q.get());
-        
+
         // Check state while waiting for data
         assertCacheValidWithData(fRangeCache, 10, 100);
     }
 
     public void testSetRangeErrorTest() throws InterruptedException, ExecutionException {
-        
+
         // Retrieve a range of data.
         getRange(0, 100, new long[] { 0 }, new int[] { 100 });
-        
+
         // Force an error status into the range cache.
         Protocol.invokeAndWait(new Runnable() {
             public void run() {
@@ -429,18 +429,18 @@ public class RangeCacheTests extends TestCase {
         });
 
         assertCacheValidWithError(fRangeCache);
-        
-        // Request an update from the range and check for exception. 
+
+        // Request an update from the range and check for exception.
         TestQuery q = new TestQuery(10, 90);
 
         fRangeCache = null;
         fRetrieveInfos.clear();
-        
+
         q.invoke();
 
         try {
             q.get();
-            Assert.fail("Expected an ExecutionException");            
+            Assert.fail("Expected an ExecutionException");
         } catch (ExecutionException e) {}
     }
 
@@ -450,14 +450,14 @@ public class RangeCacheTests extends TestCase {
 
         fRangeCache = null;
         fRetrieveInfos.clear();
-        
+
         q.invoke();
-        
+
         // Wait until the cache requests the data.
         waitForRetrieveRm(1);
-        
+
         assertCacheWaiting(fRangeCache);
-        
+
         // Set the data without using an executor.
         Assert.assertEquals(1, fRetrieveInfos.size());
         RetrieveInfo info = fRetrieveInfos.iterator().next();
@@ -468,11 +468,11 @@ public class RangeCacheTests extends TestCase {
                 fRangeCache = fTestCache.getRange(0, 100);
             }
         });
-        
+
         // Check state while waiting for data
         assertCacheValidWithData(fRangeCache, 0, 100);
     }
-    
-    
-    
+
+
+
 }

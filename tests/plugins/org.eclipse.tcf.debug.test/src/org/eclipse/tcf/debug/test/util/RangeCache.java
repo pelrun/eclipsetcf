@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2010, 2012 Wind River Systems and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- * 
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
  * Contributors:
  *     Wind River Systems - initial API and implementation
  *******************************************************************************/
@@ -27,32 +27,32 @@ import org.eclipse.tcf.protocol.Protocol;
  * 4 will relieve a subsequent request for 4 bytes at offset 2 from having to
  * asynchronously retrieve the data from the source. The results from the first
  * two range requests are used to service the third.
- * 
+ *
  * <p>
  * Clients of this cache should call {@link #getRange(long, int)} to get a cache
  * for that given range of elements. Sub-classes must implement
  * {@link #retrieve(long, int, DataRequestMonitor)} to retrieve data from the
  * asynchronous data source.
- * 
- * 
- * 
+ *
+ *
+ *
  * @since 2.2
  */
 abstract public class RangeCache<V> {
-    
+
     private class Request extends CallbackCache<List<V>> implements Comparable<Request> {
         long fOffset;
         int fCount;
         @Override
         protected void retrieve(DataCallback<java.util.List<V>> rm) {
-            RangeCache.this.retrieve(fOffset, fCount, rm); 
+            RangeCache.this.retrieve(fOffset, fCount, rm);
         }
-        
+
         Request(long offset, int count) {
             fOffset = offset;
             fCount = count;
         }
-        
+
         public int compareTo(RangeCache<V>.Request o) {
             if (fOffset > o.fOffset) {
                 return 1;
@@ -62,7 +62,7 @@ abstract public class RangeCache<V> {
                 return -1;
             }
         }
-        
+
         @Override
         public boolean equals(Object _o) {
             if (_o instanceof RangeCache<?>.Request) {
@@ -71,12 +71,12 @@ abstract public class RangeCache<V> {
             }
             return false;
         }
-        
+
         @Override
         public int hashCode() {
             return (int)fOffset^fCount;
         }
-        
+
         @Override
         public String toString() {
             return "" + fOffset + "(" + fCount + ") -> " + (fOffset + fCount); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
@@ -84,13 +84,13 @@ abstract public class RangeCache<V> {
     }
 
     /**
-     * This transaction class implements the main logic of the range cache. 
-     * It examines the current requests held by the cache and and creates 
+     * This transaction class implements the main logic of the range cache.
+     * It examines the current requests held by the cache and and creates
      * requests ones as needed.  Once the requests are all valid it returns
      * the completed data to the client.
      */
-    private class RangeTransaction extends Transaction<List<V>> { 
-        
+    private class RangeTransaction extends Transaction<List<V>> {
+
         long fOffset;
         int fCount;
 
@@ -101,13 +101,13 @@ abstract public class RangeCache<V> {
         @Override
         protected List<V> process() throws InvalidCacheException, ExecutionException {
             clearCanceledRequests();
-            
+
             List<Request> transactionRequests = getRequests(fOffset, fCount);
             validate(transactionRequests);
 
             return makeElementsListFromRequests(transactionRequests, fOffset, fCount);
         }
-                
+
         private void clearCanceledRequests() {
             for (Iterator<Request> itr = fRequests.iterator(); itr.hasNext();) {
                 Request request = itr.next();
@@ -119,43 +119,43 @@ abstract public class RangeCache<V> {
     }
 
     /**
-     * Requests currently held by this cache.  The requests should be for 
-     * non-overlapping ranges of elements.  
+     * Requests currently held by this cache.  The requests should be for
+     * non-overlapping ranges of elements.
      */
-    
-    private SortedSet<Request> fRequests = new TreeSet<Request>(); 
+
+    private SortedSet<Request> fRequests = new TreeSet<Request>();
 
     /**
-     * Retrieves data from the data source. 
-     * 
+     * Retrieves data from the data source.
+     *
      * @param offset Offset in data range where the requested list of data should start.
      * @param count Number of elements requests.
      * @param rm Callback for the data.
      */
     protected abstract void retrieve(long offset, int count, DataCallback<List<V>> rm);
-    
+
     /**
-     * Returns a cache for the range of requested data.  The cache object needs 
+     * Returns a cache for the range of requested data.  The cache object needs
      * to be retrieved from range cache every time that the cache is a
-     * 
+     *
      * @param offset Offset in data range where the requested list of data should start.
      * @param count Number of elements requests.
-     * @return Cache object for the requested data.  
+     * @return Cache object for the requested data.
      */
     public ICache<List<V>> getRange(final long offset, final int count) {
         assert Protocol.isDispatchThread();
-        
+
         List<Request> requests = getRequests(offset, count);
-        
+
         CallbackCache<List<V>> range = new CallbackCache<List<V>>() {
             @Override
             protected void retrieve(DataCallback<List<V>> rm) {
                 new RangeTransaction(offset, count).request(rm);
             }
         };
-        
+
         boolean valid = true;
-        List<Throwable> errors = null; 
+        List<Throwable> errors = null;
         for (ICache<?> request : requests) {
             if (request.isValid()) {
                 if (request.getError() != null) {
@@ -167,7 +167,7 @@ abstract public class RangeCache<V> {
                 break;
             }
         }
-        
+
         if (valid) {
             if (errors == null) {
                 range.set(makeElementsListFromRequests(requests, offset, count), null, true);
@@ -180,21 +180,21 @@ abstract public class RangeCache<V> {
                 }
             }
         }
-        
-        return range; 
+
+        return range;
     }
-    
+
     /**
-     * Sets the given list and status to the cache.  Subsequent range requests 
-     * that fall in its the range will return the given data.  Requests outside 
+     * Sets the given list and status to the cache.  Subsequent range requests
+     * that fall in its the range will return the given data.  Requests outside
      * of its range will trigger a call to {@link #retrieve(long, int, DataRequestMonitor)}.<br>
-     * The given data parameter can be <code>null</code> if the given status 
-     * parameter contains an error.  In this case all requests in the given 
-     * range will return the error. 
-     * 
+     * The given data parameter can be <code>null</code> if the given status
+     * parameter contains an error.  In this case all requests in the given
+     * range will return the error.
+     *
      * @param offset Offset of the given data to set to cache.
      * @param count Count of the given data to set to cache.
-     * @param data List of elements to set to cache.  Can be <code>null</code>. 
+     * @param data List of elements to set to cache.  Can be <code>null</code>.
      * @param error Error object to set to cache or <code>null</code> if none.
      */
     public void set(long offset, int count, List<V> data, Throwable error) {
@@ -208,10 +208,10 @@ abstract public class RangeCache<V> {
         request.set(data, error, true);
         fRequests.add(request);
     }
-    
+
     /**
-     * Forces the cache into an invalid state.  If there are any pending 
-     * requests, their will continue and their results will be cached. 
+     * Forces the cache into an invalid state.  If there are any pending
+     * requests, their will continue and their results will be cached.
      */
     protected void reset() {
         for (Iterator<Request> itr = fRequests.iterator(); itr.hasNext();) {
@@ -222,13 +222,13 @@ abstract public class RangeCache<V> {
             }
         }
     }
-    
+
     private List<Request> getRequests(long fOffset, int fCount) {
         List<Request> requests = new ArrayList<Request>(1);
-        
+
         // Create a new request for the data to retrieve.
         Request current = new Request(fOffset, fCount);
-        
+
         current = adjustRequestHead(current, requests, fOffset, fCount);
         if (current != null) {
             current = adjustRequestTail(current, requests, fOffset, fCount);
@@ -239,9 +239,9 @@ abstract public class RangeCache<V> {
         }
         return requests;
     }
-    
-    // Adjust the beginning of the requested range of data.  If there 
-    // is already an overlapping range in front of the requested range, 
+
+    // Adjust the beginning of the requested range of data.  If there
+    // is already an overlapping range in front of the requested range,
     // then use it.
     private Request adjustRequestHead(Request request, List<Request> transactionRequests, long offset, int count) {
         SortedSet<Request> headRequests = fRequests.headSet(request);
@@ -270,7 +270,7 @@ abstract public class RangeCache<V> {
     private Request adjustRequestTail(Request current, List<Request> transactionRequests, long offset, int count) {
         // Create a duplicate of the tailSet, in order to avoid a concurrent modification exception.
         List<Request> tailSet = new ArrayList<Request>(fRequests.tailSet(current));
-        
+
         // Iterate through the matching requests and add them to the requests list.
         for (Request tailRequest : tailSet) {
             if (tailRequest.fOffset < current.fOffset + count) {
@@ -303,7 +303,7 @@ abstract public class RangeCache<V> {
         }
         return current;
     }
-    
+
     private List<V> makeElementsListFromRequests(List<Request> requests, long offset, int count) {
         List<V> retVal = new ArrayList<V>(count);
         long index = offset;
@@ -325,5 +325,5 @@ abstract public class RangeCache<V> {
             }
         }
         return retVal;
-    }    
+    }
 }

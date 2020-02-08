@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2006, 2012 Wind River Systems and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- * 
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
  * Contributors:
  *     Wind River Systems - initial API and implementation
  *******************************************************************************/
@@ -28,15 +28,15 @@ import org.eclipse.tcf.protocol.Protocol;
  * Tests that exercise the Transaction object.
  */
 public class TransactionTests extends TestCase {
-    final static private int NUM_CACHES = 5; 
-        
+    final static private int NUM_CACHES = 5;
+
     TestCache[] fTestCaches = new TestCache[NUM_CACHES];
     Map<DataCallback<?>, Boolean> fRetrieveRms;
 
     class TestCache extends CallbackCache<Integer> {
-        
+
         final private int fIndex;
-        
+
         public TestCache(int index) {
             fIndex = index;
         }
@@ -48,7 +48,7 @@ public class TransactionTests extends TestCase {
                 TransactionTests.this.notifyAll();
             }
         }
-        
+
     }
 
     class TestSingleTransaction extends Transaction<Integer> {
@@ -64,7 +64,7 @@ public class TransactionTests extends TestCase {
         @Override
         protected Integer process() throws InvalidCacheException, ExecutionException {
             validate(fTestCaches);
-            
+
             int sum =  0;
             for (CallbackCache<Integer> cache : fTestCaches) {
                 sum += cache.getData();
@@ -92,7 +92,7 @@ public class TransactionTests extends TestCase {
             if (!validateUnchecked(fTestCaches)) {
                 return false;
             }
-            
+
             int sum =  0;
             for (CallbackCache<Integer> cache : fTestCaches) {
                 assert cache.getError() == null;
@@ -118,7 +118,7 @@ public class TransactionTests extends TestCase {
             return true;
         }
     }
-    
+
     /**
      * There's no rule on how quickly the cache has to start data retrieval
      * after it has been requested.  It could do it immediately, or it could
@@ -133,56 +133,56 @@ public class TransactionTests extends TestCase {
                     return NUM_CACHES;
                 }
             }
-            return fRetrieveRms.size(); 
+            return fRetrieveRms.size();
         }
     }
-    
+
     private boolean checkRetrieveRms() {
         if (fRetrieveRms.size() == NUM_CACHES) return true;
-        
+
         boolean retVal = false;
-        for (DataCallback<?> rm : fRetrieveRms.keySet()) { 
+        for (DataCallback<?> rm : fRetrieveRms.keySet()) {
             if (fRetrieveRms.get(rm)) {
                 retVal = true;
             }
         }
         return retVal;
     }
-    
+
     public void setUp() throws ExecutionException, InterruptedException {
         fRetrieveRms = new HashMap<DataCallback<?>, Boolean>();
         for (int i = 0; i < fTestCaches.length; i++) {
             fTestCaches[i] = new TestCache(i);
         }
-    }   
-    
+    }
+
     public void tearDown() throws ExecutionException, InterruptedException {
         fTestCaches = new TestCache[NUM_CACHES];
     }
 
     private void doTestSingleTransaction(final Transaction<Integer> testTransaction) throws InterruptedException, ExecutionException {
         // Request data from cache
-        Query<Integer> q = new Query<Integer>() { 
+        Query<Integer> q = new Query<Integer>() {
             @Override
             protected void execute(DataCallback<Integer> rm) {
                 testTransaction.request(rm);
             }
         };
         q.invoke();
-        
+
         // Wait until the cache starts data retrieval.
         waitForRetrieveRm();
 
-        // Set the data to caches.  
+        // Set the data to caches.
         Protocol.invokeAndWait(new Runnable() {
             public void run() {
                 @SuppressWarnings("unchecked")
-                DataCallback<Integer> cb = ((DataCallback<Integer>)fRetrieveRms.keySet().iterator().next()); 
+                DataCallback<Integer> cb = ((DataCallback<Integer>)fRetrieveRms.keySet().iterator().next());
                 cb.setData(1);
                 cb.done();
             }
         });
-        
+
         Assert.assertEquals(1, (int)q.get());
     }
 
@@ -193,26 +193,26 @@ public class TransactionTests extends TestCase {
     private void doTestSumTransaction(final Transaction<Integer> testTransaction) throws InterruptedException, ExecutionException {
 
         // Request data from cache
-        Query<Integer> q = new Query<Integer>() { 
+        Query<Integer> q = new Query<Integer>() {
             @Override
             protected void execute(DataCallback<Integer> rm) {
                 testTransaction.request(rm);
             }
         };
         q.invoke();
-        
-        
+
+
         int numRms = 0;
         while (numRms != NUM_CACHES) {
             // Wait until the cache starts data retrieval.
             numRms = waitForRetrieveRm();
-            
-            // Set the data to caches.  
+
+            // Set the data to caches.
             Protocol.invokeAndWait(new Runnable() {
                 public void run() {
                     for (Iterator<DataCallback<?>> itr = fRetrieveRms.keySet().iterator(); itr.hasNext();) {
                         @SuppressWarnings("unchecked")
-                        DataCallback<Integer> rm =((DataCallback<Integer>)itr.next()); 
+                        DataCallback<Integer> rm =((DataCallback<Integer>)itr.next());
                         if (fRetrieveRms.get(rm)) {
                             rm.setData(1);
                             rm.done();
@@ -223,7 +223,7 @@ public class TransactionTests extends TestCase {
                 }
             });
         }
-        
+
         q.invoke();
         Assert.assertEquals(NUM_CACHES, (int)q.get());
     }
@@ -239,12 +239,12 @@ public class TransactionTests extends TestCase {
     public void testSumTransactionUnchecked() throws InterruptedException, ExecutionException {
         doTestSumTransaction(new TestSumTransactionUnchecked());
     }
-    
-    
+
+
     public void testSumTransactionIterative() throws InterruptedException, ExecutionException {
 
         doTestSumTransaction(new TestSumTransactionIterative());
-       
+
     }
 
 }

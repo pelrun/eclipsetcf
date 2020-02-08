@@ -1,9 +1,9 @@
 /*******************************************************************************
  * Copyright (c) 2008, 2012 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.eclipse.org/legal/epl-2.0/
  *
  * Contributors:
  *     Wind River Systems - initial API and implementation
@@ -32,18 +32,18 @@ import org.eclipse.ui.PlatformUI;
 
 /**
  * Copied from org.eclipse.debug.internal.ui.views.launch.LaunchView class.
- * 
- * This debug context provider emulates the Debug view debug context 
- * provider behavior. 
+ *
+ * This debug context provider emulates the Debug view debug context
+ * provider behavior.
  */
 @SuppressWarnings("restriction")
 public class TestDebugContextProvider extends AbstractDebugContextProvider implements IModelChangedListener, ISelectionChangedListener{
-    
+
     private IWorkbenchWindow fWindow = null;
     private ISelection fContext = null;
     private ITreeModelViewer fViewer = null;
     private Visitor fVisitor = new Visitor();
-    
+
     class Visitor implements IModelDeltaVisitor {
         public boolean visit(IModelDelta delta, int depth) {
             if ((delta.getFlags() & (IModelDelta.STATE | IModelDelta.CONTENT)) > 0) {
@@ -60,12 +60,12 @@ public class TestDebugContextProvider extends AbstractDebugContextProvider imple
                 }
             }
             return true;
-        }   
+        }
     }
-    
+
     /**
      * Returns a tree path for the node, *not* including the root element.
-     * 
+     *
      * @param node
      *            model delta
      * @return corresponding tree path
@@ -80,7 +80,7 @@ public class TestDebugContextProvider extends AbstractDebugContextProvider imple
         }
         return new TreePath(list.toArray());
     }
-    
+
     public TestDebugContextProvider(ITreeModelViewer viewer) {
         super(null);
         fViewer = viewer;
@@ -91,8 +91,8 @@ public class TestDebugContextProvider extends AbstractDebugContextProvider imple
             DebugUITools.getDebugContextManager().getContextService(fWindow).addDebugContextProvider(this);
         }
     }
-    
-    protected void dispose() { 
+
+    protected void dispose() {
         if (fWindow != null) {
             DebugUITools.getDebugContextManager().getContextService(fWindow).removeDebugContextProvider(this);
         }
@@ -100,21 +100,21 @@ public class TestDebugContextProvider extends AbstractDebugContextProvider imple
         fViewer.removeModelChangedListener(this);
         fViewer.removeSelectionChangedListener(this);
     }
-    
+
     /* (non-Javadoc)
      * @see org.eclipse.debug.ui.contexts.IDebugContextProvider#getActiveContext()
      */
     public synchronized ISelection getActiveContext() {
         return fContext;
-    }   
-    
+    }
+
     protected void activate(ISelection selection) {
         synchronized (this) {
             fContext = selection;
         }
         fire(new DebugContextEvent(this, selection, DebugContextEvent.ACTIVATED));
     }
-    
+
     protected void possibleChange(TreePath element, int type) {
         DebugContextEvent event = null;
         synchronized (this) {
@@ -126,13 +126,13 @@ public class TestDebugContextProvider extends AbstractDebugContextProvider imple
                         if (current.getSegmentCount() == element.getSegmentCount()) {
                             event = new DebugContextEvent(this, fContext, type);
                         } else {
-                            // if parent of the currently selected element 
+                            // if parent of the currently selected element
                             // changes, issue event to update STATE only
                             event = new DebugContextEvent(this, fContext, DebugContextEvent.STATE);
                         }
                     }
                 }
-            } 
+            }
         }
         if (event == null) {
             return;
@@ -169,5 +169,5 @@ public class TestDebugContextProvider extends AbstractDebugContextProvider imple
     public void selectionChanged(SelectionChangedEvent event) {
         activate(event.getSelection());
     }
-    
+
 }

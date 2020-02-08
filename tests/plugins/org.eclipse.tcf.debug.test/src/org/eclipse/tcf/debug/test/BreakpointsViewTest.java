@@ -1,8 +1,8 @@
 /*******************************************************************************
  * Copyright (c) 2012 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
- * of the Eclipse Public License v1.0 which accompanies this distribution, and is
- * available at http://www.eclipse.org/legal/epl-v10.html
+ * of the Eclipse Public License 2.0 which accompanies this distribution, and is
+ * available at https://www.eclipse.org/legal/epl-2.0/
  *
  * Contributors:
  * Wind River Systems - initial API and implementation
@@ -66,13 +66,13 @@ public class BreakpointsViewTest extends AbstractTcfUITest
         return new Transaction<CodeArea>() {
             @Override
             protected CodeArea process() throws InvalidCacheException, ExecutionException {
-            	ContextState state = validate ( fRunControlCM.getState(processInfo.fThreadId) );
+                ContextState state = validate ( fRunControlCM.getState(processInfo.fThreadId) );
                 String symId = validate ( fSymbolsCM.find(processInfo.fProcessId, new BigInteger(state.pc), "tcf_test_func0") );
                 Symbol sym = validate ( fSymbolsCM.getContext(symId) );
                 CodeArea[] area = validate ( fLineNumbersCM.mapToSource(
                     processInfo.fProcessId,
-                		sym.getAddress(),
-                		new BigInteger(sym.getAddress().toString()).add(BigInteger.valueOf(1))) );
+                        sym.getAddress(),
+                        new BigInteger(sym.getAddress().toString()).add(BigInteger.valueOf(1))) );
                 return area[0];
             }
         }.get();
@@ -113,29 +113,29 @@ public class BreakpointsViewTest extends AbstractTcfUITest
         try {
             fBreakpointsViewListener.reset();
             fBreakpointsViewViewer.getPresentationContext().setProperty(
-                IBreakpointUIConstants.PROP_BREAKPOINTS_ORGANIZERS, 
-                new IBreakpointOrganizer[] { createScopeOrganizer() }); 
+                IBreakpointUIConstants.PROP_BREAKPOINTS_ORGANIZERS,
+                new IBreakpointOrganizer[] { createScopeOrganizer() });
             fBreakpointsViewViewer.setAutoExpandLevel(-1);
             fBreakpointsViewViewer.setActive(true);
             fBreakpointsViewListener.waitTillFinished(CONTENT_SEQUENCE_COMPLETE | LABEL_UPDATES_RUNNING);
 
-            VirtualItem bpItem = fBreakpointsViewListener.findElement(new Pattern[] { 
-                Pattern.compile(".*Global.*"), 
+            VirtualItem bpItem = fBreakpointsViewListener.findElement(new Pattern[] {
+                Pattern.compile(".*Global.*"),
                 Pattern.compile(".*" + new Path(func0CodeArea.file).lastSegment() + ".*line: " + func0CodeArea.start_line + ".*"),}); // thread
             Assert.assertTrue(bpItem != null);
 
-            bpItem = fBreakpointsViewListener.findElement(new Pattern[] { 
-                Pattern.compile(".*test_query.*"), 
+            bpItem = fBreakpointsViewListener.findElement(new Pattern[] {
+                Pattern.compile(".*test_query.*"),
                 Pattern.compile(".*" + new Path(func1CodeArea.file).lastSegment() + ".*line: " + func1CodeArea.start_line + ".*"),}); // thread
             Assert.assertTrue(bpItem != null);
 
-            bpItem = fBreakpointsViewListener.findElement(new Pattern[] { 
-                Pattern.compile(".*test_contexts.*"), 
+            bpItem = fBreakpointsViewListener.findElement(new Pattern[] {
+                Pattern.compile(".*test_contexts.*"),
                 Pattern.compile(".*" + new Path(func2CodeArea.file).lastSegment() + ".*line: " + func2CodeArea.start_line + ".*"),}); // thread
             Assert.assertTrue(bpItem != null);
 
-            bpItem = fBreakpointsViewListener.findElement(new Pattern[] { 
-                Pattern.compile(".*test_query.*test_contexts.*"), 
+            bpItem = fBreakpointsViewListener.findElement(new Pattern[] {
+                Pattern.compile(".*test_query.*test_contexts.*"),
                 Pattern.compile(".*" + new Path(func3CodeArea.file).lastSegment() + ".*line: " + func3CodeArea.start_line + ".*"),}); // thread
             Assert.assertTrue(bpItem != null);
 
@@ -154,17 +154,17 @@ public class BreakpointsViewTest extends AbstractTcfUITest
             public ImageDescriptor getImageDescriptor() {
                 return null;
             }
-            
+
             public String getIdentifier() {
                 return "tcf_scope";
             }
-            
+
             public String getOthersLabel() {
                 return "others";
             }
-            
+
         }
         return new MyBreakpointOrganizer();
     }
-    
+
 }

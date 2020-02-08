@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2012 Wind River Systems and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- * 
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
  * Contributors:
  *     Wind River Systems - initial API and implementation
  *******************************************************************************/
@@ -26,7 +26,7 @@ import org.eclipse.tcf.services.IRunControl.RunControlContext;
 import org.eclipse.tcf.services.IRunControl.RunControlListener;
 
 /**
- * 
+ *
  */
 public class LineNumbersCM extends AbstractCacheManager {
 
@@ -43,24 +43,24 @@ public class LineNumbersCM extends AbstractCacheManager {
         fRunControlCM = runControlCM;
         fRunControlCM.addListener(fRunControlListener);
     }
-    
+
     @Override
     public void dispose() {
         fRunControlCM.removeListener(fRunControlListener);
         fMemoryMap.removeListener(fMemoryMapListener);
         super.dispose();
     }
-     
+
     abstract private class MapToSourceKey<V> extends IdKey<V> {
-        private final Number fStartAdddress;        
-        private final Number fEndAddress; 
-        
+        private final Number fStartAdddress;
+        private final Number fEndAddress;
+
         public MapToSourceKey(Class<V> cacheClass, String id, Number startAddress, Number endAddress) {
             super(cacheClass, id);
             fStartAdddress = startAddress;
             fEndAddress = endAddress;
         }
-        
+
         @Override
         public boolean equals(Object obj) {
             if (super.equals(obj) && obj instanceof MapToSourceKey<?>) {
@@ -74,7 +74,7 @@ public class LineNumbersCM extends AbstractCacheManager {
             return super.hashCode() + fStartAdddress.hashCode() + fEndAddress.hashCode();
         }
     }
-    
+
     public ICache<CodeArea[]> mapToSource(final String context_id, final Number start_address, final Number end_address) {
         class MyCache extends TransactionCache<ILineNumbers.CodeArea[]> {
 
@@ -89,7 +89,7 @@ public class LineNumbersCM extends AbstractCacheManager {
                 return validate( doMapToSource(mem_id, start_address, end_address) );
             }
         }
-        
+
         return mapCache(new MapToSourceKey<MyCache>(MyCache.class, context_id, start_address, end_address) {
             @Override MyCache createCache() { return new MyCache(); }
         });
@@ -102,30 +102,30 @@ public class LineNumbersCM extends AbstractCacheManager {
             protected IToken retrieveToken() {
                 return fService.mapToSource(mem_id, start_address, end_address, this);
             }
-            
+
             public void doneMapToSource(IToken token, Exception error, CodeArea[] areas) {
                 fMemContextResetMap.addValid(mem_id, this);
                 set(token, areas, error);
             }
         };
-        
+
         return mapCache(new MapToSourceKey<MyCache>(MyCache.class, mem_id, start_address, end_address) {
                 @Override MyCache createCache() { return new MyCache(); }
             });
     }
 
     abstract private class MapToMemoryKey<V> extends IdKey<V> {
-        private final String fFile;        
-        private final int fLine; 
+        private final String fFile;
+        private final int fLine;
         private final int fColumn;
-        
+
         public MapToMemoryKey(Class<V> cacheClass, String id, String file, int line, int col) {
             super(cacheClass, id);
             fFile = file;
             fLine = line;
             fColumn = col;
         }
-        
+
         @Override
         public boolean equals(Object obj) {
             if (super.equals(obj) && obj instanceof MapToMemoryKey<?>) {
@@ -143,7 +143,7 @@ public class LineNumbersCM extends AbstractCacheManager {
     public ICache<CodeArea[]> mapToMemory(final String context_id, final String file, final int line, final int column) {
         class MyCache extends TransactionCache<ILineNumbers.CodeArea[]> {
             private String fId = context_id;
-            
+
             protected CodeArea[] process() throws InvalidCacheException, ExecutionException {
                 RunControlContext rcContext = validate(fRunControlCM.getContext(fId));
                 String mem_id = rcContext.getProcessID();
@@ -153,13 +153,13 @@ public class LineNumbersCM extends AbstractCacheManager {
                 }
                 return validate( doMapToMemory(mem_id, file, line, column) );
             }
-        }            
-        
+        }
+
         return mapCache(new MapToMemoryKey<MyCache>(MyCache.class, context_id, file, line, column) {
             @Override MyCache createCache() { return new MyCache(); }
-        });        
+        });
     }
-    
+
     private ICache<CodeArea[]> doMapToMemory(final String mem_id, final String file, final int line, final int column) {
         class MyCache extends TokenCache<CodeArea[]> implements ILineNumbers.DoneMapToMemory {
             MyCache() { super(fChannel); }
@@ -171,13 +171,13 @@ public class LineNumbersCM extends AbstractCacheManager {
                 fMemContextResetMap.addValid(mem_id, this);
                 set(token, areas, error);
             }
-            
+
         };
-        
+
         return mapCache(new MapToMemoryKey<MyCache>(MyCache.class, mem_id, file, line, column) {
                 @Override MyCache createCache() { return new MyCache(); }
             });
-        
+
     }
 
     interface DoneMapToMemory {
@@ -185,13 +185,13 @@ public class LineNumbersCM extends AbstractCacheManager {
     }
 
     private RunControlListener fRunControlListener = new RunControlListener() {
-        
+
         public void contextRemoved(String[] context_ids) {
             for (String id : context_ids) {
                 resetContext(id);
             }
         }
-    
+
         public void contextAdded(RunControlContext[] contexts) {}
         public void contextChanged(RunControlContext[] contexts) {}
         public void contextSuspended(String context, String pc, String reason, Map<String, Object> params) {}
