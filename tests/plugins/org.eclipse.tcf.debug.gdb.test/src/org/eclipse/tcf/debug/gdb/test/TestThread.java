@@ -270,7 +270,7 @@ class TestThread extends Thread {
                 cmd("add-infer");
                 for (String s : std_out.lst) {
                     if (s.startsWith("Added inferior ")) {
-                        infer = Integer.parseInt(s.substring(15));
+                        infer = Integer.parseInt(s.split("\\s+")[2]);
                     }
                 }
                 if (infer == 0)
