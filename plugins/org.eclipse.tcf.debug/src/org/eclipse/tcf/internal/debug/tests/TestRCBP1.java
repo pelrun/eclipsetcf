@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2015 Wind River Systems, Inc. and others.
+ * Copyright (c) 2008-2020 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -1674,7 +1674,7 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
                                                 }
                                                 for (int i = 0; i < value.length; i++) {
                                                     if (value[i] != value1[i]) {
-                                                        exit(new Exception("Invalid register value"));
+                                                        exit(new Exception("Invalid register value in " + ctx.getName()));
                                                         return;
                                                     }
                                                 }
@@ -1695,7 +1695,8 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
                 else {
                     int data_size = 0;
                     int l = rnd.nextInt(32);
-                    List<IRegisters.Location> locs = new ArrayList<IRegisters.Location>();
+                    final List<IRegisters.Location> locs = new ArrayList<IRegisters.Location>();
+                    final List<String> names = new ArrayList<String>();
                     for (int i = 0; i < l; i++) {
                         String id = ids[rnd.nextInt(ids.length)];
                         IRegisters.RegistersContext ctx = reg_map.get(id);
@@ -1708,6 +1709,7 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
                         int offs = rnd.nextInt(ctx.getSize());
                         int size = rnd.nextInt(ctx.getSize() - offs) + 1;
                         locs.add(new IRegisters.Location(id, offs, size));
+                        names.add(ctx.getName());
                         data_size += size;
                     }
                     final int total_size = data_size;
@@ -1720,6 +1722,7 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
                                 error = new Exception("Invalid data size in Registers.getm reply");
                             }
                             if (error != null) {
+                                error = new Exception("Cannot read regs " + names, error);
                                 exit(error);
                                 return;
                             }
@@ -1838,6 +1841,29 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
         return bf.toString();
     }
 
+    private JSON.Binary getRandomBinary() {
+        int l = rnd.nextInt(512) + 1;
+        byte[] bf = new byte[l];
+        for (int i = 0; i < l; i++) {
+            bf[i] = (byte)rnd.nextInt(0x100);
+        }
+        return new JSON.Binary(bf, 0, bf.length);
+    }
+
+    private Map<String,Object> getRandomObject(int level) {
+        Map<String,Object> m = new HashMap<String,Object>();
+        if (level < 4) {
+            if (rnd.nextBoolean()) m.put("True", true);
+            if (rnd.nextBoolean()) m.put("False", false);
+            if (rnd.nextBoolean()) m.put("Null", null);
+            if (rnd.nextBoolean()) m.put("Integer", rnd.nextInt());
+            if (rnd.nextBoolean()) m.put("String", getRandomString());
+            if (rnd.nextBoolean()) m.put("Object", getRandomObject(level + 1));
+            if (rnd.nextBoolean()) m.put("Array", new ArrayList<Object>(getRandomObject(level + 1).values()));
+        }
+        return m;
+    }
+
     private void runMemoryMapTest() {
         assert !mem_map_test_running;
         if (srv_memory_map == null || test_context == null || test_context.getProcessID() == null) {
@@ -1865,6 +1891,9 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
                     else if (rnd.nextBoolean()) props.put(IMemoryMap.PROP_OFFSET, rnd.nextInt(0x10000000));
                     if (rnd.nextBoolean()) props.put(IMemoryMap.PROP_BSS, true);
                 }
+                if (rnd.nextBoolean()) props.put("TestRCBP-String", getRandomString());
+                if (rnd.nextBoolean()) props.put("TestRCBP-Binary", getRandomBinary());
+                if (rnd.nextBoolean()) props.put("TestRCBP-Object", getRandomObject(0));
                 List<MemoryRegion> list = new ArrayList<MemoryRegion>();
                 for (MemoryRegion r : map) {
                     String id = (String)r.getProperties().get(IMemoryMap.PROP_ID);
@@ -1889,7 +1918,16 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
                                     String id = (String)r.getProperties().get(IMemoryMap.PROP_ID);
                                     if (!test_id.equals(id)) continue;
                                     for (String p : props.keySet()) {
-                                        if (!props.get(p).equals(r.getProperties().get(p))) {
+                                        Object o = props.get(p);
+                                        if (o instanceof JSON.Binary) {
+                                            byte[] x = ((JSON.Binary)o).bytes;
+                                            byte[] y = JSON.toByteArray(r.getProperties().get(p));
+                                            if (!Arrays.equals(x, y)) {
+                                                exit(new Error("Invalid value returned for Memory Map region property " + p));
+                                                return;
+                                            }
+                                        }
+                                        else if (!o.equals(r.getProperties().get(p))) {
                                             exit(new Error("Invalid value returned for Memory Map region property " + p));
                                             return;
                                         }

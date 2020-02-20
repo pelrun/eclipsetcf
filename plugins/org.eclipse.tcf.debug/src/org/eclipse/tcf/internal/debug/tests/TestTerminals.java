@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011-2018 Wind River Systems, Inc. and others.
+ * Copyright (c) 2011-2020 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -59,7 +59,7 @@ class TestTerminals implements ITCFTest {
     private boolean unsubscribe_done;
     private boolean exited;
     private boolean stdout_eos;
-    private int time_out = 0;
+    private int timer = 0;
 
     private final ITerminals.TerminalsListener listener = new ITerminals.TerminalsListener() {
 
@@ -199,15 +199,15 @@ class TestTerminals implements ITCFTest {
                                 disconnect_cmds.add(streams.disconnect(stream_id, disconnect_done));
                             }
                         }
-                        Protocol.invokeLater(100, new Runnable() {
+                        Protocol.invokeLater(1000, new Runnable() {
                             public void run() {
                                 if (!test_suite.isActive(TestTerminals.this)) return;
-                                time_out++;
+                                timer++;
                                 if (test_suite.cancel) {
                                     exit(null);
                                 }
-                                else if (time_out < 200) {
-                                    Protocol.invokeLater(100, this);
+                                else if (timer < 600) {
+                                    Protocol.invokeLater(1000, this);
                                 }
                                 else if (!signal_sent) {
                                     if (signal_cmd == null) {
@@ -316,6 +316,7 @@ class TestTerminals implements ITCFTest {
                         try {
                             boolean run = false;
                             if (data != null) {
+                                // System.out.println(new String(data, encoding));
                                 stdout_buf.append(new String(data, encoding));
                                 if (echo_tx.size() > echo_rx.size()) {
                                     String s = echo_tx.get(echo_rx.size());
@@ -324,7 +325,7 @@ class TestTerminals implements ITCFTest {
                                     if (echo_rx.size() > 0) n = echo_rx.get(echo_rx.size() - 1);
                                     int i = stdout_buf.indexOf(p, n);
                                     if (i >= 0 && stdout_buf.length() >= i + s.length() + 4) {
-                                        time_out = 0;
+                                        timer = 0;
                                         echo_rx.add(i + 1);
                                         run = true;
                                     }
@@ -359,7 +360,10 @@ class TestTerminals implements ITCFTest {
                     }
                     else {
                         try {
-                            if (data != null) stderr_buf.append(new String(data, encoding));
+                            if (data != null) {
+                                // System.err.println(new String(data, encoding));
+                                stderr_buf.append(new String(data, encoding));
+                            }
                             if (!eos) streams.read(id, 0x1000, this);
                         }
                         catch (Exception x) {
@@ -444,6 +448,7 @@ class TestTerminals implements ITCFTest {
                                 exit(error);
                             }
                             else {
+                                timer = 0;
                                 signal_sent = true;
                                 run();
                             }
@@ -459,13 +464,14 @@ class TestTerminals implements ITCFTest {
                                 exit(error);
                             }
                             else {
+                                timer = 0;
                                 signal_sent = true;
                                 run();
                             }
                         }
                     });
                 }
-                time_out = 0;
+                timer = 0;
             }
             return;
         }

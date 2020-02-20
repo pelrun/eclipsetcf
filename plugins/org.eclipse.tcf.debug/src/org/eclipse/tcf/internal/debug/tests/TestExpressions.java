@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008-2019 Wind River Systems, Inc. and others.
+ * Copyright (c) 2008-2020 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -258,7 +258,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                         if (list.length > 0) {
                             test_id = list[rnd.nextInt(list.length)];
                             runTest();
-                            Protocol.invokeLater(100, new Runnable() {
+                            Protocol.invokeLater(1000, new Runnable() {
                                 public void run() {
                                     if (!test_suite.isActive(TestExpressions.this)) return;
                                     timer++;
@@ -270,7 +270,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                                             test_rc.cancel(test_ctx_id);
                                             cancel_test_sent = true;
                                         }
-                                        Protocol.invokeLater(100, this);
+                                        Protocol.invokeLater(1000, this);
                                     }
                                     else if (test_ctx_id == null) {
                                         exit(new Error("Timeout waiting for reply of Diagnostics.runTest command"));
@@ -300,6 +300,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                 if (run_to_bp_done) return false;
                 if (sym_func3 == null) return false;
                 if (suspended_pc == null) return false;
+                if (!waiting_suspend) return false;
                 BigInteger pc0 = JSON.toBigInteger(sym_func3.getValue());
                 BigInteger pc1 = new BigInteger(suspended_pc);
                 if (pc0.equals(pc1)) return false;
@@ -1019,6 +1020,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
             if (run_to_bp_done && !test_done) {
                 assert thread_ctx != null;
                 assert !canResume(thread_id);
+                assert !test_suite.canResume(thread_id);
                 exit(new Exception("Unexpected contextResumed event: " + id));
             }
             suspended_pc = null;
@@ -1030,7 +1032,16 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
         if (id.equals(thread_id) && waiting_suspend) {
             suspended_pc = pc;
             waiting_suspend = false;
-            runTest();
+            assert !test_done;
+            assert !canResume(thread_id);
+            assert !test_suite.canResume(thread_id);
+            Protocol.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    assert !canResume(thread_id);
+                    runTest();
+                }
+            });
         }
     }
 
