@@ -135,8 +135,26 @@ public class ChainPeerStep extends AbstractPeerStep {
 		};
 
 		if (Protocol.isDispatchThread()) runnable.run();
-		else Protocol.invokeLater(runnable);
+		else Protocol.invokeLater(getProxyDelay(), runnable);
 	}
+	
+	private long getProxyDelay() {
+		int tcfProxyDelay = 1000;
+		String tcfRedirectDelayString = System.getProperty("tcfProxyDelay");
+		if ( null != tcfRedirectDelayString ) {
+			try {
+				tcfProxyDelay = Integer.parseInt(tcfRedirectDelayString);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		if (tcfProxyDelay < 10) {
+			tcfProxyDelay = 1000;
+		}
+				
+		return tcfProxyDelay;
+	}
+
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.tcf.te.runtime.stepper.steps.AbstractStep#rollback(org.eclipse.tcf.te.runtime.stepper.interfaces.IStepContext, org.eclipse.tcf.te.runtime.interfaces.properties.IPropertiesContainer, org.eclipse.core.runtime.IStatus, org.eclipse.tcf.te.runtime.stepper.interfaces.IFullQualifiedId, org.eclipse.core.runtime.IProgressMonitor, org.eclipse.tcf.te.runtime.interfaces.callback.ICallback)
