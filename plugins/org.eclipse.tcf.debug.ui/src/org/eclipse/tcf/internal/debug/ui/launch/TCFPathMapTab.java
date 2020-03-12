@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2015 Wind River Systems, Inc. and others.
+ * Copyright (c) 2009-2020 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -17,6 +17,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
@@ -42,6 +43,8 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
@@ -63,6 +66,8 @@ import org.eclipse.tcf.internal.debug.ui.ImageCache;
 import org.eclipse.tcf.services.IPathMap;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
+import org.osgi.service.prefs.BackingStoreException;
+import org.osgi.service.prefs.Preferences;
 
 // TODO: add source lookup container that represents ATTR_PATH_MAP
 public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
@@ -81,6 +86,7 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
 
     protected static final int SIZING_TABLE_WIDTH = 500;
     protected static final int SIZING_TABLE_HEIGHT = 300;
+    private static final int[] COL_WIDTH = { 30, 300, 300, 100 };
 
     private static final String[] column_ids = {
         "", //$NON-NLS-1$
@@ -183,7 +189,13 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
         }
     }
 
+    private final Preferences prefs;
     private Exception init_error;
+
+    public TCFPathMapTab() {
+        Preferences prefs = InstanceScope.INSTANCE.getNode(Activator.PLUGIN_ID);
+        this.prefs = prefs.node(TCFPathMapTab.class.getCanonicalName());
+    }
 
     public String getName() {
         return "Path Map"; //$NON-NLS-1$
@@ -281,36 +293,36 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
         data.heightHint = SIZING_TABLE_HEIGHT;
         table.setLayoutData(data);
 
-        final TableColumn colEnable = new TableColumn(table, 0);
-        colEnable.setResizable(false);
-        colEnable.setAlignment(SWT.CENTER);
-        colEnable.setText(getColumnText(0));
-
-        final TableColumn colSource = new TableColumn(table, 1);
-        colSource.setResizable(true);
-        colSource.setAlignment(SWT.LEFT);
-        colSource.setText(getColumnText(1));
-
-        final TableColumn colDest = new TableColumn(table, 2);
-        colDest.setResizable(true);
-        colDest.setAlignment(SWT.LEFT);
-        colDest.setText(getColumnText(2));
-
-        TableColumn colQuery = null;
-        if (showContextQuery()) {
-            colQuery = new TableColumn(table, 3);
-            colQuery.setResizable(true);
-            colQuery.setAlignment(SWT.LEFT);
-            colQuery.setText(getColumnText(3));
-        }
-
         TableLayout layout = new TableLayout();
-        layout.addColumnData(new ColumnPixelData(30));
-        layout.addColumnData(new ColumnPixelData(300));
-        layout.addColumnData(new ColumnPixelData(300));
-        if (showContextQuery())
-            layout.addColumnData(new ColumnPixelData(100));
-
+        for (int i = 0; i < COL_WIDTH.length; i++) {
+            if (i == 3 && !showContextQuery()) continue;
+            TableColumn col = new TableColumn(table, i);
+            if (i == 0) {
+                col.setResizable(false);
+                col.setAlignment(SWT.CENTER);
+            }
+            else {
+                col.setResizable(true);
+                col.setAlignment(SWT.LEFT);
+            }
+            col.setText(getColumnText(i));
+            layout.addColumnData(new ColumnPixelData(prefs.getInt("w" + i, COL_WIDTH[i])));
+        }
+        table.addDisposeListener(new DisposeListener() {
+            public void widgetDisposed(DisposeEvent e) {
+                int n = table.getColumnCount();
+                for (int i = 0; i < n; i++) {
+                    TableColumn col = table.getColumn(i);
+                    prefs.putInt("w" + i, col.getWidth());
+                }
+                try {
+                    prefs.flush();
+                }
+                catch (BackingStoreException x) {
+                    Activator.log(x);
+                }
+            }
+        });
         table.setLayout(layout);
         table.setHeaderVisible(true);
         table.setLinesVisible(true);

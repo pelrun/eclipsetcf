@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
+ * Copyright (c) 2011-2020 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -48,10 +48,16 @@ import org.eclipse.tcf.protocol.IChannel;
 import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.ILocator;
+import org.osgi.service.prefs.BackingStoreException;
+import org.osgi.service.prefs.Preferences;
 
 // Cloned from TCFTargetTab
 public class PeerListControl implements ISelectionProvider {
 
+    private static final int[] COL_WIDTH = { 160, 100, 100, 60, 100, 40 };
+    private static final String[] COL_TEXT = { "Name", "OS", "User", "Transport", "Host", "Port" };
+
+    private final Preferences prefs;
     private Tree peer_tree;
     private final PeerInfo peer_info = new PeerInfo();
     private Display display;
@@ -175,7 +181,8 @@ public class PeerListControl implements ISelectionProvider {
         }
     }
 
-    public PeerListControl(Composite parent) {
+    public PeerListControl(Composite parent, Preferences prefs) {
+        this.prefs = prefs;
         display = parent.getDisplay();
         parent.addDisposeListener(new DisposeListener() {
             public void widgetDisposed(DisposeEvent e) {
@@ -184,6 +191,10 @@ public class PeerListControl implements ISelectionProvider {
         });
         loadChildren(peer_info);
         createPeerListArea(parent);
+    }
+
+    public PeerListControl(Composite parent) {
+        this(parent, null);
     }
 
     public void setInitialSelection(String id) {
@@ -216,6 +227,8 @@ public class PeerListControl implements ISelectionProvider {
         Font font = parent.getFont();
         Composite composite = new Composite(parent, SWT.NONE);
         GridLayout layout = new GridLayout(2, false);
+        layout.marginWidth = 0;
+        layout.marginHeight = 0;
         composite.setFont(font);
         composite.setLayout(layout);
         composite.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, true, 2, 1));
@@ -226,35 +239,11 @@ public class PeerListControl implements ISelectionProvider {
         gd.minimumWidth = 470;
         peer_tree.setLayoutData(gd);
 
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0; i < COL_WIDTH.length; i++) {
             TreeColumn column = new TreeColumn(peer_tree, SWT.LEAD, i);
             column.setMoveable(true);
-            switch (i) {
-            case 0:
-                column.setText("Name");
-                column.setWidth(160);
-                break;
-            case 1:
-                column.setText("OS");
-                column.setWidth(100);
-                break;
-            case 2:
-                column.setText("User");
-                column.setWidth(100);
-                break;
-            case 3:
-                column.setText("Transport");
-                column.setWidth(60);
-                break;
-            case 4:
-                column.setText("Host");
-                column.setWidth(100);
-                break;
-            case 5:
-                column.setText("Port");
-                column.setWidth(40);
-                break;
-            }
+            column.setWidth(prefs.getInt("w" + i, COL_WIDTH[i]));
+            column.setText(COL_TEXT[i]);
         }
 
         peer_tree.setHeaderVisible(true);
@@ -318,6 +307,18 @@ public class PeerListControl implements ISelectionProvider {
     }
 
     private void handleDispose() {
+        if (prefs != null) {
+            for (int i = 0; i < COL_WIDTH.length; i++) {
+                TreeColumn col = peer_tree.getColumn(i);
+                prefs.putInt("w" + i, col.getWidth());
+            }
+            try {
+                prefs.flush();
+            }
+            catch (BackingStoreException x) {
+                Activator.log(x);
+            }
+        }
         Protocol.invokeAndWait(new Runnable() {
             public void run() {
                 disconnectPeer(peer_info);

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2016 Wind River Systems, Inc. and others.
+ * Copyright (c) 2009-2020 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -17,6 +17,7 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.jface.dialogs.Dialog;
@@ -55,10 +56,9 @@ import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.services.IProcesses;
 import org.eclipse.tcf.util.TCFDataCache;
 import org.eclipse.tcf.util.TCFTask;
+import org.osgi.service.prefs.Preferences;
 
 class SignalsDialog extends Dialog {
-
-    private static final String SETTINGS_SECTION = SignalsDialog.class.getCanonicalName();
 
     private static final int
         SIZING_TABLE_WIDTH = 800,
@@ -179,10 +179,11 @@ class SignalsDialog extends Dialog {
 
     @Override
     protected IDialogSettings getDialogBoundsSettings() {
+        String key = SignalsDialog.class.getCanonicalName();
         IDialogSettings settings = Activator.getDefault().getDialogSettings();
-        IDialogSettings section = settings.getSection(SETTINGS_SECTION);
+        IDialogSettings section = settings.getSection(key);
         if (section != null) return section;
-        return settings.addNewSection(SETTINGS_SECTION);
+        return settings.addNewSection(key);
     }
 
     @Override
@@ -231,20 +232,22 @@ class SignalsDialog extends Dialog {
         signal_table.setLayoutData(data);
 
         int w = SIZING_TABLE_WIDTH / (column_names.length + 5);
+        Preferences prefs = InstanceScope.INSTANCE.getNode(Activator.PLUGIN_ID);
+        prefs = prefs.node(SignalsDialog.class.getCanonicalName());
         for (int i = 0; i < column_names.length; i++) {
             final TableColumn column = new TableColumn(signal_table, SWT.LEAD, i);
             column.setMoveable(false);
             column.setText(column_names[i]);
             switch (i) {
             case 0:
-                column.setWidth(w * 2);
+                column.setWidth(prefs.getInt("w" + i, w * 2));
                 break;
             case 1:
             case 2:
-                column.setWidth(w * 3);
+                column.setWidth(prefs.getInt("w" + i, w * 3));
                 break;
             default:
-                column.setWidth(w);
+                column.setWidth(prefs.getInt("w" + i, w));
                 break;
             }
         }

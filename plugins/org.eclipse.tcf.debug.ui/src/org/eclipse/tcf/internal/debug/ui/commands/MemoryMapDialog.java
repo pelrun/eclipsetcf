@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2013 Wind River Systems, Inc. and others.
+ * Copyright (c) 2010-2020 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -10,19 +10,23 @@
  *******************************************************************************/
 package org.eclipse.tcf.internal.debug.ui.commands;
 
+import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.tcf.internal.debug.ui.Activator;
 import org.eclipse.tcf.internal.debug.ui.ImageCache;
 import org.eclipse.tcf.internal.debug.ui.model.TCFModel;
 import org.eclipse.tcf.internal.debug.ui.model.TCFNode;
+import org.osgi.service.prefs.Preferences;
 
 class MemoryMapDialog extends Dialog {
 
@@ -36,6 +40,15 @@ class MemoryMapDialog extends Dialog {
         this.node = node;
         cfg = node.getModel().getLaunch().getLaunchConfiguration();
         setShellStyle(getShellStyle() | SWT.RESIZE);
+    }
+
+    @Override
+    protected IDialogSettings getDialogBoundsSettings() {
+        String key = MemoryMapDialog.class.getCanonicalName();
+        IDialogSettings settings = Activator.getDefault().getDialogSettings();
+        IDialogSettings section = settings.getSection(key);
+        if (section != null) return section;
+        return settings.addNewSection(key);
     }
 
     @Override
@@ -55,7 +68,9 @@ class MemoryMapDialog extends Dialog {
     @Override
     protected Control createDialogArea(Composite parent) {
         Composite composite = (Composite)super.createDialogArea(parent);
-        widget = new MemoryMapWidget(composite, node);
+        Preferences prefs = InstanceScope.INSTANCE.getNode(Activator.PLUGIN_ID);
+        prefs = prefs.node(MemoryMapDialog.class.getCanonicalName());
+        widget = new MemoryMapWidget(composite, node, prefs);
         widget.loadData(cfg);
         if (ok_button != null) ok_button.setEnabled(widget.getMemoryMapID() != null);
         composite.setSize(composite.computeSize(SWT.DEFAULT, SWT.DEFAULT));

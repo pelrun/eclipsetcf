@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
+ * Copyright (c) 2011-2020 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -10,19 +10,24 @@
  *******************************************************************************/
 package org.eclipse.tcf.internal.debug.ui.launch;
 
+import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.window.IShellProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TreeItem;
+import org.eclipse.tcf.internal.debug.ui.Activator;
 import org.eclipse.tcf.internal.debug.ui.launch.ContextListControl.ContextInfo;
 import org.eclipse.tcf.internal.debug.ui.launch.PeerListControl.PeerInfo;
+import org.osgi.service.prefs.Preferences;
 
 /**
  * Dialog to select a peer and context.
@@ -33,9 +38,10 @@ public class ContextSelectionDialog extends Dialog {
     private ContextSelection selection;
     private ContextListControl context_list;
 
-    public ContextSelectionDialog(IShellProvider parentShell, boolean processes) {
-        super(parentShell);
+    public ContextSelectionDialog(IShellProvider parent, boolean processes) {
+        super(parent);
         this.processes = processes;
+        setShellStyle(getShellStyle() | SWT.RESIZE);
     }
 
     public void setSelection(ContextSelection selection) {
@@ -44,6 +50,15 @@ public class ContextSelectionDialog extends Dialog {
 
     public ContextSelection getSelection() {
         return selection;
+    }
+
+    @Override
+    protected IDialogSettings getDialogBoundsSettings() {
+        String key = ContextSelectionDialog.class.getCanonicalName();
+        IDialogSettings settings = Activator.getDefault().getDialogSettings();
+        IDialogSettings section = settings.getSection(key);
+        if (section != null) return section;
+        return settings.addNewSection(key);
     }
 
     @Override
@@ -62,8 +77,12 @@ public class ContextSelectionDialog extends Dialog {
     @Override
     protected Control createDialogArea(Composite parent) {
         Composite composite = (Composite) super.createDialogArea(parent);
+        GridLayout layout = new GridLayout(1, false);
+        composite.setLayout(layout);
         new Label(composite, SWT.NONE).setText("Peers:");
-        final PeerListControl peerList = new PeerListControl(composite) {
+        Preferences prefs = InstanceScope.INSTANCE.getNode(Activator.PLUGIN_ID);
+        prefs = prefs.node(ContextSelectionDialog.class.getCanonicalName());
+        final PeerListControl peer_list = new PeerListControl(composite, prefs) {
             @Override
             protected void onPeerSelected(PeerInfo info) {
                 handlePeerSelected(info);
@@ -88,7 +107,7 @@ public class ContextSelectionDialog extends Dialog {
             }
         });
         if (selection.fPeerId != null) {
-            peerList.setInitialSelection(selection.fPeerId);
+            peer_list.setInitialSelection(selection.fPeerId);
         }
         if (selection.fContextFullName != null) {
             context_list.setInitialSelection(selection.fContextFullName);

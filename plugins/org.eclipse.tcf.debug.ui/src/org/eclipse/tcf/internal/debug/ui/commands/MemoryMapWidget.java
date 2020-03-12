@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014, 2015 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2014-2020 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License 2.0 which accompanies this distribution, and is
  * available at https://www.eclipse.org/legal/epl-2.0/
@@ -95,10 +95,14 @@ import org.eclipse.tcf.util.TCFDataCache;
 import org.eclipse.tcf.util.TCFTask;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
+import org.osgi.service.prefs.BackingStoreException;
+import org.osgi.service.prefs.Preferences;
 
 public class MemoryMapWidget {
 
-    private static final int SIZING_TABLE_WIDTH = 500, SIZING_TABLE_HEIGHT = 300;
+    private static final int TABLE_WIDTH = 800;
+    private static final int TABLE_HEIGHT = 300;
+    private static final int[] COL_WIDTH = { 300, 100, 80, 50, 140, 140 };
     private static final String PROP_CHILDREN = "_CHILDREN";
 
     private static final String[] column_names = {
@@ -111,6 +115,7 @@ public class MemoryMapWidget {
     };
 
     private final Display display;
+    private final Preferences prefs;
 
     private TCFModel model;
     private IChannel channel;
@@ -332,13 +337,18 @@ public class MemoryMapWidget {
         }
     };
 
-    public MemoryMapWidget(Composite composite, TCFNode node) {
+    public MemoryMapWidget(Composite composite, TCFNode node, Preferences prefs) {
         display = composite.getDisplay();
+        this.prefs = prefs;
         setTCFNode(node);
         createContextText(composite);
         createMemoryMapTable(composite);
 
         color_error = new Color(display, ColorCache.rgb_error);
+    }
+
+    public MemoryMapWidget(Composite composite, TCFNode node) {
+        this(composite, node, null);
     }
 
     /**
@@ -347,6 +357,19 @@ public class MemoryMapWidget {
     public void dispose() {
         if (disposed) return;
         disposed = true;
+
+        if (prefs != null) {
+            for (int i = 0; i < COL_WIDTH.length; i++) {
+                TreeColumn col = map_table.getColumn(i);
+                prefs.putInt("w" + i, col.getWidth());
+            }
+            try {
+                prefs.flush();
+            }
+            catch (BackingStoreException x) {
+                Activator.log(x);
+            }
+        }
 
         if (color_error != null) {
             color_error.dispose();
@@ -494,47 +517,20 @@ public class MemoryMapWidget {
 
     protected void configureTable(final Tree table) {
         GridData data = new GridData(GridData.FILL_BOTH);
-        data.widthHint = SIZING_TABLE_WIDTH;
-        data.heightHint = SIZING_TABLE_HEIGHT;
+        data.widthHint = TABLE_WIDTH;
+        data.heightHint = TABLE_HEIGHT;
         table.setLayoutData(data);
 
-        final TreeColumn col_file = new TreeColumn(table, 0);
-        col_file.setResizable(true);
-        col_file.setAlignment(SWT.LEFT);
-        col_file.setText(getColumnText(0));
-
-        final TreeColumn col_addr = new TreeColumn(table, 1);
-        col_addr.setResizable(true);
-        col_addr.setAlignment(SWT.LEFT);
-        col_addr.setText(getColumnText(1));
-
-        final TreeColumn col_size = new TreeColumn(table, 2);
-        col_size.setResizable(true);
-        col_size.setAlignment(SWT.LEFT);
-        col_size.setText(getColumnText(2));
-
-        final TreeColumn col_flags = new TreeColumn(table, 3);
-        col_flags.setResizable(true);
-        col_flags.setAlignment(SWT.LEFT);
-        col_flags.setText(getColumnText(3));
-
-        final TreeColumn col_offset = new TreeColumn(table, 4);
-        col_offset.setResizable(true);
-        col_offset.setAlignment(SWT.LEFT);
-        col_offset.setText(getColumnText(4));
-
-        final TreeColumn col_context = new TreeColumn(table, 5);
-        col_context.setResizable(true);
-        col_context.setAlignment(SWT.LEFT);
-        col_context.setText(getColumnText(5));
-
         TableLayout layout = new TableLayout();
-        layout.addColumnData(new ColumnPixelData(300));
-        layout.addColumnData(new ColumnPixelData(100));
-        layout.addColumnData(new ColumnPixelData(80));
-        layout.addColumnData(new ColumnPixelData(50));
-        layout.addColumnData(new ColumnPixelData(140));
-        layout.addColumnData(new ColumnPixelData(140));
+        for (int i = 0; i < COL_WIDTH.length; i++) {
+            TreeColumn col = new TreeColumn(table, i);
+            col.setResizable(true);
+            col.setAlignment(SWT.LEFT);
+            col.setText(getColumnText(i));
+            int w = COL_WIDTH[i];
+            if (prefs != null) w = prefs.getInt("w" + i, w);
+            layout.addColumnData(new ColumnPixelData(w));
+        }
 
         // "Symbol File Errors" are displayed as tooltip on the table item.
         // See

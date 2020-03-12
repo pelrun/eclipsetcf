@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2013 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007-2020 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -18,6 +18,7 @@ import java.util.Map;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
@@ -61,6 +62,7 @@ import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IMemoryMap;
 import org.eclipse.tcf.services.IPathMap;
 import org.eclipse.tcf.util.TCFTask;
+import org.osgi.service.prefs.Preferences;
 
 
 /**
@@ -170,7 +172,9 @@ public class TCFTargetTab extends AbstractLaunchConfigurationTab {
         peer_label.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
         peer_label.setFont(font);
 
-        peer_list  = new PeerListControl(group) {
+        Preferences prefs = InstanceScope.INSTANCE.getNode(Activator.PLUGIN_ID);
+        prefs = prefs.node(TCFTargetTab.class.getCanonicalName());
+        peer_list  = new PeerListControl(group, prefs) {
             @Override
             protected void onPeerListChanged() {
                 updateLaunchConfigurationDialog();

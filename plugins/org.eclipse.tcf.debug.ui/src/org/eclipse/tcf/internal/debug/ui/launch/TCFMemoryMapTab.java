@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others.
+ * Copyright (c) 2011-2020 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -11,6 +11,7 @@
 package org.eclipse.tcf.internal.debug.ui.launch;
 
 import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.core.Launch;
@@ -24,10 +25,12 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tcf.internal.debug.model.TCFLaunch;
+import org.eclipse.tcf.internal.debug.ui.Activator;
 import org.eclipse.tcf.internal.debug.ui.ImageCache;
 import org.eclipse.tcf.internal.debug.ui.commands.MemoryMapWidget;
 import org.eclipse.tcf.internal.debug.ui.model.TCFModelManager;
 import org.eclipse.tcf.internal.debug.ui.model.TCFNode;
+import org.osgi.service.prefs.Preferences;
 
 public class TCFMemoryMapTab extends AbstractLaunchConfigurationTab {
 
@@ -60,7 +63,9 @@ public class TCFMemoryMapTab extends AbstractLaunchConfigurationTab {
      * @return The memory map widget.
      */
     protected MemoryMapWidget createWidget(Composite composite, TCFNode node) {
-        return new MemoryMapWidget(composite, node);
+        Preferences prefs = InstanceScope.INSTANCE.getNode(Activator.PLUGIN_ID);
+        prefs = prefs.node(TCFMemoryMapTab.class.getCanonicalName());
+        return new MemoryMapWidget(composite, node, prefs);
     }
 
     /**

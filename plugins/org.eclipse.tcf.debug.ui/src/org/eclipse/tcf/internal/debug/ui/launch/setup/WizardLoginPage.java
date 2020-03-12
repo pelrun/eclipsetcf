@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2011 Wind River Systems, Inc. and others.
+ * Copyright (c) 2009-2020 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -146,7 +146,7 @@ class WizardLoginPage extends WizardPage implements Listener {
         IEclipsePreferences d = DefaultScope.INSTANCE.getNode(Activator.PLUGIN_ID);
         d.put(PREF_PROTOCOL, protocols[0]);
 
-        IEclipsePreferences[] n = { InstanceScope.INSTANCE.getNode(Activator.PLUGIN_ID) };
+        IEclipsePreferences[] n = { InstanceScope.INSTANCE.getNode(Activator.PLUGIN_ID), d };
         IPreferencesService s = Platform.getPreferencesService();
         protocol.setText(s.get(PREF_PROTOCOL, "", n));
         host.setText(s.get(PREF_HOST, "", n));

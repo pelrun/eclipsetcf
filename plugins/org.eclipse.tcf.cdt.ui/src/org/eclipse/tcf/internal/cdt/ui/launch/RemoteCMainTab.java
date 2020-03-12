@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others.
+ * Copyright (c) 2011-2020 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -16,6 +16,7 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.jface.viewers.ISelection;
@@ -36,6 +37,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.tcf.internal.cdt.ui.Activator;
 import org.eclipse.tcf.internal.debug.launch.TCFLaunchDelegate;
 import org.eclipse.tcf.internal.debug.ui.launch.PeerListControl;
 import org.eclipse.tcf.internal.debug.ui.launch.PeerListControl.PeerInfo;
@@ -46,6 +48,7 @@ import org.eclipse.tcf.services.IFileSystem;
 import org.eclipse.tcf.services.IProcesses;
 import org.eclipse.tcf.util.TCFTask;
 import org.eclipse.ui.PlatformUI;
+import org.osgi.service.prefs.Preferences;
 
 public class RemoteCMainTab extends CMainTab implements IShellProvider {
 
@@ -107,7 +110,9 @@ public class RemoteCMainTab extends CMainTab implements IShellProvider {
 
     private void createPeerListGroup(Composite comp) {
         new Label(comp, SWT.NONE).setText("Targets:");
-        fPeerList = new PeerListControl(comp);
+        Preferences prefs = InstanceScope.INSTANCE.getNode(Activator.PLUGIN_ID);
+        prefs = prefs.node(RemoteCMainTab.class.getCanonicalName());
+        fPeerList = new PeerListControl(comp, prefs);
         fPeerList.addSelectionChangedListener(new ISelectionChangedListener() {
             public void selectionChanged(SelectionChangedEvent event) {
                 handlePeerSelectionChanged();
