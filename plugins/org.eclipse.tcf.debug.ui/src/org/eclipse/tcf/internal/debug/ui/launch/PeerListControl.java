@@ -240,10 +240,17 @@ public class PeerListControl implements ISelectionProvider {
         peer_tree.setLayoutData(gd);
 
         for (int i = 0; i < COL_WIDTH.length; i++) {
-            TreeColumn column = new TreeColumn(peer_tree, SWT.LEAD, i);
+            final TreeColumn column = new TreeColumn(peer_tree, SWT.LEAD, i);
             column.setMoveable(true);
-            column.setWidth(prefs.getInt("w" + i, COL_WIDTH[i]));
             column.setText(COL_TEXT[i]);
+            final String id = "w" + i;
+            column.setWidth(prefs.getInt(id, COL_WIDTH[i]));
+            column.addListener(SWT.Resize, new Listener() {
+                @Override
+                public void handleEvent(Event event) {
+                    prefs.putInt(id, column.getWidth());
+                }
+            });
         }
 
         peer_tree.setHeaderVisible(true);
@@ -308,10 +315,6 @@ public class PeerListControl implements ISelectionProvider {
 
     private void handleDispose() {
         if (prefs != null) {
-            for (int i = 0; i < COL_WIDTH.length; i++) {
-                TreeColumn col = peer_tree.getColumn(i);
-                prefs.putInt("w" + i, col.getWidth());
-            }
             try {
                 prefs.flush();
             }

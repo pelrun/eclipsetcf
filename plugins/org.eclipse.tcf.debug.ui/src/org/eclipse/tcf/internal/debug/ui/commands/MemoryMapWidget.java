@@ -359,10 +359,6 @@ public class MemoryMapWidget {
         disposed = true;
 
         if (prefs != null) {
-            for (int i = 0; i < COL_WIDTH.length; i++) {
-                TreeColumn col = map_table.getColumn(i);
-                prefs.putInt("w" + i, col.getWidth());
-            }
             try {
                 prefs.flush();
             }
@@ -523,12 +519,21 @@ public class MemoryMapWidget {
 
         TableLayout layout = new TableLayout();
         for (int i = 0; i < COL_WIDTH.length; i++) {
-            TreeColumn col = new TreeColumn(table, i);
+            final TreeColumn col = new TreeColumn(table, i);
             col.setResizable(true);
             col.setAlignment(SWT.LEFT);
             col.setText(getColumnText(i));
             int w = COL_WIDTH[i];
-            if (prefs != null) w = prefs.getInt("w" + i, w);
+            if (prefs != null) {
+                final String id = "w" + i;
+                w = prefs.getInt(id, w);
+                col.addListener(SWT.Resize, new Listener() {
+                    @Override
+                    public void handleEvent(Event event) {
+                        prefs.putInt(id, col.getWidth());
+                    }
+                });
+            }
             layout.addColumnData(new ColumnPixelData(w));
         }
 

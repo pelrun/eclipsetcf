@@ -54,7 +54,9 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Table;
@@ -296,7 +298,7 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
         TableLayout layout = new TableLayout();
         for (int i = 0; i < COL_WIDTH.length; i++) {
             if (i == 3 && !showContextQuery()) continue;
-            TableColumn col = new TableColumn(table, i);
+            final TableColumn col = new TableColumn(table, i);
             if (i == 0) {
                 col.setResizable(false);
                 col.setAlignment(SWT.CENTER);
@@ -306,15 +308,17 @@ public class TCFPathMapTab extends AbstractLaunchConfigurationTab {
                 col.setAlignment(SWT.LEFT);
             }
             col.setText(getColumnText(i));
-            layout.addColumnData(new ColumnPixelData(prefs.getInt("w" + i, COL_WIDTH[i])));
+            final String id = "w" + i;
+            layout.addColumnData(new ColumnPixelData(prefs.getInt(id, COL_WIDTH[i])));
+            col.addListener(SWT.Resize, new Listener() {
+                @Override
+                public void handleEvent(Event event) {
+                    prefs.putInt(id, col.getWidth());
+                }
+            });
         }
         table.addDisposeListener(new DisposeListener() {
             public void widgetDisposed(DisposeEvent e) {
-                int n = table.getColumnCount();
-                for (int i = 0; i < n; i++) {
-                    TableColumn col = table.getColumn(i);
-                    prefs.putInt("w" + i, col.getWidth());
-                }
                 try {
                     prefs.flush();
                 }

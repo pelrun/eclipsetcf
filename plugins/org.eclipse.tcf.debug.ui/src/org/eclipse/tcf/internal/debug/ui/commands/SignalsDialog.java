@@ -29,6 +29,8 @@ import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.graphics.Font;
@@ -37,7 +39,9 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
@@ -56,6 +60,7 @@ import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.services.IProcesses;
 import org.eclipse.tcf.util.TCFDataCache;
 import org.eclipse.tcf.util.TCFTask;
+import org.osgi.service.prefs.BackingStoreException;
 import org.osgi.service.prefs.Preferences;
 
 class SignalsDialog extends Dialog {
@@ -107,6 +112,7 @@ class SignalsDialog extends Dialog {
     private final TCFModel model;
     private final IChannel channel;
     private final TCFNode selection;
+    private final Preferences prefs;
 
     private TCFNodeExecContext node;
 
@@ -167,6 +173,8 @@ class SignalsDialog extends Dialog {
 
     SignalsDialog(Shell parent, TCFNode node) {
         super(parent);
+        Preferences prefs = InstanceScope.INSTANCE.getNode(Activator.PLUGIN_ID);
+        this.prefs = prefs.node(SignalsDialog.class.getCanonicalName());
         model = node.getModel();
         channel = node.getChannel();
         selection = node;
@@ -232,25 +240,40 @@ class SignalsDialog extends Dialog {
         signal_table.setLayoutData(data);
 
         int w = SIZING_TABLE_WIDTH / (column_names.length + 5);
-        Preferences prefs = InstanceScope.INSTANCE.getNode(Activator.PLUGIN_ID);
-        prefs = prefs.node(SignalsDialog.class.getCanonicalName());
         for (int i = 0; i < column_names.length; i++) {
             final TableColumn column = new TableColumn(signal_table, SWT.LEAD, i);
             column.setMoveable(false);
             column.setText(column_names[i]);
+            final String id = "w" + i;
             switch (i) {
             case 0:
-                column.setWidth(prefs.getInt("w" + i, w * 2));
+                column.setWidth(prefs.getInt(id, w * 2));
                 break;
             case 1:
             case 2:
-                column.setWidth(prefs.getInt("w" + i, w * 3));
+                column.setWidth(prefs.getInt(id, w * 3));
                 break;
             default:
-                column.setWidth(prefs.getInt("w" + i, w));
+                column.setWidth(prefs.getInt(id, w));
                 break;
             }
+            column.addListener(SWT.Resize, new Listener() {
+                @Override
+                public void handleEvent(Event event) {
+                    prefs.putInt(id, column.getWidth());
+                }
+            });
         }
+        signal_table.addDisposeListener(new DisposeListener() {
+            public void widgetDisposed(DisposeEvent e) {
+                try {
+                    prefs.flush();
+                }
+                catch (BackingStoreException x) {
+                    Activator.log(x);
+                }
+            }
+        });
         signal_table.setHeaderVisible(true);
         signal_table.setLinesVisible(true);
         signal_table.addMouseListener(new MouseListener() {
