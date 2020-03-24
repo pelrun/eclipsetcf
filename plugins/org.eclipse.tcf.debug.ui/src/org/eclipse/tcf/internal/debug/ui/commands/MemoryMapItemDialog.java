@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2015 Wind River Systems, Inc. and others.
+ * Copyright (c) 2010-2020 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -69,7 +69,9 @@ class MemoryMapItemDialog extends Dialog {
     @Override
     protected void createButtonsForButtonBar(Composite parent) {
         createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
-        createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
+        if (enable_editing) {
+            createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
+        }
         updateButtons();
     }
 
@@ -100,7 +102,10 @@ class MemoryMapItemDialog extends Dialog {
         file_text = new Text(composite, SWT.SINGLE | SWT.BORDER);
         file_text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         file_text.setFont(font);
-        file_text.setEditable(enable_editing);
+        if (!enable_editing) {
+            file_text.setEditable(false);
+            file_text.setBackground(parent.getBackground());
+        }
 
         file_text.addModifyListener(new ModifyListener() {
             public void modifyText(ModifyEvent e) {
@@ -152,7 +157,10 @@ class MemoryMapItemDialog extends Dialog {
         addr_text = new Text(composite, SWT.SINGLE | SWT.BORDER);
         addr_text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         addr_text.setFont(font);
-        addr_text.setEditable(enable_editing);
+        if (!enable_editing) {
+            addr_text.setEditable(false);
+            addr_text.setBackground(parent.getBackground());
+        }
 
         addr_text.addModifyListener(new ModifyListener() {
             public void modifyText(ModifyEvent e) {
@@ -168,7 +176,10 @@ class MemoryMapItemDialog extends Dialog {
         size_text = new Text(composite, SWT.SINGLE | SWT.BORDER);
         size_text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         size_text.setFont(font);
-        size_text.setEditable(enable_editing);
+        if (!enable_editing) {
+            size_text.setEditable(false);
+            size_text.setBackground(parent.getBackground());
+        }
 
         Label offset_label = new Label(composite, SWT.WRAP);
         offset_label.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
@@ -178,7 +189,10 @@ class MemoryMapItemDialog extends Dialog {
         offset_text = new Text(composite, SWT.SINGLE | SWT.BORDER);
         offset_text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         offset_text.setFont(font);
-        offset_text.setEditable(enable_editing);
+        if (!enable_editing) {
+            offset_text.setEditable(false);
+            offset_text.setBackground(parent.getBackground());
+        }
     }
 
     private void createFlagsGroup(Composite parent) {
@@ -229,7 +243,10 @@ class MemoryMapItemDialog extends Dialog {
         query_text = new Text(composite, SWT.SINGLE | SWT.BORDER);
         query_text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         query_text.setFont(font);
-        query_text.setEditable(enable_editing);
+        if (!enable_editing) {
+            query_text.setEditable(false);
+            query_text.setBackground(parent.getBackground());
+        }
     }
 
     private String toHex(Number n) {

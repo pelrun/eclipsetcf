@@ -478,13 +478,19 @@ public class MemoryMapWidget {
         map_table.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetDefaultSelected(SelectionEvent e) {
-                final IMemoryMap.MemoryRegion r = (IMemoryMap.MemoryRegion)((IStructuredSelection)table_viewer.getSelection()).getFirstElement();
+                final TreeItem item = (TreeItem)e.item;
+                final IMemoryMap.MemoryRegion r = (IMemoryMap.MemoryRegion)item.getData();
                 if (r == null) return;
                 // Async exec is used to workaround exception in jface
                 asyncExec(new Runnable() {
                     @Override
                     public void run() {
-                        editRegion(r);
+                        if (r.getProperties().containsKey(PROP_CHILDREN)) {
+                            table_viewer.setExpandedState(r, !item.getExpanded());
+                        }
+                        else {
+                            editRegion(r);
+                        }
                     }
                 });
             }
@@ -547,15 +553,15 @@ public class MemoryMapWidget {
         // Implement a "fake" tooltip
         final Listener labelListener = new Listener() {
             public void handleEvent(Event event) {
-                Label label = (Label) event.widget;
+                Label label = (Label)event.widget;
                 Shell shell = label.getShell();
                 switch (event.type) {
                 case SWT.MouseDown:
                     Event e = new Event();
-                    e.item = (TreeItem) label.getData("_TABLEITEM"); //$NON-NLS-1$
+                    e.item = (TreeItem)label.getData("_TABLEITEM"); //$NON-NLS-1$
                     // Assuming table is single select, set the selection as if
                     // the mouse down event went through to the table
-                    table.setSelection(new TreeItem[] { (TreeItem) e.item });
+                    table.setSelection(new TreeItem[] { (TreeItem)e.item });
                     table.notifyListeners(SWT.Selection, e);
                     shell.dispose();
                     table.setFocus();
@@ -667,7 +673,7 @@ public class MemoryMapWidget {
         button_edit.addSelectionListener(sel_adapter = new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                IMemoryMap.MemoryRegion r = (IMemoryMap.MemoryRegion) ((IStructuredSelection) table_viewer.getSelection()).getFirstElement();
+                IMemoryMap.MemoryRegion r = (IMemoryMap.MemoryRegion) ((IStructuredSelection)table_viewer.getSelection()).getFirstElement();
                 if (r == null) return;
                 editRegion(r);
             }

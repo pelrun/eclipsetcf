@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2014 Wind River Systems, Inc. and others.
+ * Copyright (c) 2010-2020 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -102,7 +102,10 @@ public class PathMapRuleDialog extends TitleAreaDialog {
         gd.horizontalSpan = 3;
         source_text.setLayoutData(gd);
         source_text.setFont(font);
-        source_text.setEditable(enable_editing);
+        if (!enable_editing) {
+            source_text.setEditable(false);
+            source_text.setBackground(parent.getBackground());
+        }
 
         source_text.addModifyListener(new ModifyListener() {
             public void modifyText(ModifyEvent e) {
@@ -120,7 +123,10 @@ public class PathMapRuleDialog extends TitleAreaDialog {
         gd.widthHint = convertWidthInCharsToPixels(40);
         destination_text.setLayoutData(gd);
         destination_text.setFont(font);
-        destination_text.setEditable(enable_editing);
+        if (!enable_editing) {
+            destination_text.setEditable(false);
+            destination_text.setBackground(parent.getBackground());
+        }
 
         destination_text.addModifyListener(new ModifyListener() {
             public void modifyText(ModifyEvent e) {
@@ -168,7 +174,10 @@ public class PathMapRuleDialog extends TitleAreaDialog {
             gd.horizontalSpan = 2;
             context_query_text.setLayoutData(gd);
             context_query_text.setFont(font);
-            context_query_text.setEditable(enable_editing);
+            if (!enable_editing) {
+                context_query_text.setEditable(false);
+                context_query_text.setBackground(parent.getBackground());
+            }
 
             context_query_text.addModifyListener(new ModifyListener() {
                 public void modifyText(ModifyEvent e) {

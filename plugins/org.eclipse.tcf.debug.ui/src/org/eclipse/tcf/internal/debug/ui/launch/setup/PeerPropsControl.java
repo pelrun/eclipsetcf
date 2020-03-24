@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2011 Wind River Systems, Inc. and others.
+ * Copyright (c) 2010-2020 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -116,6 +116,7 @@ public class PeerPropsControl {
         id_text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         id_text.setFont(font);
         id_text.setEditable(false);
+        id_text.setBackground(parent.getBackground());
 
         Label name_label = new Label(composite, SWT.WRAP);
         name_label.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
@@ -125,7 +126,10 @@ public class PeerPropsControl {
         name_text = new Text(composite, SWT.SINGLE | SWT.BORDER);
         name_text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         name_text.setFont(font);
-        name_text.setEditable(enable_editing);
+        if (!enable_editing) {
+            name_text.setEditable(false);
+            name_text.setBackground(parent.getBackground());
+        }
         name_text.addListener(SWT.KeyUp, new Listener() {
             public void handleEvent(Event event) {
                 listener.run();

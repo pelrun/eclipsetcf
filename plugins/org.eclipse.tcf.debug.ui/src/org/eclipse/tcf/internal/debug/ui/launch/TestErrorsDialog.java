@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2013 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007-2020 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -67,6 +67,7 @@ public class TestErrorsDialog extends Dialog {
         text = new Text(composite, SWT.MULTI | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
         text.setFont(JFaceResources.getFont(JFaceResources.TEXT_FONT));
         text.setEditable(false);
+        text.setBackground(parent.getBackground());
         text.setText(createText());
         GridData data = new GridData(GridData.FILL_BOTH);
         data.widthHint = SIZING_TEXT_WIDTH;

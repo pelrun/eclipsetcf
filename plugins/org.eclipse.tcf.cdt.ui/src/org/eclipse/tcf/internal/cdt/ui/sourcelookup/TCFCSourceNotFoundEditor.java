@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2011-2020 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -20,6 +20,7 @@ import org.eclipse.tcf.internal.cdt.ui.sourcelookup.TCFSourceNotFoundPresentatio
 import org.eclipse.tcf.internal.debug.ui.model.TCFModel;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.PlatformUI;
 
 /**
  * Customized source-not-found editor
@@ -81,7 +82,7 @@ public class TCFCSourceNotFoundEditor extends CSourceNotFoundEditor {
     }
 
     protected void closeEditor() {
-        getSite().getShell().getDisplay().asyncExec(new Runnable() {
+        PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
             public void run() {
                 IWorkbenchPage page = getSite().getPage();
                 if (page != null) page.closeEditor(TCFCSourceNotFoundEditor.this, false);

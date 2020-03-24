@@ -164,6 +164,7 @@ public class TCFTargetTab extends AbstractLaunchConfigurationTab {
         peer_id_text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         peer_id_text.setFont(font);
         peer_id_text.setEditable(false);
+        peer_id_text.setBackground(parent.getBackground());
 
         createVerticalSpacer(group, layout.numColumns);
 
