@@ -142,7 +142,9 @@ public class TCFNodeModule extends TCFNode implements IDetailsProvider {
                 if (sym_data != null) {
                     if (sym_data.props != null) {
                         String sym_file_name = (String)sym_data.props.get("FileName");
-                        if (sym_file_name != null) bf.append("Symbol file name: ", SWT.BOLD).append(sym_file_name).append('\n');
+                        if (sym_file_name != null && !sym_file_name.equals(file_name)) {
+                            bf.append("Symbol file: ", SWT.BOLD).append(sym_file_name).append('\n');
+                        }
                         @SuppressWarnings("unchecked")
                         Map<String,Object> map = (Map<String,Object>)sym_data.props.get("FileError");
                         if (map != null) {

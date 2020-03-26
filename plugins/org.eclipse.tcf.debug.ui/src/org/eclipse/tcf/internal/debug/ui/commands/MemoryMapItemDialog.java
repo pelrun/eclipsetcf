@@ -78,12 +78,16 @@ class MemoryMapItemDialog extends Dialog {
     @Override
     protected Control createDialogArea(Composite parent) {
         Composite composite = (Composite)super.createDialogArea(parent);
+        createStatusFields(composite);
         createFileNameFields(composite);
         createPropsFields(composite);
         createQueryFields(composite);
         setData();
         composite.setSize(composite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
         return composite;
+    }
+
+    protected void createStatusFields(Composite parent) {
     }
 
     private void createFileNameFields(Composite parent) {
