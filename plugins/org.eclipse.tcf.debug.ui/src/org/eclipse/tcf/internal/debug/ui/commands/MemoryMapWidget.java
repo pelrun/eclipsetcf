@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -73,7 +74,6 @@ import org.eclipse.tcf.internal.debug.model.TCFLaunch;
 import org.eclipse.tcf.internal.debug.model.TCFMemoryRegion;
 import org.eclipse.tcf.internal.debug.model.TCFSymFileRef;
 import org.eclipse.tcf.internal.debug.ui.Activator;
-import org.eclipse.tcf.internal.debug.ui.ImageCache;
 import org.eclipse.tcf.internal.debug.ui.model.TCFChildren;
 import org.eclipse.tcf.internal.debug.ui.model.TCFModel;
 import org.eclipse.tcf.internal.debug.ui.model.TCFNode;
@@ -557,9 +557,9 @@ public class MemoryMapWidget {
                 String id = ctx_text.getText();
                 if (id == null || id.length() == 0) return;
                 Map<String, Object> props = new HashMap<String, Object>();
-                Image image = ImageCache.getImage(ImageCache.IMG_MEMORY_MAP);
-                if (new MemoryMapItemDialog(map_table.getShell(), image, props, true).open() == Window.OK) {
-                    props.put(IMemoryMap.PROP_ID, id);
+                if (new MemoryMapItemDialog(map_table.getShell(), props, true).open() == Window.OK) {
+                    props.put(IMemoryMap.PROP_ID, id); // Context ID
+                    props.put("UUID", UUID.randomUUID().toString()); // Unique ID of this region
                     ArrayList<IMemoryMap.MemoryRegion> lst = cur_maps.get(id);
                     if (lst == null) cur_maps.put(id, lst = new ArrayList<IMemoryMap.MemoryRegion>());
                     lst.add(new TCFMemoryRegion(props));
@@ -640,8 +640,7 @@ public class MemoryMapWidget {
             Map<String, Object> props = region.getProperties();
             final boolean enable_editing = !(region instanceof ForeignRegion);
             if (enable_editing) props = new HashMap<String, Object>(props);
-            Image image = ImageCache.getImage(ImageCache.IMG_MEMORY_MAP);
-            MemoryMapItemDialog dlg = new MemoryMapItemDialog(map_table.getShell(), image, props, enable_editing) {
+            MemoryMapItemDialog dlg = new MemoryMapItemDialog(map_table.getShell(), props, enable_editing) {
                 protected void createStatusFields(Composite parent) {
                     try {
                         if (mem_node != null && region != null) {

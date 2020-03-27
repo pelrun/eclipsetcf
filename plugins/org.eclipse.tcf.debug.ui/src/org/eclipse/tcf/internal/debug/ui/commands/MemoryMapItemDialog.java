@@ -21,7 +21,6 @@ import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -33,6 +32,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.tcf.internal.debug.ui.ImageCache;
 import org.eclipse.tcf.internal.debug.ui.model.TCFModel;
 import org.eclipse.tcf.protocol.JSON;
 import org.eclipse.tcf.services.IMemoryMap;
@@ -41,7 +41,6 @@ class MemoryMapItemDialog extends Dialog {
 
     private final Map<String,Object> props;
     private final boolean enable_editing;
-    private final Image image;
 
     private Text addr_text;
     private Text size_text;
@@ -52,9 +51,8 @@ class MemoryMapItemDialog extends Dialog {
     private Button wr_button;
     private Button ex_button;
 
-    MemoryMapItemDialog(Shell parent, Image image, Map<String,Object> props, boolean enable_editing) {
+    MemoryMapItemDialog(Shell parent, Map<String,Object> props, boolean enable_editing) {
         super(parent);
-        this.image = image;
         this.props = props;
         this.enable_editing = enable_editing;
     }
@@ -63,7 +61,7 @@ class MemoryMapItemDialog extends Dialog {
     protected void configureShell(Shell shell) {
         super.configureShell(shell);
         shell.setText("Symbol File");
-        shell.setImage(image);
+        shell.setImage(ImageCache.getImage(ImageCache.IMG_MEMORY_MAP));
     }
 
     @Override
