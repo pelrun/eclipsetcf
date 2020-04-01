@@ -79,7 +79,9 @@ import org.eclipse.tcf.internal.debug.ui.model.TCFModel;
 import org.eclipse.tcf.internal.debug.ui.model.TCFNode;
 import org.eclipse.tcf.internal.debug.ui.model.TCFNodeExecContext;
 import org.eclipse.tcf.internal.debug.ui.model.TCFNodeLaunch;
+import org.eclipse.tcf.internal.services.local.LocatorService;
 import org.eclipse.tcf.protocol.IChannel;
+import org.eclipse.tcf.protocol.IPeer;
 import org.eclipse.tcf.protocol.JSON;
 import org.eclipse.tcf.protocol.Protocol;
 import org.eclipse.tcf.services.IMemory;
@@ -641,6 +643,7 @@ public class MemoryMapWidget {
             final boolean enable_editing = !(region instanceof ForeignRegion);
             if (enable_editing) props = new HashMap<String, Object>(props);
             MemoryMapItemDialog dlg = new MemoryMapItemDialog(map_table.getShell(), props, enable_editing) {
+                boolean symbols_ok;
                 protected void createStatusFields(Composite parent) {
                     try {
                         if (mem_node != null && region != null) {
@@ -661,7 +664,7 @@ public class MemoryMapWidget {
                         }
 
                         if (mem_node != null && region != null && region.getAddress() != null) {
-                            String file_info = new TCFTask<String>(mem_node.getChannel()) {
+                            String file_info = new TCFTask<String>(channel) {
                                 public void run() {
                                     StringBuilder buf = new StringBuilder();
                                     TCFDataCache<TCFSymFileRef> sym_cache = mem_node.getSymFileInfo(JSON.toBigInteger(region.getAddress()));
@@ -674,14 +677,15 @@ public class MemoryMapWidget {
                                                 if (sym_file_name != null && !sym_file_name.equals(region.getFileName())) {
                                                     buf.append("Symbol file: "); //$NON-NLS-1$
                                                     buf.append(sym_file_name);
+                                                    symbols_ok = true;
                                                 }
 
                                                 @SuppressWarnings("unchecked")
                                                 Map<String,Object> map = (Map<String,Object>)sym_data.props.get("FileError"); //$NON-NLS-1$
                                                 if (map != null) {
                                                     if (buf.length() > 0) buf.append("\n"); //$NON-NLS-1$
-                                                    String msg = TCFModel.getErrorMessage(new ErrorReport("", map), false); //$NON-NLS-1$
-                                                    buf.append("Symbol file error: ").append(msg); //$NON-NLS-1$
+                                                    buf.append("Symbol file error: "); //$NON-NLS-1$
+                                                    buf.append(TCFModel.getErrorMessage(new ErrorReport("", map), false)); //$NON-NLS-1$
                                                 }
                                             }
                                             else if (sym_data.error != null) {
@@ -701,8 +705,8 @@ public class MemoryMapWidget {
                             }
                         }
 
-                        if (mem_node != null && region != null && region.getFileName() != null) {
-                            TCFLaunch launch = mem_node.getModel().getLaunch();
+                        if (!symbols_ok && mem_node != null && region != null && region.getFileName() != null) {
+                            TCFLaunch launch = model.getLaunch();
                             Object mapped = TCFSourceLookupDirector.lookup(launch, mem_node.getID(), region.getFileName());
                             if (mapped instanceof IStorage) {
                                 String file_name = ((IStorage)mapped).getFullPath().toOSString();
@@ -710,27 +714,41 @@ public class MemoryMapWidget {
                                     Label label = new Label(parent, SWT.WRAP);
                                     label.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
                                     label.setFont(parent.getFont());
-                                    label.setText("Mapped to: " + ((IStorage)mapped).getFullPath() +
+                                    label.setText("Mapped to: " + file_name +
                                             "\nMapping can be edited in the Path Map tab of the launch configuration");
                                 }
                             }
-                            if (!(mapped instanceof IStorage) || !((IStorage)mapped).getFullPath().toFile().exists()) {
-                                Label label = new Label(parent, SWT.WRAP);
-                                label.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-                                label.setFont(parent.getFont());
-                                label.setText("The symbol file not found on the local host");
-                                if (!enable_editing) {
-                                    final Button button_locate = new Button(parent, SWT.PUSH | SWT.WRAP);
-                                    button_locate.setText("Locate local copy of the file... "); //$NON-NLS-1$
-                                    GridData layoutData = new GridData(SWT.FILL, SWT.FILL, true, false);
-                                    layoutData.widthHint = 50;
-                                    button_locate.setLayoutData(layoutData);
-                                    button_locate.addSelectionListener(new SelectionAdapter() {
-                                        @Override
-                                        public void widgetSelected(SelectionEvent e) {
-                                            locateSymbolFile(region);
+                            boolean local_host_peer = new TCFTask<Boolean>(channel) {
+                                @Override
+                                public void run() {
+                                    List<IPeer> peers = channel.getRemotePeerList();
+                                    for (IPeer peer : peers) {
+                                        if (LocatorService.isLocalHostPeer(peer)) {
+                                            done(true);
+                                            return;
                                         }
-                                    });
+                                    }
+                                    done(false);
+                                }
+                            }.get();
+                            if (local_host_peer) {
+                                if (!(mapped instanceof IStorage) || !((IStorage)mapped).getFullPath().toFile().exists()) {
+                                    Label label = new Label(parent, SWT.WRAP);
+                                    label.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+                                    label.setFont(parent.getFont());
+                                    label.setText("The symbol file not found on the local host");
+                                    if (!enable_editing) {
+                                        final Button button_locate = new Button(parent, SWT.PUSH | SWT.WRAP);
+                                        button_locate.setText("Locate local copy of the file... "); //$NON-NLS-1$
+                                        GridData layoutData = new GridData(SWT.FILL, SWT.FILL, true, false);
+                                        button_locate.setLayoutData(layoutData);
+                                        button_locate.addSelectionListener(new SelectionAdapter() {
+                                            @Override
+                                            public void widgetSelected(SelectionEvent e) {
+                                                locateSymbolFile(region);
+                                            }
+                                        });
+                                    }
                                 }
                             }
                         }
@@ -740,7 +758,10 @@ public class MemoryMapWidget {
                         label.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
                         label.setForeground(display.getSystemColor(SWT.COLOR_RED));
                         label.setFont(parent.getFont());
-                        label.setText("Cannot display region status: " + x.getMessage());
+                        String s = "Cannot display region status: " + x.getClass().getName();
+                        String m = x.getMessage();
+                        if (m != null) s += " " + m;
+                        label.setText(s);
                     }
                 }
             };
@@ -867,7 +888,7 @@ public class MemoryMapWidget {
                             TCFDataCache<IMemory.MemoryContext> mem_ctx = syms_node.getMemoryContext();
                             if (!mem_ctx.validate(this)) return;
                             if (mem_ctx.getData() != null) {
-                                if (syms_node.getModel().getLaunch().isMemoryMapPreloadingSupported()) {
+                                if (model.getLaunch().isMemoryMapPreloadingSupported()) {
                                     TCFDataCache<String> name_cache = syms_node.getFullName();
                                     if (!name_cache.validate(this)) return;
                                     id = name_cache.getData();
@@ -928,7 +949,7 @@ public class MemoryMapWidget {
                                     if (!mem_ctx.validate(this)) return false;
                                     if (mem_ctx.getData() != null) {
                                         String id = null;
-                                        if (syms_node.getModel().getLaunch().isMemoryMapPreloadingSupported()) {
+                                        if (model.getLaunch().isMemoryMapPreloadingSupported()) {
                                             TCFDataCache<String> name_cache = syms_node.getFullName();
                                             if (!name_cache.validate(this)) return false;
                                             id = name_cache.getData();

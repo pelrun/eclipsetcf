@@ -24,6 +24,7 @@ Require-Bundle: com.jcraft.jsch;bundle-version="0.1.46",
  org.eclipse.ui.workbench.texteditor;bundle-version="3.8.0",
  org.eclipse.tcf.debug;bundle-version="1.7.0"
 Import-Package: org.eclipse.tcf.core;version="1.7.0",
+ org.eclipse.tcf.internal.services.local,
  org.eclipse.tcf.protocol;version="1.7.0",
  org.eclipse.tcf.services;version="1.7.0",
  org.eclipse.tcf.ssl;version="1.7.0",
@@ -43,3 +44,4 @@ Export-Package: org.eclipse.tcf.debug.ui,
  org.eclipse.tcf.internal.debug.ui.preferences;x-internal:=true,
  org.eclipse.tcf.internal.debug.ui.properties;x-internal:=true,
  org.eclipse.tcf.internal.debug.ui.trace;x-internal:=true
+Automatic-Module-Name: org.eclipse.tcf.debug.ui

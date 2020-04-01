@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2013 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007-2020 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -11,6 +11,7 @@
 package org.eclipse.tcf.protocol;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -232,6 +233,11 @@ public interface IChannel {
      * @return IPeer object representing remote endpoint of communication channel.
      */
     IPeer getRemotePeer();
+
+    /**
+     * @return list of remote IPeer objects, which includes intermediate peers used to redirect the channel
+     */
+    List<IPeer> getRemotePeerList();
 
     /**
      * @return collection of services available on local peer.

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2016 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007-2020 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -97,6 +97,7 @@ public class LocatorService implements ILocator {
         final int prefix_length;
         final InetAddress address;
         final InetAddress broadcast;
+        final String host_name;
 
         long last_slaves_req_time;
         boolean send_all_ok;
@@ -105,6 +106,7 @@ public class LocatorService implements ILocator {
             this.prefix_length = prefix_length;
             this.address = address;
             this.broadcast = broadcast;
+            host_name = address.getHostName();
         }
 
         /**
@@ -514,6 +516,19 @@ public class LocatorService implements ILocator {
         return local_peer;
     }
 
+    public static boolean isLocalHostPeer(IPeer peer) {
+        assert Protocol.isDispatchThread();
+        String host = peer.getAttributes().get(IPeer.ATTR_IP_HOST);
+        if (host != null && host.length() > 0 && locator != null) {
+            InetAddress addr = locator.getInetAddress(host);
+            for (SubNet subnet : locator.subnets) {
+                if (host.equals(subnet.host_name)) return true;
+                if (addr != null && addr.equals(subnet.address)) return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Get the Locator Event listeners
      * @return array of locator listeners
@@ -765,7 +780,8 @@ public class LocatorService implements ILocator {
         HashSet<SubNet> set = new HashSet<SubNet>();
         try {
             String osname = System.getProperty("os.name", "");
-            if (osname.startsWith("Windows")) {
+            String java_version = System.getProperty("java.version", "");
+            if (osname.startsWith("Windows") && (java_version.startsWith("1.6.") || java_version.startsWith("1.7."))) {
                 /*
                  * Workaround for JVM bug:
                  * InterfaceAddress.getNetworkPrefixLength() does not conform to Javadoc

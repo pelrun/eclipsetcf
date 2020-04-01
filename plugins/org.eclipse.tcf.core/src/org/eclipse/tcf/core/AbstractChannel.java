@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007-2018 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007-2020 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -16,6 +16,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.tcf.internal.core.ServiceManager;
@@ -154,9 +155,7 @@ public abstract class AbstractChannel implements IChannel {
     private final Collection<IChannelListener> channel_listeners = new ArrayList<IChannelListener>();
     private final Map<String,IChannel.IEventListener[]> event_listeners = new HashMap<String,IChannel.IEventListener[]>();
     private final Map<String,IChannel.ICommandServer> command_servers = new HashMap<String,IChannel.ICommandServer>();
-    /**
-     * Tokens used for output
-     */
+    private final LinkedList<IPeer> remote_peer_list = new LinkedList<IPeer>();
     private final Map<String,Message> out_tokens = new LinkedHashMap<String,Message>();
     private final Thread inp_thread;
     private final Thread out_thread;
@@ -199,6 +198,7 @@ public abstract class AbstractChannel implements IChannel {
         assert Protocol.isDispatchThread();
         this.remote_peer = remote_peer;
         this.local_peer = local_peer;
+        remote_peer_list.add(remote_peer);
 
         /**
          * Thread used handles messages received through the channel
@@ -608,9 +608,11 @@ public abstract class AbstractChannel implements IChannel {
                             public void peerAdded(IPeer peer) {
                                 if (peer.getID().equals(peer_id)) {
                                     found[0] = true;
-                                    state = STATE_OPEN;
                                     l.removeListener(this);
-                                    redirect(peer_id);
+                                    if (state == STATE_OPENING) {
+                                        state = STATE_OPEN;
+                                        redirect(peer_id);
+                                    }
                                 }
                             }
                             public void peerChanged(IPeer peer) {
@@ -631,6 +633,7 @@ public abstract class AbstractChannel implements IChannel {
                                 if (state != STATE_OPENING) return;
                                 if (x != null) terminate(x);
                                 remote_peer = peer;
+                                remote_peer_list.add(remote_peer);
                                 remote_service_by_class.clear();
                                 remote_service_by_name.clear();
                                 event_listeners.clear();
@@ -653,6 +656,7 @@ public abstract class AbstractChannel implements IChannel {
                                     return c;
                                 }
                             };
+                            remote_peer_list.add(remote_peer);
                             remote_service_by_class.clear();
                             remote_service_by_name.clear();
                             event_listeners.clear();
@@ -890,6 +894,11 @@ public abstract class AbstractChannel implements IChannel {
     public IPeer getRemotePeer() {
         assert Protocol.isDispatchThread();
         return remote_peer;
+    }
+
+    public List<IPeer> getRemotePeerList() {
+        assert Protocol.isDispatchThread();
+        return remote_peer_list;
     }
 
     public Collection<String> getLocalServices() {
