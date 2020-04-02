@@ -487,18 +487,13 @@
             class="org.eclipse.tcf.internal.debug.ui.commands.ResetHandler"
             commandId="org.eclipse.tcf.debug.ui.commands.reset">
          <activeWhen>
-            <with
-                  variable="debugContext">
-               <iterate
-                     ifEmpty="false"
-                     operator="or">
+            <with variable="debugContext">
+               <iterate ifEmpty="false" operator="or">
                   <test
                         forcePluginActivation="true"
-                        property="org.eclipse.tcf.launch.canReset">
-                  </test></iterate>
-               <count
-                     value="1">
-               </count>
+                        property="org.eclipse.tcf.launch.canReset"/>
+               </iterate>
+               <count value="1"/>
             </with>
          </activeWhen>
       </handler>
@@ -791,6 +786,13 @@
                label="%Reset.label"
                style="pulldown"
                tooltip="%Reset.tooltip">
+            <visibleWhen checkEnabled="false">
+               <with variable="activeContexts">
+                  <iterate ifEmpty="false" operator="or">
+                     <equals value="org.eclipse.tcf.debug.ui.debugging"/>
+                  </iterate>
+               </with>
+            </visibleWhen>
          </command>
       </menuContribution>
       <menuContribution
