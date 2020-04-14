@@ -804,7 +804,9 @@
          </activeWhen>
          <enabledWhen>
             <with variable="activeEditor">
-               <test property="org.eclipse.tcf.te.ui.views.isEditorFilterable"/>
+               <adapt type="org.eclipse.tcf.te.ui.views.Editor">
+                  <test property="org.eclipse.tcf.te.ui.views.isEditorFilterable"/>
+               </adapt>
             </with>
          </enabledWhen>
       </handler>
