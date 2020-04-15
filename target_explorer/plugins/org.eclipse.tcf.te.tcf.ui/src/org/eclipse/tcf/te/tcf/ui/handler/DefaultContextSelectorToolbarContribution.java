@@ -260,7 +260,6 @@ implements IWorkbenchContribution, IEventListener, IPeerModelListener, IProperty
 		button = new Button(labelPanel, SWT.ARROW | SWT.DOWN | SWT.FLAT | SWT.NO_FOCUS);
 		layoutData = new GridData(SWT.TRAIL, SWT.CENTER, false, true);
 		layoutData.minimumWidth=20;
-		layoutData.widthHint = 20;
 		button.setLayoutData(layoutData);
 		button.addSelectionListener(new SelectionAdapter() {
 			@Override
