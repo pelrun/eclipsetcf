@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2016 Wind River Systems, Inc. and others.
+ * Copyright (c) 2008-22020 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -265,12 +265,22 @@ public class TCFChildrenSubExpressions extends TCFChildren {
         return true;
     }
 
-    private TCFNodeExpression findIndex(int index, boolean deref) {
+    private TCFNodeExpression findIndex(int index) {
         assert index >= 0;
         for (TCFNode n : getNodes()) {
             if (n instanceof TCFNodeExpression) {
                 TCFNodeExpression e = (TCFNodeExpression)n;
-                if (e.getIndex() == index && e.isDeref() == deref) return e;
+                if (e.getIndex() == index) return e;
+            }
+        }
+        return null;
+    }
+
+    private TCFNodeExpression findDeref() {
+        for (TCFNode n : getNodes()) {
+            if (n instanceof TCFNodeExpression) {
+                TCFNodeExpression e = (TCFNodeExpression)n;
+                if (e.isDeref()) return e;
             }
         }
         return null;
@@ -354,7 +364,7 @@ public class TCFChildrenSubExpressions extends TCFChildren {
             int size = par_level > 0 ? par_size : type_data.getLength();
             if (size <= 100) {
                 for (int i = offs; i < offs + size; i++) {
-                    TCFNodeExpression n = findIndex(i, false);
+                    TCFNodeExpression n = findIndex(i);
                     if (n == null) n = new TCFNodeExpression(node, null, null, null, null, null, i, false);
                     n.setSortPosition(i);
                     data.put(n.id, n);
@@ -386,8 +396,8 @@ public class TCFChildrenSubExpressions extends TCFChildren {
                             if (!findFields(base_type_data, data, true)) return false;
                         }
                         else {
-                            TCFNodeExpression n = findIndex(0, true);
-                            if (n == null) n = new TCFNodeExpression(node, null, null, null, null, null, 0, true);
+                            TCFNodeExpression n = findDeref();
+                            if (n == null) n = new TCFNodeExpression(node, null, null, null, null, null, -1, true);
                             n.setSortPosition(0);
                             data.put(n.id, n);
                         }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2017 Wind River Systems, Inc. and others.
+ * Copyright (c) 2008-2020 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -77,6 +77,8 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
     private final TCFData<String> expression_text;
     private final TCFChildrenSubExpressions children;
     private final boolean is_empty;
+    private int base_text_priority = 0;
+    private int expr_text_priority = 0;
     private int sort_pos;
     private boolean enabled = true;
     private IExpressions.Value prev_value;
@@ -112,7 +114,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
         this.reg_id = reg_id;
         this.index = index;
         this.deref = deref;
-        is_empty = script == null && var_id == null && field_id == null && reg_id == null && index < 0;
+        is_empty = script == null && var_id == null && field_id == null && reg_id == null && index < 0 && !deref;
         var_expression = new TCFData<IExpressions.Expression>(channel) {
             @Override
             protected boolean startDataRetrieval() {
@@ -133,71 +135,87 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
             @Override
             protected boolean startDataRetrieval() {
                 /* Compute expression script, not including type cast */
+                base_text_priority = 0;
                 parent_value = null;
+                int expr_priority = 0;
+                String expr_script = null;
+                Throwable expr_error = null;
                 if (is_empty) {
-                    set(null, null, null);
-                    return true;
+                    expr_script = null;
                 }
-                if (script != null) {
-                    set(null, null, script);
-                    return true;
+                else if (script != null) {
+                    expr_script = script;
+                    if (script.matches("\\w*")) expr_priority = 2;
                 }
-                if (var_id != null) {
+                else if (var_id != null) {
                     if (!var_expression.validate(this)) return false;
-                    Throwable err = null;
                     String exp = null;
                     if (var_expression.getData() == null) {
-                        err = var_expression.getError();
+                        expr_error = var_expression.getError();
                     }
                     else {
                         exp = var_expression.getData().getExpression();
-                        if (exp == null) err = new Exception("Missing 'Expression' property");
+                        if (exp == null) expr_error = new Exception("Missing 'Expression' property");
+                        else if (exp.matches("\\w*")) expr_priority = 2;
                     }
-                    set(null, err, exp);
-                    return true;
+                    expr_script = exp;
                 }
-                if (reg_id != null) {
-                    set(null, null, "${" + reg_id + "}");
-                    return true;
+                else if (reg_id != null) {
+                    expr_script = "${" + reg_id + "}";
+                    expr_priority = 2;
                 }
-                String e = null;
-                TCFNode n = parent;
-                while (n instanceof TCFNodeArrayPartition) n = n.parent;
-                String cast = model.getCastToType(n.id);
-                if (cast == null && deref) {
-                    TCFNodeExpression exp = (TCFNodeExpression)n;
-                    if (!exp.value.validate(this)) return false;
-                    IExpressions.Value v = exp.value.getData();
-                    if (v != null && v.getTypeID() != null) {
-                        parent_value = v.getValue();
-                        if (parent_value != null) {
-                            e = "(${" + v.getTypeID() + "})0x" + TCFNumberFormat.toBigInteger(
-                                    parent_value, v.isBigEndian(), false).toString(16);
+                else {
+                    TCFNode n = parent;
+                    while (n instanceof TCFNodeArrayPartition) n = n.parent;
+                    String cast = model.getCastToType(n.id);
+                    if (cast == null && deref) {
+                        TCFNodeExpression exp = (TCFNodeExpression)n;
+                        if (!exp.value.validate(this)) return false;
+                        IExpressions.Value v = exp.value.getData();
+                        if (v != null && v.getTypeID() != null) {
+                            parent_value = v.getValue();
+                            if (parent_value != null) {
+                                expr_script = "(${" + v.getTypeID() + "})0x" + TCFNumberFormat.toBigInteger(
+                                        parent_value, v.isBigEndian(), false).toString(16);
+                                expr_priority = 1;
+                            }
                         }
                     }
-                }
-                if (e == null) {
-                    TCFDataCache<String> t = ((TCFNodeExpression)n).base_text;
-                    if (!t.validate(this)) return false;
-                    e = t.getData();
-                    if (e == null) {
-                        set(null, t.getError(), null);
-                        return true;
+                    if (expr_script == null) {
+                        TCFDataCache<String> t = ((TCFNodeExpression)n).base_text;
+                        if (!t.validate(this)) return false;
+                        expr_script = t.getData();
+                        if (expr_script == null) {
+                            set(null, t.getError(), null);
+                            return true;
+                        }
+                        expr_priority = ((TCFNodeExpression)n).base_text_priority;
+                    }
+                    if (cast != null) {
+                        if (expr_priority < 1) expr_script = "(" + expr_script + ")";
+                        expr_script = "(" + cast + ")" + expr_script;
+                        expr_priority = 1;
+                    }
+                    if (field_id != null) {
+                        if (expr_priority < 2) expr_script = "(" + expr_script + ")";
+                        expr_script = expr_script + (deref ? "->" : ".") + "${" + field_id + "}";
+                        expr_priority = 2;
+                    }
+                    else if (index >= 0) {
+                        BigInteger lower_bound = getLowerBound(this);
+                        if (lower_bound == null) return false;
+                        if (expr_priority < 2) expr_script = "(" + expr_script + ")";
+                        expr_script = expr_script + "[" + lower_bound.add(BigInteger.valueOf(index)) + "]";
+                        expr_priority = 2;
+                    }
+                    else if (deref) {
+                        if (expr_priority < 1) expr_script = "(" + expr_script + ")";
+                        expr_script = "*" + expr_script;
+                        expr_priority = 1;
                     }
                 }
-                if (cast != null) e = "(" + cast + ")(" + e + ")";
-                if (field_id != null) {
-                    e = "(" + e + ")" + (deref ? "->" : ".") + "${" + field_id + "}";
-                }
-                else if (index == 0 && deref) {
-                    e = "*(" + e + ")";
-                }
-                else if (index >= 0) {
-                    BigInteger lower_bound = getLowerBound(this);
-                    if (lower_bound == null) return false;
-                    e = "(" + e + ")[" + lower_bound.add(BigInteger.valueOf(index)) + "]";
-                }
-                set(null, null, e);
+                base_text_priority = expr_priority;
+                set(null, expr_error, expr_script);
                 return true;
             }
         };
@@ -206,9 +224,15 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
             protected boolean startDataRetrieval() {
                 /* Compute human readable expression script,
                  * including type cast, and using variable names instead of IDs */
-                String expr_text = null;
-                if (script != null) {
-                    expr_text = script;
+                expr_text_priority = 0;
+                int expr_priority = 0;
+                String expr_script = null;
+                if (is_empty) {
+                    expr_script = null;
+                }
+                else if (script != null) {
+                    expr_script = script;
+                    if (expr_script.matches("\\w*")) expr_priority = 2;
                 }
                 else if (var_id != null) {
                     if (!var_expression.validate(this)) return false;
@@ -217,7 +241,10 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                         TCFDataCache<ISymbols.Symbol> var = model.getSymbolInfoCache(e.getSymbolID());
                         if (var != null) {
                             if (!var.validate(this)) return false;
-                            if (var.getData() != null) expr_text = var.getData().getName();
+                            if (var.getData() != null) {
+                                expr_script = var.getData().getName();
+                                if (expr_script.matches("\\w*")) expr_priority = 2;
+                            }
                         }
                     }
                 }
@@ -233,48 +260,35 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                             set(null, ctx_cache.getError(), null);
                             return true;
                         }
-                        expr_text = expr_text == null ? ctx_data.getName() : ctx_data.getName() + "." + expr_text;
+                        expr_script = expr_script == null ? ctx_data.getName() : ctx_data.getName() + "." + expr_script;
                         if (!(reg_node.parent instanceof TCFNodeRegister)) break;
                         reg_node = (TCFNodeRegister)reg_node.parent;
                     }
-                    expr_text = "$" + expr_text;
+                    expr_script = "$" + expr_script;
+                    expr_priority = 2;
                 }
                 else {
+                    TCFNode n = parent;
+                    while (n instanceof TCFNodeArrayPartition) n = n.parent;
                     TCFDataCache<?> pending = null;
+                    TCFDataCache<String> parent_text_cache = ((TCFNodeExpression)n).expression_text;
                     TCFDataCache<ISymbols.Symbol> field = model.getSymbolInfoCache(field_id);
+                    if (!parent_text_cache.validate()) pending = parent_text_cache;
                     if (field != null && !field.validate()) pending = field;
                     if (!base_text.validate()) pending = base_text;
                     if (pending != null) {
                         pending.wait(this);
                         return false;
                     }
-                    String parent_text = "";
-                    TCFNode n = parent;
-                    while (n instanceof TCFNodeArrayPartition) n = n.parent;
-                    TCFDataCache<String> parent_text_cache = ((TCFNodeExpression)n).expression_text;
-                    if (!parent_text_cache.validate(this)) return false;
-                    if (parent_text_cache.getData() != null) {
-                        parent_text = parent_text_cache.getData();
-                        // surround with parentheses if not a simple identifier
-                        if (!parent_text.matches("\\w*")) {
-                            parent_text = '(' + parent_text + ')';
-                        }
-                    }
-                    if (index >= 0) {
-                        if (index == 0 && deref) {
-                            expr_text = "*" + parent_text;
-                        }
-                        else {
-                            BigInteger lower_bound = getLowerBound(this);
-                            if (lower_bound == null) return false;
-                            expr_text = parent_text + "[" + lower_bound.add(BigInteger.valueOf(index)) + "]";
-                        }
-                    }
-                    if (expr_text == null && field != null) {
+                    expr_script = parent_text_cache.getData();
+                    expr_priority = ((TCFNodeExpression)n).expr_text_priority;
+                    if (field != null) {
                         ISymbols.Symbol field_data = field.getData();
                         if (field_data != null) {
                             if (field_data.getName() != null) {
-                                expr_text = parent_text + (deref ? "->" : ".") + field_data.getName();
+                                if (expr_priority < 2) expr_script = "(" + expr_script + ")";
+                                expr_script = expr_script + (deref ? "->" : ".") + field_data.getName();
+                                expr_priority = 2;
                             }
                             else if (field_data.getFlag(ISymbols.SYM_FLAG_INHERITANCE)) {
                                 TCFDataCache<ISymbols.Symbol> type = model.getSymbolInfoCache(field_data.getTypeID());
@@ -283,19 +297,41 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                                     ISymbols.Symbol type_data = type.getData();
                                     if (type_data != null) {
                                         String type_name = type_data.getName();
-                                        expr_text = "*(" + type_name + "*)" + (deref ? "" : "&") + parent_text;
+                                        if (expr_priority < 1) expr_script = "(" + expr_script + ")";
+                                        expr_script = "*(" + type_name + "*)" + (deref ? "" : "&") + expr_script;
+                                        expr_priority = 1;
                                     }
                                 }
                             }
                         }
                     }
-                    if (expr_text == null && base_text.getData() != null) expr_text = base_text.getData();
+                    else if (index >= 0) {
+                        BigInteger lower_bound = getLowerBound(this);
+                        if (lower_bound == null) return false;
+                        if (expr_priority < 2) expr_script = "(" + expr_script + ")";
+                        expr_script = expr_script + "[" + lower_bound.add(BigInteger.valueOf(index)) + "]";
+                        expr_priority = 2;
+                    }
+                    else if (deref) {
+                        if (expr_priority < 1) expr_script = "(" + expr_script + ")";
+                        expr_script = "*" + expr_script;
+                        expr_priority = 1;
+                    }
+                    if (expr_script == null && base_text.getData() != null) {
+                        expr_script = base_text.getData();
+                        expr_priority = base_text_priority;
+                    }
                 }
-                if (expr_text != null) {
+                if (expr_script != null) {
                     String cast = model.getCastToType(id);
-                    if (cast != null) expr_text = "(" + cast + ")(" + expr_text + ")";
+                    if (cast != null) {
+                        if (expr_priority < 1) expr_script = "(" + expr_script + ")";
+                        expr_script = "(" + cast + ")(" + expr_script + ")";
+                        expr_priority = 1;
+                    }
                 }
-                set(null, null, expr_text);
+                expr_text_priority = expr_priority;
+                set(null, null, expr_script);
                 return true;
             }
         };
@@ -1297,17 +1333,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                 return false;
             }
             String name = null;
-            if (index >= 0) {
-                if (index == 0 && deref) {
-                    name = "*";
-                }
-                else {
-                    BigInteger lower_bound = getLowerBound(done);
-                    if (lower_bound == null) return false;
-                    name = "[" + lower_bound.add(BigInteger.valueOf(index)) + "]";
-                }
-            }
-            if (name == null && field != null) {
+            if (field != null) {
                 ISymbols.Symbol field_data = field.getData();
                 name = field_data.getName();
                 if (name == null && field_data.getFlag(ISymbols.SYM_FLAG_INHERITANCE)) {
@@ -1318,6 +1344,14 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                         if (type_data != null) name = type_data.getName();
                     }
                 }
+            }
+            else if (index >= 0) {
+                BigInteger lower_bound = getLowerBound(done);
+                if (lower_bound == null) return false;
+                name = "[" + lower_bound.add(JSON.toBigInteger(index)) + "]";
+            }
+            else if (deref) {
+                name = "*";
             }
             if (name == null && reg_id != null && expression_text.getData() != null) {
                 name = expression_text.getData();
