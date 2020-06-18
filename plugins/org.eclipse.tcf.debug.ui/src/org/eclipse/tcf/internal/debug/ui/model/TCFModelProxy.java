@@ -571,7 +571,8 @@ public class TCFModelProxy extends AbstractModelProxy implements IModelProxy, Ru
                         if (viewer instanceof IInternalTreeModelViewer) {
                             try {
                                 found = ((IInternalTreeModelViewer)viewer).findElementIndex(TreePath.EMPTY, launch) >= 0;
-                            } catch (SWTException e) {
+                            }
+                            catch (SWTException e) {
                                 // viewer is already disposed
                                 return;
                             }

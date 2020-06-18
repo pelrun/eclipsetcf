@@ -275,7 +275,9 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
         }
         IRegisters.RegistersContext ctx = context.getData();
         if (ctx != null) {
+            bf.append(ctx.getName(), SWT.BOLD);
             if (ctx.getDescription() != null) {
+                bf.append(": ");
                 bf.append(ctx.getDescription());
                 bf.append('\n');
             }
