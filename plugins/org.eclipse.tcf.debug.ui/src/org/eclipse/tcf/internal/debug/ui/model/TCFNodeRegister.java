@@ -279,8 +279,8 @@ public class TCFNodeRegister extends TCFNode implements IElementEditor, IWatchIn
             if (ctx.getDescription() != null) {
                 bf.append(": ");
                 bf.append(ctx.getDescription());
-                bf.append('\n');
             }
+            bf.append('\n');
         }
         if (value.getError() != null) {
             bf.append(value.getError(), ColorCache.rgb_error);
