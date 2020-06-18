@@ -241,6 +241,20 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
         }
     };
 
+    private final Set<String> reg_changed = new HashSet<String>();
+
+    private final IRegisters.RegistersListener reg_listener = new IRegisters.RegistersListener() {
+
+        @Override
+        public void contextChanged() {
+        }
+
+        @Override
+        public void registerChanged(String id) {
+            reg_changed.add(id);
+        }
+    };
+
     TestRCBP1(TCFTestSuite test_suite, RunControl test_rc, IChannel channel, int channel_id,
             List<PathMapRule> path_map, Map<String,ArrayList<MemoryRegion>> mem_map) {
         this.test_suite = test_suite;
@@ -267,6 +281,7 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
         }
         else {
             if (srv_breakpoints != null) srv_breakpoints.addListener(bp_listener);
+            if (srv_registers != null) srv_registers.addListener(reg_listener);
             runTest();
         }
     }
@@ -1632,9 +1647,10 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
     }
 
     private void testGetSetRegisterCommands(final SuspendedContext sc, final Runnable done) {
-        Map<String,IRegisters.RegistersContext> reg_map = regs.get(sc.id);
+        final Map<String,IRegisters.RegistersContext> reg_map = regs.get(sc.id);
         final Set<IToken> cmds = new HashSet<IToken>();
         if (reg_map.size() > 0) {
+            reg_changed.clear();
             String[] ids = reg_map.keySet().toArray(new String[reg_map.size()]);
             for (int n = 0; n < 10000 && cmds.size() < 100; n++) {
                 if (rnd.nextBoolean()) {
@@ -1664,6 +1680,10 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
                                             exit(error);
                                             return;
                                         }
+                                        if (!reg_changed.contains(ctx.getID())) {
+                                            exit(new Exception("Missing register changed event for " + ctx.getName()));
+                                            return;
+                                        }
                                         cmds.add(ctx.get(new IRegisters.DoneGet() {
                                             public void doneGet(IToken token, Exception error, byte[] value1) {
                                                 cmds.remove(token);
@@ -1687,6 +1707,7 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
                                 }));
                             }
                             if (cmds.isEmpty()) {
+                                reg_changed.clear();
                                 done.run();
                             }
                         }
@@ -1734,7 +1755,14 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
                                         exit(error);
                                         return;
                                     }
+                                    for (IRegisters.Location l : loc_arr) {
+                                        if (!reg_changed.contains(l.id)) {
+                                            exit(new Exception("Missing register changed event for " + reg_map.get(l.id).getName()));
+                                            return;
+                                        }
+                                    }
                                     if (cmds.isEmpty()) {
+                                        reg_changed.clear();
                                         done.run();
                                     }
                                 }
@@ -2018,6 +2046,7 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
             if (srv_run_ctrl != null) srv_run_ctrl.removeListener(this);
         }
         if (srv_breakpoints != null) srv_breakpoints.removeListener(bp_listener);
+        if (srv_registers != null) srv_registers.removeListener(reg_listener);
         test_suite.done(this, x);
     }
 }
