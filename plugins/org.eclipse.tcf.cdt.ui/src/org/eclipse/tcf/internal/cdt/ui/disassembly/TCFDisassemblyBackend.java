@@ -63,6 +63,8 @@ import org.eclipse.tcf.services.ILineNumbers;
 import org.eclipse.tcf.services.ILineNumbers.CodeArea;
 import org.eclipse.tcf.services.ILineNumbers.DoneMapToSource;
 import org.eclipse.tcf.services.IMemory.MemoryError;
+import org.eclipse.tcf.services.IMemoryMap;
+import org.eclipse.tcf.services.IMemoryMap.MemoryMapListener;
 import org.eclipse.tcf.services.IMemory;
 import org.eclipse.tcf.services.IRunControl;
 import org.eclipse.tcf.services.IRunControl.RunControlContext;
@@ -194,6 +196,23 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
         }
     }
 
+    private class TCFMemoryMapListener implements MemoryMapListener {
+
+        @Override
+        public void changed(String context_id) {
+            if (fMemoryContext == null)
+                return;
+            if (!fMemoryContext.getID().equals(context_id))
+                return;
+            if (fCallback == null)
+                return;
+            try {
+                fCallback.getClass().getMethod("refresh").invoke(fCallback);
+            } catch (Exception e) {
+            }
+        }
+    }
+
     private volatile boolean fSuspended;
     private volatile TCFNodeExecContext fExecContext;
     private volatile TCFNodeExecContext fMemoryContext;
@@ -272,6 +291,7 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
     }
 
     private final IRunControl.RunControlListener fRunControlListener = new TCFRunControlListener();
+    private final IMemoryMap.MemoryMapListener fMemoryMapListener = new TCFMemoryMapListener();
     private final IChannelListener fChannelListener = new TCFChannelListener();
     private final ILaunchesListener fLaunchesListener = new TCFLaunchListener();
 
@@ -367,6 +387,8 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
                 IChannel channel = context.getChannel();
                 IRunControl rctl = channel.getRemoteService(IRunControl.class);
                 if (rctl != null) rctl.addListener(fRunControlListener);
+                IMemoryMap mmap = channel.getRemoteService(IMemoryMap.class);
+                if (mmap != null) mmap.addListener(fMemoryMapListener);
                 channel.addChannelListener(fChannelListener);
             }
         });
@@ -381,6 +403,8 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
                 IChannel channel = context.getChannel();
                 IRunControl rctl = channel.getRemoteService(IRunControl.class);
                 if (rctl != null) rctl.removeListener(fRunControlListener);
+                IMemoryMap mmap = channel.getRemoteService(IMemoryMap.class);
+                if (mmap != null) mmap.removeListener(fMemoryMapListener);
                 channel.removeChannelListener(fChannelListener);
             }
         });
