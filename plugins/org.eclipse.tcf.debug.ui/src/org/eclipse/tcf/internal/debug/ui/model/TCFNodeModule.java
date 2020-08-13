@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others.
+ * Copyright (c) 2011-2020 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -76,9 +76,19 @@ public class TCFNodeModule extends TCFNode implements IDetailsProvider {
                 update.setLabel(r.getFileName(), 0);
             }
             else {
-                for (int i=0; i < col_ids.length; ++i) {
+                for (int i = 0; i < col_ids.length; i++) {
                     String col_id = col_ids[i];
                     if (TCFColumnPresentationModules.COL_NAME.equals(col_id)) {
+                        String name = r.getFileName();
+                        if (name != null) {
+                            int j0 = name.lastIndexOf('/');
+                            int j1 = name.lastIndexOf('\\');
+                            if (j0 > j1) name = name.substring(j0 + 1);
+                            else if (j0 < j1) name = name.substring(j1 + 1);
+                        }
+                        update.setLabel(name, i);
+                    }
+                    else if (TCFColumnPresentationModules.COL_FILE.equals(col_id)) {
                         update.setLabel(r.getFileName(), i);
                     }
                     else if (TCFColumnPresentationModules.COL_ADDRESS.equals(col_id)) {

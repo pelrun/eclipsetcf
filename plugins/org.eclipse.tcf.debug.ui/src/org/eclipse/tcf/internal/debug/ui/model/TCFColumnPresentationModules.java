@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011 Wind River Systems, Inc. and others.
+ * Copyright (c) 2011-2020 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -26,6 +26,7 @@ public class TCFColumnPresentationModules implements IColumnPresentation {
      */
     public static final String
         COL_NAME = "Name",
+        COL_FILE = "File",
         COL_ADDRESS = "Address",
         COL_SIZE = "Size",
         COL_FLAGS = "Flags",
@@ -34,6 +35,7 @@ public class TCFColumnPresentationModules implements IColumnPresentation {
 
     private static String[] cols_all = {
         COL_NAME,
+        COL_FILE,
         COL_ADDRESS,
         COL_SIZE,
         COL_FLAGS,
@@ -42,6 +44,7 @@ public class TCFColumnPresentationModules implements IColumnPresentation {
     };
 
     private static String[] headers  = {
+        "Name",
         "File Name",
         "Address",
         "Size",
@@ -52,6 +55,7 @@ public class TCFColumnPresentationModules implements IColumnPresentation {
 
     private static String[] cols_ini = {
         COL_NAME,
+        COL_FILE,
         COL_ADDRESS,
         COL_SIZE
     };
