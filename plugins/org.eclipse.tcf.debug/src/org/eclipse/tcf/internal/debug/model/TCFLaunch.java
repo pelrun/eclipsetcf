@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007-2018 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007-2020 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -10,10 +10,13 @@
  *******************************************************************************/
 package org.eclipse.tcf.internal.debug.model;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -24,9 +27,16 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IStorage;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.core.variables.IStringVariableManager;
 import org.eclipse.core.variables.VariablesPlugin;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
@@ -180,6 +190,9 @@ public class TCFLaunch extends Launch {
 
     private boolean can_terminate_attached = false;
 
+    private InputStream stdin_file_stream;
+    private OutputStream stdout_file_stream;
+
     private final IStreams.StreamsListener streams_listener = new IStreams.StreamsListener() {
 
         public void created(String stream_type, String stream_id, String context_id) {
@@ -255,6 +268,54 @@ public class TCFLaunch extends Launch {
     public TCFLaunch(ILaunchConfiguration launchConfiguration, String mode) {
         super(launchConfiguration, mode, null);
         for (LaunchListener l : getListeners()) l.onCreated(TCFLaunch.this);
+    }
+
+    private void openConsoleCaptureFiles() {
+        ILaunchConfiguration configuration = getLaunchConfiguration();
+        if (configuration == null) return;
+        try {
+            String stdin_file = configuration.getAttribute(TCFLaunchDelegate.ATTR_CAPTURE_STDIN_FILE, (String)null);
+            String stdout_file = configuration.getAttribute(TCFLaunchDelegate.ATTR_CAPTURE_STDOUT_FILE, (String)null);
+            if (stdin_file == null && stdout_file == null) return;
+            IStringVariableManager manager = VariablesPlugin.getDefault().getStringVariableManager();
+            if (stdin_file != null) {
+                stdin_file = manager.performStringSubstitution(stdin_file);
+                stdin_file_stream = new FileInputStream(new File(stdin_file));
+            }
+            if (stdout_file != null) {
+                stdout_file = manager.performStringSubstitution(stdout_file);
+                boolean append = configuration.getAttribute(TCFLaunchDelegate.ATTR_APPEND_TO_FILE, false);
+                IWorkspace workspace = ResourcesPlugin.getWorkspace();
+                IWorkspaceRoot root = workspace.getRoot();
+                Path path = new Path(stdout_file);
+                IFile ifile = root.getFileForLocation(path);
+                if (ifile != null) {
+                    if (append && ifile.exists()) {
+                        ifile.appendContents(new ByteArrayInputStream(new byte[0]), true, true, new NullProgressMonitor());
+                    }
+                    else {
+                        if (ifile.exists()) ifile.delete(true, new NullProgressMonitor());
+                        ifile.create(new ByteArrayInputStream(new byte[0]), true, new NullProgressMonitor());
+                    }
+                }
+                stdout_file_stream = new FileOutputStream(new File(stdout_file), append);
+            }
+        }
+        catch (Exception x) {
+            channel.terminate(new Exception("Cannot open console capture file", x));
+        }
+    }
+
+    private void closeConsoleCaptureFiles() {
+        try {
+            if (stdin_file_stream != null) stdin_file_stream.close();
+            if (stdout_file_stream != null) stdout_file_stream.close();
+        }
+        catch (IOException x) {
+            Activator.log("Cannot close console capture file", x);
+        }
+        stdout_file_stream = null;
+        stdin_file_stream = null;
     }
 
     private void onConnected() throws Exception {
@@ -446,6 +507,7 @@ public class TCFLaunch extends Launch {
                 void start() {
                     connecting = false;
                     disconnectUnusedStreams();
+                    openConsoleCaptureFiles();
                     for (LaunchListener l : getListeners()) l.onConnected(TCFLaunch.this);
                     fireChanged();
                     if (launch_task != null) launch_task.done(true);
@@ -469,6 +531,7 @@ public class TCFLaunch extends Launch {
         for (LaunchListener l : getListeners()) l.onDisconnected(this);
         for (TCFDataCache<?> c : context_query_cache.values()) c.dispose();
         context_query_cache.clear();
+        closeConsoleCaptureFiles();
         if (DebugPlugin.getDefault() != null) fireChanged();
         if (launch_task != null) launch_task.done(false);
         launch_monitor = null;
@@ -978,6 +1041,22 @@ public class TCFLaunch extends Launch {
         if (ctx_id != null) {
             // Force creation of console
             for (LaunchListener l : getListeners()) l.onProcessOutput(this, ctx_id, no, null);
+            // Read console input file
+            if (stdin_file_stream != null) {
+                try {
+                    byte[] buf = new byte[256];
+                    for (;;) {
+                        int rd = stdin_file_stream.read(buf);
+                        if (rd <= 0) break;
+                        writeProcessInputStream(ctx_id, buf, 0, rd);
+                    }
+                    stdin_file_stream.close();
+                }
+                catch (Exception x) {
+                    Activator.log("Cannot read console capture file", x);
+                }
+                stdin_file_stream = null;
+            }
         }
         final IStreams streams = getService(IStreams.class);
         IStreams.DoneRead done = new IStreams.DoneRead() {
@@ -988,6 +1067,21 @@ public class TCFLaunch extends Launch {
                 }
                 if (data != null && data.length > 0) {
                     for (LaunchListener l : getListeners()) l.onProcessOutput(TCFLaunch.this, ctx_id, no, data);
+                    if (stdout_file_stream != null && data != null) {
+                        try {
+                            stdout_file_stream.write(data);
+                        }
+                        catch (IOException x) {
+                            Activator.log("Cannot write console capture file", x);
+                            try {
+                                stdout_file_stream.close();
+                            }
+                            catch (IOException y) {
+                                Activator.log("Cannot close console capture file", y);
+                            }
+                            stdout_file_stream = null;
+                        }
+                    }
                 }
                 if (disconnected_stream_ids.contains(id)) return;
                 if (error != null) {

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2016 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007-2020 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -77,7 +77,10 @@ public class TCFLaunchDelegate extends LaunchConfigurationDelegate {
         ATTR_PATH_MAP = ITCFConstants.ID_TCF_DEBUG_MODEL + ".PathMap",
         ATTR_MEMORY_MAP = ITCFConstants.ID_TCF_DEBUG_MODEL + ".MemoryMap",
         ATTR_ATTACH_PATH = ITCFConstants.ID_TCF_DEBUG_MODEL + ".Attach",
-        ATTR_USE_CONTEXT_FILTER = ITCFConstants.ID_TCF_DEBUG_MODEL + ".UseContextFilter";
+        ATTR_USE_CONTEXT_FILTER = ITCFConstants.ID_TCF_DEBUG_MODEL + ".UseContextFilter",
+        ATTR_CAPTURE_STDIN_FILE = "org.eclipse.debug.ui.ATTR_CAPTURE_STDIN_FILE",
+        ATTR_CAPTURE_STDOUT_FILE = "org.eclipse.debug.ui.ATTR_CAPTURE_IN_FILE",
+        ATTR_APPEND_TO_FILE = "org.eclipse.debug.ui.ATTR_APPEND_TO_FILE";
 
     public static final int
         BUILD_BEFORE_LAUNCH_USE_WORKSPACE_SETTING = 0,
