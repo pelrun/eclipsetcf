@@ -666,20 +666,31 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
             @Override
             protected boolean startDataRetrieval() {
                 if (!type.validate(this)) return false;
-                if (type.getData() == null) {
-                    if (!value.validate(this)) return false;
-                    IExpressions.Value val = value.getData();
-                    if (val != null && val.getValue() != null) {
-                        String s = getTypeName(val.getTypeClass(), val.getValue().length);
-                        if (s != null) {
-                            set(null, null, s);
-                            return true;
-                        }
+                if (type.getData() != null) {
+                    StringBuffer bf = new StringBuffer();
+                    if (!getTypeName(bf, type, model.isShowQualifiedTypeNamesEnabled(), this)) return false;
+                    set(null, null, bf.toString());
+                    return true;
+                }
+                if (!value.validate(this)) return false;
+                IExpressions.Value val = value.getData();
+                if (val != null && val.getValue() != null) {
+                    String s = getTypeName(val.getTypeClass(), val.getValue().length);
+                    if (s != null) {
+                        set(null, null, s);
+                        return true;
                     }
                 }
-                StringBuffer bf = new StringBuffer();
-                if (!getTypeName(bf, type, model.isShowQualifiedTypeNamesEnabled(), this)) return false;
-                set(null, null, bf.toString());
+                if (!rem_expression.validate(this)) return false;
+                IExpressions.Expression exp = rem_expression.getData();
+                if (exp != null) {
+                    String s = getTypeName(exp.getTypeClass(), exp.getSize());
+                    if (s != null) {
+                        set(null, null, s);
+                        return true;
+                    }
+                }
+                set(null, null, "N/A");
                 return true;
             }
         };
@@ -1769,15 +1780,6 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
             if (level == 0) {
                 assert offs == 0 && size == data.length && data_node == this;
                 if (size > 0 && !appendNumericValueText(bf, type_class, done)) return false;
-                String s = getTypeName(type_class, size);
-                if (s == null) s = "not available";
-                bf.append("Size: ", SWT.BOLD);
-                bf.append(Integer.toString(size), StyledStringBuffer.MONOSPACED);
-                bf.append(size == 1 ? " byte" : " bytes");
-                bf.append(", ");
-                bf.append("Type: ", SWT.BOLD);
-                bf.append(s);
-                bf.append('\n');
             }
             else if (size == 0) {
                 bf.append("N/A", StyledStringBuffer.MONOSPACED);
@@ -1903,6 +1905,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
         if (!rem_expression.validate(done)) return false;
         if (rem_expression.getError() == null) {
             if (!value.validate(done)) return false;
+            if (!type_name.validate(done)) return false;
             IExpressions.Value v = value.getData();
             if (v != null) {
                 String type_id = v.getTypeID();
@@ -1946,23 +1949,41 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                     bf.append(bit_stride.longValue() == 1 ? " bit" : " bits");
                     fst = false;
                 }
-                if (type_data != null) {
-                    if (!type_name.validate(done)) return false;
+                if (v.getValue() != null) {
+                    int sz = v.getValue().length;
                     if (!fst) bf.append(", ");
                     bf.append("Size: ", SWT.BOLD);
-                    bf.append(Integer.toString(type_data.getSize()), StyledStringBuffer.MONOSPACED);
-                    bf.append(type_data.getSize() == 1 ? " byte" : " bytes");
-                    String nm = type_name.getData();
-                    if (nm != null) {
-                        bf.append(", ");
-                        bf.append("Type: ", SWT.BOLD);
-                        bf.append(nm);
+                    bf.append(Integer.toString(sz), StyledStringBuffer.MONOSPACED);
+                    bf.append(sz == 1 ? " byte" : " bytes");
+                    fst = false;
+                }
+                else if (type_data != null) {
+                    int sz = type_data.getSize();
+                    if (!fst) bf.append(", ");
+                    bf.append("Size: ", SWT.BOLD);
+                    bf.append(Integer.toString(sz), StyledStringBuffer.MONOSPACED);
+                    bf.append(sz == 1 ? " byte" : " bytes");
+                    fst = false;
+                }
+                else {
+                    IExpressions.Expression exp = rem_expression.getData();
+                    if (exp != null) {
+                        int sz = exp.getSize();
+                        if (!fst) bf.append(", ");
+                        bf.append("Size: ", SWT.BOLD);
+                        bf.append(Integer.toString(sz), StyledStringBuffer.MONOSPACED);
+                        bf.append(sz == 1 ? " byte" : " bytes");
+                        fst = false;
                     }
-                    bf.append('\n');
                 }
-                else if (bin_scale != null || dec_scale != null) {
-                    bf.append('\n');
+                String tnm = type_name.getData();
+                if (tnm != null) {
+                    if (!fst) bf.append(", ");
+                    bf.append("Type: ", SWT.BOLD);
+                    bf.append(tnm);
+                    fst = false;
                 }
+                if (!fst) bf.append('\n');
                 @SuppressWarnings("unchecked")
                 List<Map<String,Object>> pieces = (List<Map<String,Object>>)value_props.get(IExpressions.VAL_PIECES);
                 if (pieces != null) {

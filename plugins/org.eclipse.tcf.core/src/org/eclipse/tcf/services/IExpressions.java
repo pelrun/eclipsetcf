@@ -89,6 +89,12 @@ public interface IExpressions extends IService {
         String getTypeID();
 
         /**
+         * Get expression type class.
+         * @return type class.
+         */
+        ISymbols.TypeClass getTypeClass();
+
+        /**
          * Check if the expression can be assigned a new value.
          * @return true if can assign.
          */
@@ -120,6 +126,7 @@ public interface IExpressions extends IService {
         PROP_BITS = "Bits",
         PROP_SIZE = "Size",
         PROP_TYPE = "Type",
+        PROP_CLASS = "Class",
         PROP_CAN_ASSIGN = "CanAssign",
         PROP_HAS_FUNC_CALL = "HasFuncCall";
 

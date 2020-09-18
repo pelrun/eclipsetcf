@@ -84,6 +84,12 @@ public class ExpressionsProxy implements IExpressions {
             return (String)props.get(PROP_TYPE);
         }
 
+        public TypeClass getTypeClass() {
+            Number n = (Number)props.get(PROP_CLASS);
+            if (n != null) return toTypeClass(n.intValue());
+            return TypeClass.unknown;
+        }
+
         public Map<String, Object> getProperties() {
             return props;
         }
@@ -126,20 +132,7 @@ public class ExpressionsProxy implements IExpressions {
 
         public TypeClass getTypeClass() {
             Number n = (Number)props.get(VAL_CLASS);
-            if (n != null) {
-                switch (n.intValue()) {
-                case 1: return TypeClass.cardinal;
-                case 2: return TypeClass.integer;
-                case 3: return TypeClass.real;
-                case 4: return TypeClass.pointer;
-                case 5: return TypeClass.array;
-                case 6: return TypeClass.composite;
-                case 7: return TypeClass.enumeration;
-                case 8: return TypeClass.function;
-                case 9: return TypeClass.member_pointer;
-                case 10: return TypeClass.complex;
-                }
-            }
+            if (n != null) return toTypeClass(n.intValue());
             return TypeClass.unknown;
         }
 
@@ -304,5 +297,21 @@ public class ExpressionsProxy implements IExpressions {
         if (o == null) return null;
         Collection<String> c = (Collection<String>)o;
         return (String[])c.toArray(new String[c.size()]);
+    }
+
+    private static TypeClass toTypeClass(int n) {
+        switch (n) {
+        case 1: return TypeClass.cardinal;
+        case 2: return TypeClass.integer;
+        case 3: return TypeClass.real;
+        case 4: return TypeClass.pointer;
+        case 5: return TypeClass.array;
+        case 6: return TypeClass.composite;
+        case 7: return TypeClass.enumeration;
+        case 8: return TypeClass.function;
+        case 9: return TypeClass.member_pointer;
+        case 10: return TypeClass.complex;
+        }
+        return TypeClass.unknown;
     }
 }
