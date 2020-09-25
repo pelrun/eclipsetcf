@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2013 Wind River Systems, Inc. and others.
+ * Copyright (c) 2009-2020 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -113,6 +113,9 @@ public abstract class AbstractActionDelegate extends EventManager implements
         try {
             this.action = action;
             selectionChanged();
+        }
+        catch (Throwable x) {
+            // Eclipse does not support exception handling here
         }
         finally {
             this.action = action0;

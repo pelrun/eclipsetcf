@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2012-2020 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -82,74 +82,77 @@ public class RegisterVectorDisplayMenu extends CompoundContributionItem implemen
         if (node == null) return null;
         if (!(node instanceof TCFNodeExecContext) && !(node instanceof TCFNodeStackFrame)) return null;
 
-        IContributionItem[] items = new TCFTask<IContributionItem[]>(node.getChannel()) {
-            public void run() {
+        try {
+            new TCFTask<Boolean>(node.getChannel()) {
+                public void run() {
+                    modes = new LinkedHashMap<String,Map<String,String>>();
+                    for (Object obj : selection) {
+                        if (obj instanceof TCFNodeRegister) {
+                            TCFNodeRegister reg = (TCFNodeRegister)obj;
 
-                modes = new LinkedHashMap<String,Map<String,String>>();
+                            AtomicBoolean grp = new AtomicBoolean();
+                            if (!reg.isRepresentationGroup(grp, this)) return;
+                            if (!grp.get()) continue;
 
-                for (Object obj : selection) {
-                    if (obj instanceof TCFNodeRegister) {
-                        TCFNodeRegister reg = (TCFNodeRegister)obj;
-
-                        AtomicBoolean grp = new AtomicBoolean();
-                        if (!reg.isRepresentationGroup(grp, this)) return;
-                        if (!grp.get()) continue;
-
-                        TCFChildren children = reg.getChildren();
-                        if (!children.validate(this)) return;
-                        for (TCFNode child_node :  children.toArray()) {
-                            TCFNodeRegister child_reg = (TCFNodeRegister)child_node;
-                            if (!child_reg.getContext().validate(this)) return;
-                            IRegisters.RegistersContext child_ctx = child_reg.getContext().getData();
-                            String reg_name = child_ctx.getName();
-                            if (reg_name.matches("w[0-9]+")) {
-                                String mode = reg_name.substring(1, reg_name.length()) + "bits";
-                                Map<String,String> map = modes.get(mode);
-                                if (map == null) modes.put(mode, map = new HashMap<String,String>());
-                                map.put(reg.getID(), child_ctx.getID());
+                            TCFChildren children = reg.getChildren();
+                            if (!children.validate(this)) return;
+                            for (TCFNode child_node :  children.toArray()) {
+                                TCFNodeRegister child_reg = (TCFNodeRegister)child_node;
+                                if (!child_reg.getContext().validate(this)) return;
+                                IRegisters.RegistersContext child_ctx = child_reg.getContext().getData();
+                                String reg_name = child_ctx.getName();
+                                if (reg_name.matches("w[0-9]+")) {
+                                    String mode = reg_name.substring(1, reg_name.length()) + "bits";
+                                    Map<String,String> map = modes.get(mode);
+                                    if (map == null) modes.put(mode, map = new HashMap<String,String>());
+                                    map.put(reg.getID(), child_ctx.getID());
+                                }
                             }
                         }
                     }
-                }
 
-                // if several registers are selected in the register view, we need to show only the common possibilities
-                for (Iterator<Map<String,String>> i = modes.values().iterator(); i.hasNext();) {
-                    Map<String,String> map = i.next();
-                    for (Object obj : selection) {
-                        if (!(obj instanceof TCFNodeRegister)) continue;
-                        if (map.containsKey(((TCFNodeRegister)obj).getID())) continue;
-                        i.remove();
-                        break;
-                    }
-                }
-
-                elements = new ArrayList<String>(modes.keySet());
-                elements.add(0, elements.size() == 0 ? "No vector display options available" : "none");
-
-                IContributionItem[] items = new IContributionItem[elements.size()];
-                for (int i = 0; i < items.length; i++) {
-                    final int n = i;
-                    items[i] = new ContributionItem() {
-                        @Override
-                        public void fill(final Menu menu, int index) {
-                            final MenuItem item = new MenuItem(menu, elements.size() <= 1 ? SWT.NULL : SWT.RADIO);
-                            item.setText(elements.get(n));
-                            item.setSelection(getRepresentation() == n);
-                            item.addSelectionListener(new SelectionListener() {
-                                public void widgetSelected(SelectionEvent e) {
-                                    if (item.getSelection()) setRepresentation(n);
-                                }
-                                public void widgetDefaultSelected(SelectionEvent e) {
-                                }
-                            });
+                    // if several registers are selected in the register view, we need to show only the common possibilities
+                    for (Iterator<Map<String,String>> i = modes.values().iterator(); i.hasNext();) {
+                        Map<String,String> map = i.next();
+                        for (Object obj : selection) {
+                            if (!(obj instanceof TCFNodeRegister)) continue;
+                            if (map.containsKey(((TCFNodeRegister)obj).getID())) continue;
+                            i.remove();
+                            break;
                         }
-                    };
-                }
-                done(items);
-            }
-        }.getE();
+                    }
 
-        return (items);
+                    elements = new ArrayList<String>(modes.keySet());
+                    elements.add(0, elements.size() == 0 ? "No vector display options available" : "none");
+                    done(Boolean.TRUE);
+                }
+            }.get();
+        }
+        catch (Exception x) {
+            return null;
+        }
+
+        IContributionItem[] items = new IContributionItem[elements.size()];
+        for (int i = 0; i < items.length; i++) {
+            final int n = i;
+            items[i] = new ContributionItem() {
+                @Override
+                public void fill(final Menu menu, int index) {
+                    final MenuItem item = new MenuItem(menu, elements.size() <= 1 ? SWT.NULL : SWT.RADIO);
+                    item.setText(elements.get(n));
+                    item.setSelection(getRepresentation() == n);
+                    item.addSelectionListener(new SelectionListener() {
+                        public void widgetSelected(SelectionEvent e) {
+                            if (item.getSelection()) setRepresentation(n);
+                        }
+                        public void widgetDefaultSelected(SelectionEvent e) {
+                        }
+                    });
+                }
+            };
+        }
+
+        return items;
     }
 
     private IWorkbenchPart getPart() {

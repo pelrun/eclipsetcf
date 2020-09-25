@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007-2018 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007-2020 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -969,6 +969,12 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
             locks.clear();
             for (TCFSnapshot s : arr) s.dispose();
         }
+        for (TCFModelProxy p : model_proxies) {
+            Object o = p.getInput();
+            if (o instanceof TCFNode) {
+                p.addDelta((TCFNode)o, IModelDelta.CONTENT);
+            }
+        }
         if (launch.getChannel() != null) {
             IMemory mem = launch.getService(IMemory.class);
             if (mem != null) mem.removeListener(mem_listener);
@@ -1308,7 +1314,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
         }
         for (TCFMemoryBlock b : mem_blocks) b.flushAllCaches();
         for (TCFNode n : id2node.values()) n.flushAllCaches();
-        launch_node.flushAllCaches();
+        if (launch_node != null) launch_node.flushAllCaches();
     }
 
     public IExpressionManager getExpressionManager() {

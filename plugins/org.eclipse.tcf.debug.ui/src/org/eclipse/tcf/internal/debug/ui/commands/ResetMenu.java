@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019.
+ * Copyright (c) 2019-2020.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -31,7 +31,7 @@ import org.eclipse.ui.services.IServiceLocator;
 
 public class ResetMenu extends CompoundContributionItem implements IWorkbenchContribution {
 
-    private static IContributionItem[] EMPTY_MENU = new IContributionItem[0];
+    private static final IContributionItem[] EMPTY_MENU = new IContributionItem[0];
 
     private IServiceLocator serviceLocator;
 
