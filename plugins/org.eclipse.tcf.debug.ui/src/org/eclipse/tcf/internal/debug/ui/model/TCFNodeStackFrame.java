@@ -456,8 +456,13 @@ public class TCFNodeStackFrame extends TCFNode implements ITCFStackFrame {
                 else {
                     bf.append(sref.area.file);
                 }
-                bf.append(", line ");
-                bf.append(sref.area.start_line);
+                if (sref.area.start_line == 0) {
+                    bf.append(", no line ");
+                }
+                else {
+                    bf.append(", line ");
+                    bf.append(sref.area.start_line);
+                }
             }
             if (error != null) {
                 if (state == null || state.is_suspended) {
