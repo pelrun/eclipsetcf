@@ -320,14 +320,17 @@ class TestTerminals implements ITCFTest {
                                 stdout_buf.append(new String(data, encoding));
                                 if (echo_tx.size() > echo_rx.size()) {
                                     String s = echo_tx.get(echo_rx.size());
-                                    String p = "\n" + s.substring(0, 12);
-                                    int n = 0;
-                                    if (echo_rx.size() > 0) n = echo_rx.get(echo_rx.size() - 1);
-                                    int i = stdout_buf.indexOf(p, n);
-                                    if (i >= 0 && stdout_buf.length() >= i + s.length() + 4) {
-                                        timer = 0;
-                                        echo_rx.add(i + 1);
-                                        run = true;
+                                    String p = s.substring(0, 12);
+                                    int n = echo_rx.size() > 0 ? echo_rx.get(echo_rx.size() - 1) : 0;
+                                    for (int j = 0; j < 2; j++) {
+                                        String b = j == 0 ? "\r\n" : "\r";
+                                        int i = stdout_buf.indexOf(b + p, n);
+                                        if (i >= 0 && stdout_buf.length() >= i + b.length() + s.length() + 1) {
+                                            echo_rx.add(i + b.length());
+                                            run = true;
+                                            timer = 0;
+                                            break;
+                                        }
                                     }
                                 }
                             }
