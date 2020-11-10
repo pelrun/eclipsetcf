@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2008-2020 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -210,7 +210,7 @@ public class TCFBreakpointScopeDetailPane implements IDetailPane {
                         if (model != null && model.getRootNode() != null) {
                             TCFChildrenContextQuery.Descendants des =
                                     TCFChildrenContextQuery.getDescendants(
-                                    model.getRootNode(), fQuery, fScope, this);
+                                        model.getRootNode(), fQuery, fScope, this);
                             if (des == null) return;
                             if (des.map != null && des.map.size() > 0) filteredLaunches.add(launch);
                         }
@@ -231,7 +231,7 @@ public class TCFBreakpointScopeDetailPane implements IDetailPane {
                         if (!model.getLaunch().isConnected()) continue;
                         TCFChildrenContextQuery.Descendants des =
                                 TCFChildrenContextQuery.getDescendants(
-                                model.getRootNode(), fQuery, fScope, this);
+                                    model.getRootNode(), fQuery, fScope, this);
                         if (des == null) return;
                         if (des.map != null) descendants.addAll(des.map.keySet());
                         if (fScope == null) continue;
@@ -318,31 +318,31 @@ public class TCFBreakpointScopeDetailPane implements IDetailPane {
          * @see org.eclipse.debug.internal.ui.viewers.AbstractModelProxy#init(org.eclipse.debug.internal.ui.viewers.IPresentationContext)
          */
         public synchronized void init(IPresentationContext context) {
-                super.init(context);
-                fLaunchManager = DebugPlugin.getDefault().getLaunchManager();
-                fLaunchManager.addLaunchListener(this);
+            super.init(context);
+            fLaunchManager = DebugPlugin.getDefault().getLaunchManager();
+            fLaunchManager.addLaunchListener(this);
         }
 
         /* (non-Javadoc)
          * @see org.eclipse.debug.internal.ui.viewers.provisional.AbstractModelProxy#installed(org.eclipse.jface.viewers.Viewer)
          */
         public void installed(Viewer viewer) {
-                // expand existing launches
-                ILaunch[] launches = fLaunchManager.getLaunches();
-                if (launches.length > 0) {
-                        launchesAdded(launches);
-                }
+            // expand existing launches
+            ILaunch[] launches = fLaunchManager.getLaunches();
+            if (launches.length > 0) {
+                launchesAdded(launches);
+            }
         }
 
         /* (non-Javadoc)
          * @see org.eclipse.debug.internal.ui.viewers.AbstractModelProxy#dispose()
          */
         public synchronized void dispose() {
-                super.dispose();
-                if (fLaunchManager != null) {
-                        fLaunchManager.removeLaunchListener(this);
-                        fLaunchManager = null;
-                }
+            super.dispose();
+            if (fLaunchManager != null) {
+                fLaunchManager.removeLaunchListener(this);
+                fLaunchManager = null;
+            }
         }
 
         /* (non-Javadoc)
@@ -385,8 +385,7 @@ public class TCFBreakpointScopeDetailPane implements IDetailPane {
             }
             fireModelChanged(delta);
         }
-
-}
+    }
 
     public Control createControl(Composite parent) {
         fComposite = SWTFactory.createComposite(parent, 1, 1, GridData.FILL_BOTH);
