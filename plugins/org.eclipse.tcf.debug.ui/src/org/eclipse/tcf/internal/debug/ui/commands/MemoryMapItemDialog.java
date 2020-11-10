@@ -20,9 +20,11 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -47,9 +49,14 @@ class MemoryMapItemDialog extends Dialog {
     private Text offset_text;
     private Text query_text;
     private Text file_text;
+    private Button loc_original;
+    private Button loc_addrress;
+    private Button loc_offset;
     private Button rd_button;
     private Button wr_button;
     private Button ex_button;
+    private Color text_enabled;
+    private Color text_disabled;
 
     MemoryMapItemDialog(Shell parent, Map<String,Object> props, boolean enable_editing) {
         super(parent);
@@ -78,6 +85,7 @@ class MemoryMapItemDialog extends Dialog {
         Composite composite = (Composite)super.createDialogArea(parent);
         createStatusFields(composite);
         createFileNameFields(composite);
+        createAddressFields(composite);
         createPropsFields(composite);
         createQueryFields(composite);
         setData();
@@ -101,8 +109,10 @@ class MemoryMapItemDialog extends Dialog {
         file_label.setFont(font);
         file_label.setText("File name:");
 
+        GridData gd = new GridData(GridData.FILL_HORIZONTAL);
+        gd.widthHint = 400;
         file_text = new Text(composite, SWT.SINGLE | SWT.BORDER);
-        file_text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        file_text.setLayoutData(gd);
         file_text.setFont(font);
         if (!enable_editing) {
             file_text.setEditable(false);
@@ -130,12 +140,67 @@ class MemoryMapItemDialog extends Dialog {
         });
     }
 
+    private void createAddressFields(Composite parent) {
+        Font font = parent.getFont();
+
+        Group group = new Group(parent, SWT.NONE);
+        group.setText("Memory location");
+        group.setLayout(new GridLayout(1, false));
+        group.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+        loc_original = new Button(group, SWT.RADIO);
+        loc_original.setText("No relocation: use program headers from the file");
+        loc_original.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(final SelectionEvent e) {
+                if (loc_original.getSelection()) {
+                    updateButtons();
+                }
+            }
+        });
+
+        loc_offset = new Button(group, SWT.RADIO);
+        loc_offset.setText("Offset - difference between load address and link address");
+        loc_offset.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(final SelectionEvent e) {
+                if (loc_offset.getSelection()) {
+                    updateButtons();
+                }
+            }
+        });
+
+        loc_addrress = new Button(group, SWT.RADIO);
+        loc_addrress.setText("Absolute memory address");
+        loc_addrress.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(final SelectionEvent e) {
+                if (loc_addrress.getSelection()) {
+                    updateButtons();
+                }
+            }
+        });
+
+        GridData gd = new GridData();
+        gd.widthHint = 200;
+        addr_text = new Text(group, SWT.SINGLE | SWT.BORDER);
+        addr_text.setLayoutData(gd);
+        addr_text.setFont(font);
+        text_enabled = addr_text.getBackground();
+        text_disabled = parent.getBackground();
+
+        addr_text.addModifyListener(new ModifyListener() {
+            public void modifyText(ModifyEvent e) {
+                updateButtons();
+            }
+        });
+    }
+
     private void createPropsFields(Composite parent) {
         Font font = parent.getFont();
         Composite composite = new Composite(parent, SWT.NONE);
-        GridLayout layout = new GridLayout(2, false);
         composite.setFont(font);
-        composite.setLayout(layout);
+        composite.setLayout(new GridLayout(2, false));
         composite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         createTextFields(composite);
         createFlagsGroup(composite);
@@ -151,25 +216,6 @@ class MemoryMapItemDialog extends Dialog {
         gd.widthHint = 250;
         composite.setLayoutData(gd);
 
-        Label addr_label = new Label(composite, SWT.WRAP);
-        addr_label.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
-        addr_label.setFont(font);
-        addr_label.setText("Address:");
-
-        addr_text = new Text(composite, SWT.SINGLE | SWT.BORDER);
-        addr_text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        addr_text.setFont(font);
-        if (!enable_editing) {
-            addr_text.setEditable(false);
-            addr_text.setBackground(parent.getBackground());
-        }
-
-        addr_text.addModifyListener(new ModifyListener() {
-            public void modifyText(ModifyEvent e) {
-                updateButtons();
-            }
-        });
-
         Label size_label = new Label(composite, SWT.WRAP);
         size_label.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
         size_label.setFont(font);
@@ -178,10 +224,6 @@ class MemoryMapItemDialog extends Dialog {
         size_text = new Text(composite, SWT.SINGLE | SWT.BORDER);
         size_text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         size_text.setFont(font);
-        if (!enable_editing) {
-            size_text.setEditable(false);
-            size_text.setBackground(parent.getBackground());
-        }
 
         Label offset_label = new Label(composite, SWT.WRAP);
         offset_label.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
@@ -191,10 +233,6 @@ class MemoryMapItemDialog extends Dialog {
         offset_text = new Text(composite, SWT.SINGLE | SWT.BORDER);
         offset_text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         offset_text.setFont(font);
-        if (!enable_editing) {
-            offset_text.setEditable(false);
-            offset_text.setBackground(parent.getBackground());
-        }
     }
 
     private void createFlagsGroup(Composite parent) {
@@ -213,19 +251,16 @@ class MemoryMapItemDialog extends Dialog {
         rd_button.setFont(font);
         rd_button.setText("Data read");
         rd_button.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        rd_button.setEnabled(enable_editing);
 
         wr_button = new Button(group, SWT.CHECK);
         wr_button.setFont(font);
         wr_button.setText("Data write");
         wr_button.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        wr_button.setEnabled(enable_editing);
 
         ex_button = new Button(group, SWT.CHECK);
         ex_button.setFont(font);
         ex_button.setText("Instructions read");
         ex_button.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        ex_button.setEnabled(enable_editing);
     }
 
     private void createQueryFields(Composite parent) {
@@ -267,7 +302,18 @@ class MemoryMapItemDialog extends Dialog {
     }
 
     private void setData() {
-        setText(addr_text, toHex((Number)props.get(IMemoryMap.PROP_ADDRESS)));
+        if (props.get(IMemoryMap.PROP_ADDRESS) != null) {
+            setText(addr_text, toHex((Number)props.get(IMemoryMap.PROP_ADDRESS)));
+            loc_addrress.setSelection(true);
+        }
+        else if (props.get(IMemoryMap.PROP_BASE_ADDRESS) != null) {
+            setText(addr_text, toHex((Number)props.get(IMemoryMap.PROP_BASE_ADDRESS)));
+            loc_offset.setSelection(true);
+        }
+        else {
+            addr_text.setText("");
+            loc_original.setSelection(true);
+        }
         setText(size_text, toHex((Number)props.get(IMemoryMap.PROP_SIZE)));
         if (props.get(IMemoryMap.PROP_SECTION_NAME) != null) {
             setText(offset_text, (String)props.get(IMemoryMap.PROP_SECTION_NAME));
@@ -310,24 +356,33 @@ class MemoryMapItemDialog extends Dialog {
     }
 
     private void getData() {
-        getNumber(addr_text, IMemoryMap.PROP_ADDRESS);
-        getNumber(size_text, IMemoryMap.PROP_SIZE);
-        String s = offset_text.getText().trim();
-        if (s.length() > 0 && !Character.isDigit(s.charAt(0))) {
-            props.put(IMemoryMap.PROP_SECTION_NAME, s);
-            props.remove(IMemoryMap.PROP_OFFSET);
+        props.remove(IMemoryMap.PROP_ADDRESS);
+        props.remove(IMemoryMap.PROP_BASE_ADDRESS);
+        props.remove(IMemoryMap.PROP_SIZE);
+        props.remove(IMemoryMap.PROP_OFFSET);
+        props.remove(IMemoryMap.PROP_SECTION_NAME);
+        props.remove(IMemoryMap.PROP_FLAGS);
+        getText(file_text, IMemoryMap.PROP_FILE_NAME);
+        if (loc_addrress.getSelection()) {
+            getNumber(addr_text, IMemoryMap.PROP_ADDRESS);
+            getNumber(size_text, IMemoryMap.PROP_SIZE);
+            String s = offset_text.getText().trim();
+            if (s.length() > 0 && !Character.isDigit(s.charAt(0))) {
+                props.put(IMemoryMap.PROP_SECTION_NAME, s);
+            }
+            else {
+                getNumber(offset_text, IMemoryMap.PROP_OFFSET);
+            }
+            int flags = 0;
+            if (rd_button.getSelection()) flags |= IMemoryMap.FLAG_READ;
+            if (wr_button.getSelection()) flags |= IMemoryMap.FLAG_WRITE;
+            if (ex_button.getSelection()) flags |= IMemoryMap.FLAG_EXECUTE;
+            props.put(IMemoryMap.PROP_FLAGS, flags);
         }
-        else {
-            getNumber(offset_text, IMemoryMap.PROP_OFFSET);
-            props.remove(IMemoryMap.PROP_SECTION_NAME);
+        else if (loc_offset.getSelection()) {
+            getNumber(addr_text, IMemoryMap.PROP_BASE_ADDRESS);
         }
         getText(query_text, IMemoryMap.PROP_CONTEXT_QUERY);
-        getText(file_text, IMemoryMap.PROP_FILE_NAME);
-        int flags = 0;
-        if (rd_button.getSelection()) flags |= IMemoryMap.FLAG_READ;
-        if (wr_button.getSelection()) flags |= IMemoryMap.FLAG_WRITE;
-        if (ex_button.getSelection()) flags |= IMemoryMap.FLAG_EXECUTE;
-        props.put(IMemoryMap.PROP_FLAGS, flags);
     }
 
     private void updateButtons() {
@@ -336,6 +391,35 @@ class MemoryMapItemDialog extends Dialog {
             btn.setEnabled(!enable_editing ||
                     file_text != null && file_text.getText().trim().length() > 0 ||
                     addr_text != null && addr_text.getText().trim().length() > 0);
+        }
+        loc_original.setEnabled(enable_editing);
+        loc_offset.setEnabled(enable_editing);
+        loc_addrress.setEnabled(enable_editing);
+        if (!enable_editing || loc_original.getSelection()) {
+            addr_text.setEditable(false);
+            addr_text.setBackground(text_disabled);
+        }
+        else {
+            addr_text.setEditable(true);
+            addr_text.setBackground(text_enabled);
+        }
+        if (!enable_editing || loc_original.getSelection() || loc_offset.getSelection()) {
+            size_text.setEditable(false);
+            size_text.setBackground(text_disabled);
+            offset_text.setEditable(false);
+            offset_text.setBackground(text_disabled);
+            rd_button.setEnabled(false);
+            wr_button.setEnabled(false);
+            ex_button.setEnabled(false);
+        }
+        else {
+            size_text.setEditable(true);
+            size_text.setBackground(text_enabled);
+            offset_text.setEditable(true);
+            offset_text.setBackground(text_enabled);
+            rd_button.setEnabled(true);
+            wr_button.setEnabled(true);
+            ex_button.setEnabled(true);
         }
     }
 

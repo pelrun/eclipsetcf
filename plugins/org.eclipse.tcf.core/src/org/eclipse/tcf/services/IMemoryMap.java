@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007-2019 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007-2020 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -39,6 +39,10 @@ public interface IMemoryMap extends IService {
 
     /** Number, region address in memory */
     static final String PROP_ADDRESS = "Addr";
+
+    /** Number, region "base address"
+     * @since 1.7 */
+    static final String PROP_BASE_ADDRESS = "BaseAddress";
 
     /** Number, region size */
     static final String PROP_SIZE = "Size";
