@@ -707,9 +707,9 @@ public class MemoryMapWidget {
 
                         if (!symbols_ok && mem_node != null && region != null && region.getFileName() != null) {
                             TCFLaunch launch = model.getLaunch();
-                            Object mapped = TCFSourceLookupDirector.lookup(launch, mem_node.getID(), region.getFileName());
-                            if (mapped instanceof IStorage) {
-                                String file_name = ((IStorage)mapped).getFullPath().toOSString();
+                            IStorage mapped = TCFSourceLookupDirector.lookupByTargetPathMap(launch, mem_node.getID(), region.getFileName());
+                            if (mapped != null) {
+                                String file_name = mapped.getFullPath().toOSString();
                                 if (!file_name.equals(region.getFileName())) {
                                     Label label = new Label(parent, SWT.WRAP);
                                     label.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
@@ -732,7 +732,10 @@ public class MemoryMapWidget {
                                 }
                             }.get();
                             if (local_host_peer) {
-                                if (!(mapped instanceof IStorage) || !((IStorage)mapped).getFullPath().toFile().exists()) {
+                                boolean exists =
+                                        mapped != null && mapped.getFullPath().toFile().exists() ||
+                                        new File(region.getFileName()).exists();
+                                if (!exists) {
                                     Label label = new Label(parent, SWT.WRAP);
                                     label.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
                                     label.setFont(parent.getFont());
