@@ -24,7 +24,6 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -361,7 +360,6 @@ class MemoryMapItemDialog extends Dialog {
         props.remove(IMemoryMap.PROP_SIZE);
         props.remove(IMemoryMap.PROP_OFFSET);
         props.remove(IMemoryMap.PROP_SECTION_NAME);
-        props.remove(IMemoryMap.PROP_FLAGS);
         getText(file_text, IMemoryMap.PROP_FILE_NAME);
         if (loc_addrress.getSelection()) {
             getNumber(addr_text, IMemoryMap.PROP_ADDRESS);
@@ -373,15 +371,15 @@ class MemoryMapItemDialog extends Dialog {
             else {
                 getNumber(offset_text, IMemoryMap.PROP_OFFSET);
             }
-            int flags = 0;
-            if (rd_button.getSelection()) flags |= IMemoryMap.FLAG_READ;
-            if (wr_button.getSelection()) flags |= IMemoryMap.FLAG_WRITE;
-            if (ex_button.getSelection()) flags |= IMemoryMap.FLAG_EXECUTE;
-            props.put(IMemoryMap.PROP_FLAGS, flags);
         }
         else if (loc_offset.getSelection()) {
             getNumber(addr_text, IMemoryMap.PROP_BASE_ADDRESS);
         }
+        int flags = 0;
+        if (rd_button.getSelection()) flags |= IMemoryMap.FLAG_READ;
+        if (wr_button.getSelection()) flags |= IMemoryMap.FLAG_WRITE;
+        if (ex_button.getSelection()) flags |= IMemoryMap.FLAG_EXECUTE;
+        props.put(IMemoryMap.PROP_FLAGS, flags);
         getText(query_text, IMemoryMap.PROP_CONTEXT_QUERY);
     }
 
