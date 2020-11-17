@@ -1353,17 +1353,27 @@ public class TCFLaunch extends Launch {
         disconnecting = true;
         final Set<IToken> cmds = new HashSet<IToken>();
         if (channel.getState() == IChannel.STATE_OPEN) {
-            for (final ProcessContext ctx : attached_processes.values()) {
-                IProcesses.DoneCommand prs_done_cmd = new IProcesses.DoneCommand() {
-                    public void doneCommand(IToken token, Exception error) {
-                        cmds.remove(token);
-                        if (!attached_processes.containsKey(ctx.getID())) error = null;
-                        if (error != null) channel.terminate(error);
-                        else if (cmds.isEmpty()) channel.close();
-                    }
-                };
-                if (!can_terminate_attached) cmds.add(ctx.detach(prs_done_cmd));
-                cmds.add(ctx.terminate(prs_done_cmd));
+            boolean terminate = true;
+            try {
+                ILaunchConfiguration cfg = getLaunchConfiguration();
+                if (cfg != null) terminate = cfg.getAttribute(TCFLaunchDelegate.ATTR_TERMINATE_ON_DISCONNECT, true);
+            }
+            catch (Exception x) {
+                channel.terminate(x);
+            }
+            if (terminate) {
+                for (final ProcessContext ctx : attached_processes.values()) {
+                    IProcesses.DoneCommand prs_done_cmd = new IProcesses.DoneCommand() {
+                        public void doneCommand(IToken token, Exception error) {
+                            cmds.remove(token);
+                            if (!attached_processes.containsKey(ctx.getID())) error = null;
+                            if (error != null) channel.terminate(error);
+                            else if (cmds.isEmpty()) channel.close();
+                        }
+                    };
+                    if (!can_terminate_attached) cmds.add(ctx.detach(prs_done_cmd));
+                    cmds.add(ctx.terminate(prs_done_cmd));
+                }
             }
             IStreams streams = getService(IStreams.class);
             IStreams.DoneDisconnect done_disconnect = new IStreams.DoneDisconnect() {
