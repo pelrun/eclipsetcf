@@ -80,7 +80,7 @@ public class TCFCDTLaunchDelegate extends TCFLaunchDelegate {
 
     private boolean isRemoteLaunch(ILaunchConfiguration config) throws CoreException {
         String configTypeName = config.getType().getIdentifier();
-        return "org.eclipse.tcf.cdt.launch.remoteApplicationLaunchType".equals(configTypeName);
+        return "org.eclipse.cdt.launch.remoteApplicationLaunchType".equals(configTypeName);
     }
 
     private ContextSelection promptForContext(ILaunchConfiguration config) throws CoreException {

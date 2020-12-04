@@ -10,7 +10,8 @@
  *******************************************************************************/
 package org.eclipse.tcf.internal.cdt.ui.launch;
 
-import org.eclipse.cdt.launch.ui.CMainTab;
+import org.eclipse.cdt.debug.core.ICDTLaunchConfigurationConstants;
+import org.eclipse.cdt.launch.ui.CAbstractMainTab;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -34,6 +35,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
@@ -50,28 +52,37 @@ import org.eclipse.tcf.util.TCFTask;
 import org.eclipse.ui.PlatformUI;
 import org.osgi.service.prefs.Preferences;
 
-public class RemoteCMainTab extends CMainTab implements IShellProvider {
+public class RemoteCMainTab extends CAbstractMainTab implements IShellProvider {
 
-    private static final String REMOTE_PATH_DEFAULT = EMPTY_STRING;
+    private static final String REMOTE_PATH_DEFAULT = "";
     private static final boolean SKIP_DOWNLOAD_TO_REMOTE_DEFAULT = false;
 
     private PeerListControl fPeerList;
     private Text fRemoteProgText;
     private Button fRemoteBrowseButton;
     private Button fSkipDownloadButton;
-//    private Text fPreRunText;
     private boolean fIsInitializing = false;
     private PeerInfo fSelectedPeer;
     private boolean fPeerHasFileSystemService;
     private boolean fPeerHasProcessesService;
 
-    public RemoteCMainTab() {
-        super(false);
+    @Override
+    public String getName() {
+        return "Main";
     }
 
     @Override
     public Shell getShell() {
         return super.getShell();
+    }
+
+    private String getRemoteWSRoot() {
+        // TODO remoteWSRoot?
+        return ""; //$NON-NLS-1$
+    }
+
+    @Override
+    protected void handleSearchButtonSelected() {
     }
 
     public void createControl(Composite parent) {
@@ -108,6 +119,60 @@ public class RemoteCMainTab extends CMainTab implements IShellProvider {
                         "org.eclipse.tcf.cdt.ui.remoteApplicationLaunchGroup"); //$NON-NLS-1$
     }
 
+    protected void createExeFileGroup(Composite parent, int colSpan) {
+        Composite mainComp = new Composite(parent, SWT.NONE);
+        GridLayout mainLayout = new GridLayout();
+        mainLayout.marginHeight = 0;
+        mainLayout.marginWidth = 0;
+        mainComp.setLayout(mainLayout);
+        GridData gd = new GridData(GridData.FILL_HORIZONTAL);
+        gd.horizontalSpan = colSpan;
+        mainComp.setLayoutData(gd);
+        fProgLabel = new Label(mainComp, SWT.NONE);
+        fProgLabel.setText("C/C++ Application:");
+        gd = new GridData();
+        fProgLabel.setLayoutData(gd);
+        fProgText = new Text(mainComp, SWT.SINGLE | SWT.BORDER);
+        gd = new GridData(GridData.FILL_HORIZONTAL);
+        fProgText.setLayoutData(gd);
+        fProgText.addModifyListener(new ModifyListener() {
+            @Override
+            public void modifyText(ModifyEvent evt) {
+                updateLaunchConfigurationDialog();
+            }
+        });
+
+        Composite buttonComp = new Composite(mainComp, SWT.NONE);
+        GridLayout layout = new GridLayout(3, false);
+        layout.marginHeight = 0;
+        layout.marginWidth = 0;
+        buttonComp.setLayout(layout);
+        gd = new GridData(GridData.HORIZONTAL_ALIGN_END);
+        buttonComp.setLayoutData(gd);
+        buttonComp.setFont(parent.getFont());
+
+        createVariablesButton(buttonComp, "&Variables...", fProgText);
+        fSearchButton = createPushButton(buttonComp, "Searc&h Project...", null);
+        fSearchButton.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent evt) {
+                handleSearchButtonSelected();
+                updateLaunchConfigurationDialog();
+            }
+        });
+
+        Button fBrowseForBinaryButton;
+        fBrowseForBinaryButton = createPushButton(buttonComp, "B&rowse...", null);
+        fBrowseForBinaryButton.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent evt) {
+                handleBinaryBrowseButtonSelected();
+                updateLaunchConfigurationDialog();
+            }
+        });
+    }
+
+
     private void createPeerListGroup(Composite comp) {
         new Label(comp, SWT.NONE).setText("Targets:");
         Preferences prefs = InstanceScope.INSTANCE.getNode(Activator.PLUGIN_ID);
@@ -120,6 +185,13 @@ public class RemoteCMainTab extends CMainTab implements IShellProvider {
                 updateLaunchConfigurationDialog();
             }
         });
+    }
+
+    protected void handleBinaryBrowseButtonSelected() {
+        FileDialog fileDialog = new FileDialog(getShell(), SWT.NONE);
+        fileDialog.setFileName(fProgText.getText());
+        String text= fileDialog.open();
+        if (text != null) fProgText.setText(text);
     }
 
     public boolean isValid(ILaunchConfiguration config) {
@@ -178,25 +250,6 @@ public class RemoteCMainTab extends CMainTab implements IShellProvider {
                 updateLaunchConfigurationDialog();
             }
         });
-
-        // Commands to run before execution
-        /*
-        Label preRunLabel = new Label(mainComp, SWT.NONE);
-        preRunLabel.setText("Commands to execute before application");
-        gd = new GridData();
-        gd.horizontalSpan = 2;
-        preRunLabel.setLayoutData(gd);
-
-        fPreRunText = new Text(mainComp, SWT.MULTI | SWT.BORDER);
-        gd = new GridData(GridData.FILL_HORIZONTAL);
-        gd.horizontalSpan = 2;
-        fPreRunText.setLayoutData(gd);
-        fPreRunText.addModifyListener(new ModifyListener() {
-            public void modifyText(ModifyEvent evt) {
-                updateLaunchConfigurationDialog();
-            }
-        });
-        */
     }
 
     protected void createDownloadOption(Composite parent) {
@@ -219,7 +272,11 @@ public class RemoteCMainTab extends CMainTab implements IShellProvider {
 
     @Override
     public void setDefaults(ILaunchConfigurationWorkingCopy config) {
-        super.setDefaults(config);
+        config.setAttribute(ICDTLaunchConfigurationConstants.ATTR_PROJECT_NAME, "");
+        config.setAttribute(ICDTLaunchConfigurationConstants.ATTR_PROJECT_BUILD_CONFIG_ID, "");
+        config.setAttribute(ICDTLaunchConfigurationConstants.ATTR_COREFILE_PATH, "");
+        config.setAttribute(ICDTLaunchConfigurationConstants.ATTR_PROJECT_BUILD_CONFIG_AUTO, true);
+
         config.setAttribute(TCFLaunchDelegate.ATTR_RUN_LOCAL_AGENT, false);
         config.setAttribute(TCFLaunchDelegate.ATTR_USE_LOCAL_AGENT, false);
     }
@@ -233,13 +290,15 @@ public class RemoteCMainTab extends CMainTab implements IShellProvider {
         config.setAttribute(TCFLaunchDelegate.ATTR_USE_LOCAL_AGENT, false);
         config.setAttribute(TCFLaunchDelegate.ATTR_REMOTE_PROGRAM_FILE, fRemoteProgText.getText());
         config.setAttribute(TCFLaunchDelegate.ATTR_COPY_TO_REMOTE_FILE, !fSkipDownloadButton.getSelection());
-//        config.setAttribute(TCFLaunchDelegate.ATTR_PRERUN_COMMANDS, fPreRunText.getText());
         super.performApply(config);
     }
 
     public void initializeFrom(ILaunchConfiguration config) {
         fIsInitializing = true;
-        super.initializeFrom(config);
+        filterPlatform = getPlatform(config);
+        updateProjectFromConfig(config);
+        updateProgramFromConfig(config);
+        updateBuildOptionFromConfig(config);
         updatePeerFromConfig(config);
         updateTargetProgFromConfig(config);
         updateSkipDownloadFromConfig(config);
@@ -277,15 +336,6 @@ public class RemoteCMainTab extends CMainTab implements IShellProvider {
             // Ignore
         }
         fRemoteProgText.setText(targetPath);
-
-//        String prelaunchCmd = null;
-//        try {
-//            prelaunchCmd = config.getAttribute(TCFLaunchDelegate.ATTR_PRERUN_COMMANDS, ""); //$NON-NLS-1$
-//        }
-//        catch (CoreException e) {
-//            // Ignore
-//        }
-//        fPreRunText.setText(prelaunchCmd);
     }
 
     protected void updateSkipDownloadFromConfig(ILaunchConfiguration config) {
@@ -427,10 +477,5 @@ public class RemoteCMainTab extends CMainTab implements IShellProvider {
             }
         }
         return exePath;
-    }
-
-    private String getRemoteWSRoot() {
-        // TODO remoteWSRoot?
-        return ""; //$NON-NLS-1$
     }
 }
