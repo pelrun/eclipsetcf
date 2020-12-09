@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2016 Wind River Systems, Inc. and others.
+ * Copyright (c) 2008-2020 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -70,6 +70,10 @@ public class TCFMainTab extends AbstractLaunchConfigurationTab {
     private Combo build_config_combo;
     private Link workpsace_link;
     private Exception init_error;
+
+    protected boolean isLocal() {
+        return false;
+    }
 
     public void createControl(Composite parent) {
         Composite comp = new Composite(parent, SWT.NONE);
@@ -202,7 +206,7 @@ public class TCFMainTab extends AbstractLaunchConfigurationTab {
         group.setText("Application");
 
         createLocalExeFileGroup(group);
-        createRemoteExeFileGroup(group);
+        if (!isLocal()) createRemoteExeFileGroup(group);
     }
 
     private void createLocalExeFileGroup(Composite parent) {
@@ -216,7 +220,12 @@ public class TCFMainTab extends AbstractLaunchConfigurationTab {
         comp.setLayoutData(gd);
 
         Label program_label = new Label(comp, SWT.NONE);
-        program_label.setText("Local File Path:");
+        if (isLocal()) {
+            program_label.setText("Application File Path:");
+        }
+        else {
+            program_label.setText("Local File Path:");
+        }
         gd = new GridData();
         gd.horizontalSpan = 3;
         program_label.setLayoutData(gd);
@@ -405,7 +414,7 @@ public class TCFMainTab extends AbstractLaunchConfigurationTab {
             disable_build.setSelection(build == TCFLaunchDelegate.BUILD_BEFORE_LAUNCH_DISABLED);
             workspace_build.setSelection(build == TCFLaunchDelegate.BUILD_BEFORE_LAUNCH_USE_WORKSPACE_SETTING);
             local_program_text.setText(config.getAttribute(TCFLaunchDelegate.ATTR_LOCAL_PROGRAM_FILE, ""));
-            remote_program_text.setText(config.getAttribute(TCFLaunchDelegate.ATTR_REMOTE_PROGRAM_FILE, ""));
+            if (remote_program_text != null) remote_program_text.setText(config.getAttribute(TCFLaunchDelegate.ATTR_REMOTE_PROGRAM_FILE, ""));
             working_dir_text.setText(config.getAttribute(TCFLaunchDelegate.ATTR_WORKING_DIRECTORY, ""));
             default_dir_button.setSelection(!config.hasAttribute(TCFLaunchDelegate.ATTR_WORKING_DIRECTORY));
             attach_children_button.setSelection(config.getAttribute(TCFLaunchDelegate.ATTR_ATTACH_CHILDREN, true));
@@ -449,7 +458,16 @@ public class TCFMainTab extends AbstractLaunchConfigurationTab {
         if (disable_build.getSelection()) build = TCFLaunchDelegate.BUILD_BEFORE_LAUNCH_DISABLED;
         config.setAttribute(TCFLaunchDelegate.ATTR_BUILD_BEFORE_LAUNCH, build);
         config.setAttribute(TCFLaunchDelegate.ATTR_LOCAL_PROGRAM_FILE, local_program_text.getText());
-        config.setAttribute(TCFLaunchDelegate.ATTR_REMOTE_PROGRAM_FILE, remote_program_text.getText());
+        if (isLocal()) {
+            config.removeAttribute(TCFLaunchDelegate.ATTR_PEER_ID);
+            config.setAttribute(TCFLaunchDelegate.ATTR_RUN_LOCAL_SERVER, false);
+            config.setAttribute(TCFLaunchDelegate.ATTR_RUN_LOCAL_AGENT, true);
+            config.setAttribute(TCFLaunchDelegate.ATTR_USE_LOCAL_AGENT, true);
+            config.removeAttribute(TCFLaunchDelegate.ATTR_REMOTE_PROGRAM_FILE);
+        }
+        else {
+            config.setAttribute(TCFLaunchDelegate.ATTR_REMOTE_PROGRAM_FILE, remote_program_text.getText());
+        }
         if (default_dir_button.getSelection()) {
             config.removeAttribute(TCFLaunchDelegate.ATTR_WORKING_DIRECTORY);
         }
@@ -570,10 +588,12 @@ public class TCFMainTab extends AbstractLaunchConfigurationTab {
             setErrorMessage("Invalid local program name");
             return false;
         }
-        String remote_name = remote_program_text.getText().trim();
-        if (remote_name.equals(".") || remote_name.equals("..")) { //$NON-NLS-1$ //$NON-NLS-2$
-            setErrorMessage("Invalid remote program name");
-            return false;
+        if (remote_program_text != null) {
+            String remote_name = remote_program_text.getText().trim();
+            if (remote_name.equals(".") || remote_name.equals("..")) { //$NON-NLS-1$ //$NON-NLS-2$
+                setErrorMessage("Invalid remote program name");
+                return false;
+            }
         }
         if (local_name.length() > 0) {
             IProject project = getProject();

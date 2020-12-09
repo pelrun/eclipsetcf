@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.2"?><!--
-    Copyright (c) 2010, 2016 Wind River Systems, Inc. and others.
+    Copyright (c) 2010-2020 Wind River Systems, Inc. and others.
     All rights reserved. This program and the accompanying materials
     are made available under the terms of the Eclipse Public License 2.0
     which accompanies this distribution, and is available at
@@ -148,46 +148,46 @@
    <extension
          point="org.eclipse.debug.ui.launchConfigurationTabs">
       <!-- Local application launch tabs-->
-      <tab id="org.eclipse.tcf.cdt.launch.mainTab"
+      <tab id="org.eclipse.tcf.cdt.launch.applicationTab"
             group="org.eclipse.cdt.launch.applicationLaunchTabGroup"
-            name="%launchTab.main.name"
-            class="org.eclipse.cdt.launch.ui.CMainTab">
+            name="%launchTab.application.name"
+            class="org.eclipse.tcf.internal.cdt.ui.launch.LocalApplicationTab">
         <associatedDelegate delegate="org.eclipse.tcf.cdt.launch.localCLaunch"/>
       </tab>
       <tab id="org.eclipse.tcf.cdt.launch.argumentsTab"
             group="org.eclipse.cdt.launch.applicationLaunchTabGroup"
             name="%launchTab.arguments.name"
-            class="org.eclipse.cdt.launch.ui.CArgumentsTab">
+            class="org.eclipse.tcf.internal.debug.ui.launch.TCFArgumentsTab">
         <associatedDelegate delegate="org.eclipse.tcf.cdt.launch.localCLaunch"/>
-        <placement after="org.eclipse.cdt.cdi.launch.mainTab"/>
+        <placement after="org.eclipse.tcf.cdt.launch.applicationTab"/>
       </tab>
       <tab id="org.eclipse.tcf.cdt.launch.environmentTab"
             group="org.eclipse.cdt.launch.applicationLaunchTabGroup"
             name="%launchTab.environment.name"
             class="org.eclipse.debug.ui.EnvironmentTab">
          <associatedDelegate delegate="org.eclipse.tcf.cdt.launch.localCLaunch"/>
-         <placement after="org.eclipse.cdt.cdi.launch.argumentsTab"/>
+         <placement after="org.eclipse.tcf.cdt.launch.argumentsTab"/>
       </tab>
       <tab id="org.eclipse.tcf.cdt.launch.pathMapTab"
             group="org.eclipse.cdt.launch.applicationLaunchTabGroup"
             name="%launchTab.pathMap.name"
             class="org.eclipse.tcf.internal.debug.ui.launch.TCFPathMapTab">
         <associatedDelegate delegate="org.eclipse.tcf.cdt.launch.localCLaunch"/>
-        <placement after="org.eclipse.debug.ui.environmentTab"/>
+        <placement after="org.eclipse.tcf.cdt.launch.environmentTab"/>
       </tab>
       <tab id="org.eclipse.tcf.cdt.launch.sourceLookupTab"
             group="org.eclipse.cdt.launch.applicationLaunchTabGroup"
             name="%launchTab.sourceLookup.name"
             class="org.eclipse.debug.ui.sourcelookup.SourceLookupTab">
         <associatedDelegate delegate="org.eclipse.tcf.cdt.launch.localCLaunch"/>
-        <placement after="org.eclipse.tcf.launch.pathMapTab"/>
+        <placement after="org.eclipse.tcf.cdt.launch.pathMapTab"/>
       </tab>
       <tab id="org.eclipse.tcf.cdt.launch.commonTab"
             group="org.eclipse.cdt.launch.applicationLaunchTabGroup"
             name="%launchTab.common.name"
             class="org.eclipse.debug.ui.CommonTab">
         <associatedDelegate delegate="org.eclipse.tcf.cdt.launch.localCLaunch"/>
-        <placement after="org.eclipse.debug.ui.sourceLookupTab"/>
+        <placement after="org.eclipse.tcf.cdt.launch.sourceLookupTab"/>
       </tab>
 
       <!-- Attach launch tabs-->
@@ -202,57 +202,64 @@
             name="%launchTab.sourceLookup.name"
             class="org.eclipse.debug.ui.sourcelookup.SourceLookupTab">
         <associatedDelegate delegate="org.eclipse.tcf.cdt.launch.attachCLaunch"/>
-        <placement after="org.eclipse.tcf.launch.pathMapTab"/>
+        <placement after="org.eclipse.tcf.cdt.launch.attach.pathMapTab"/>
       </tab>
       <tab id="org.eclipse.tcf.cdt.launch.attach.commonTab"
             group="org.eclipse.cdt.launch.attachLaunchTabGroup"
             name="%launchTab.common.name"
             class="org.eclipse.debug.ui.CommonTab">
         <associatedDelegate delegate="org.eclipse.tcf.cdt.launch.attachCLaunch"/>
-        <placement after="org.eclipse.debug.ui.sourceLookupTab"/>
+        <placement after="org.eclipse.tcf.cdt.launch.attach.sourceLookupTab"/>
       </tab>
 
       <!-- Remote application launch tabs -->
-      <tab id="org.eclipse.tcf.cdt.launch.remote.mainTab"
+      <tab id="org.eclipse.tcf.cdt.launch.remote.targetTab"
             group="org.eclipse.cdt.launch.remoteApplicationLaunchTabGroup"
-            name="%launchTab.main.name"
-            class="org.eclipse.tcf.internal.cdt.ui.launch.RemoteCMainTab">
+            name="%launchTab.target.name"
+            class="org.eclipse.tcf.internal.debug.ui.launch.TCFTargetTab">
         <associatedDelegate delegate="org.eclipse.tcf.cdt.launch.remoteCLaunch"/>
+      </tab>
+      <tab id="org.eclipse.tcf.cdt.launch.remote.applicationTab"
+            group="org.eclipse.cdt.launch.remoteApplicationLaunchTabGroup"
+            name="%launchTab.application.name"
+            class="org.eclipse.tcf.internal.debug.ui.launch.TCFMainTab">
+        <associatedDelegate delegate="org.eclipse.tcf.cdt.launch.remoteCLaunch"/>
+        <placement after="org.eclipse.tcf.cdt.launch.remote.targetTab"/>
       </tab>
       <tab id="org.eclipse.tcf.cdt.launch.remote.argumentsTab"
             group="org.eclipse.cdt.launch.remoteApplicationLaunchTabGroup"
             name="%launchTab.arguments.name"
-            class="org.eclipse.cdt.launch.ui.CArgumentsTab">
+            class="org.eclipse.tcf.internal.debug.ui.launch.TCFArgumentsTab">
         <associatedDelegate delegate="org.eclipse.tcf.cdt.launch.remoteCLaunch"/>
-        <placement after="org.eclipse.cdt.cdi.launch.mainTab"/>
+        <placement after="org.eclipse.tcf.cdt.launch.remote.applicationTab"/>
       </tab>
       <tab id="org.eclipse.tcf.cdt.launch.remote.environmentTab"
             group="org.eclipse.cdt.launch.remoteApplicationLaunchTabGroup"
             name="%launchTab.environment.name"
             class="org.eclipse.debug.ui.EnvironmentTab">
          <associatedDelegate delegate="org.eclipse.tcf.cdt.launch.remoteCLaunch"/>
-         <placement after="org.eclipse.cdt.cdi.launch.argumentsTab"/>
+         <placement after="org.eclipse.tcf.cdt.launch.remote.argumentsTab"/>
       </tab>
       <tab id="org.eclipse.tcf.cdt.launch.remote.pathMapTab"
             group="org.eclipse.cdt.launch.remoteApplicationLaunchTabGroup"
             name="%launchTab.pathMap.name"
             class="org.eclipse.tcf.internal.debug.ui.launch.TCFPathMapTab">
         <associatedDelegate delegate="org.eclipse.tcf.cdt.launch.remoteCLaunch"/>
-        <placement after="org.eclipse.cdt.cdi.launch.argumentsTab"/>
+        <placement after="org.eclipse.tcf.cdt.launch.remote.environmentTab"/>
       </tab>
       <tab id="org.eclipse.tcf.cdt.launch.remote.sourceLookupTab"
             group="org.eclipse.cdt.launch.remoteApplicationLaunchTabGroup"
             name="%launchTab.sourceLookup.name"
             class="org.eclipse.debug.ui.sourcelookup.SourceLookupTab">
         <associatedDelegate delegate="org.eclipse.tcf.cdt.launch.remoteCLaunch"/>
-        <placement after="org.eclipse.tcf.launch.pathMapTab"/>
+        <placement after="org.eclipse.tcf.cdt.launch.remote.pathMapTab"/>
       </tab>
       <tab id="org.eclipse.tcf.cdt.launch.remote.commonTab"
             group="org.eclipse.cdt.launch.remoteApplicationLaunchTabGroup"
             name="%launchTab.common.name"
             class="org.eclipse.debug.ui.CommonTab">
         <associatedDelegate delegate="org.eclipse.tcf.cdt.launch.remoteCLaunch"/>
-        <placement after="org.eclipse.debug.ui.sourceLookupTab"/>
+        <placement after="org.eclipse.tcf.cdt.launch.remote.sourceLookupTab"/>
       </tab>
    </extension>
 

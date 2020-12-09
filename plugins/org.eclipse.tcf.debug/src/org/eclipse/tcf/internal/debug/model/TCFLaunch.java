@@ -921,12 +921,13 @@ public class TCFLaunch extends Launch {
                         channel.terminate(new Exception("Program file does not exist"));
                         return;
                     }
+                    final String prog_name = file.length() < 32 ? file : "..." + file.substring(file.length() - 30);
                     IProcesses.DoneStart done = new IProcesses.DoneStart() {
                         public void doneStart(IToken token, final Exception error, ProcessContext process) {
                             if (error != null) {
                                 Protocol.sync(new Runnable() {
                                     public void run() {
-                                        channel.terminate(error);
+                                        channel.terminate(new Exception("Cannot launch '" + prog_name + "'", error));
                                     }
                                 });
                             }
