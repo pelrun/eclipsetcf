@@ -739,28 +739,32 @@ class TCFMemoryBlock extends PlatformObject implements IMemoryBlockExtension, IM
                 File f = path.append(XML_FILE_NAME).toFile();
                 if (!f.exists()) return;
                 InputStream inp = new FileInputStream(f);
-                DocumentBuilder parser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-                parser.setErrorHandler(new DefaultHandler());
-                Element xml_memory = parser.parse(inp).getDocumentElement();
-                if (xml_memory.getTagName().equals(XML_NODE_MEMORY)) {
-                    Node node = xml_memory.getFirstChild();
-                    while (node != null) {
-                        if (node instanceof Element && ((Element)node).getTagName().equals(XML_NODE_BLOCK)) {
-                            Element xml_block = (Element)node;
-                            String id = xml_block.getAttribute(XML_ATTR_CTX);
-                            if (id != null) {
-                                List<Element> list = blocks_memento.get(id);
-                                if (list == null) {
-                                    list = new ArrayList<Element>();
-                                    blocks_memento.put(id, list);
+                try {
+                    DocumentBuilder parser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+                    parser.setErrorHandler(new DefaultHandler());
+                    Element xml_memory = parser.parse(inp).getDocumentElement();
+                    if (xml_memory.getTagName().equals(XML_NODE_MEMORY)) {
+                        Node node = xml_memory.getFirstChild();
+                        while (node != null) {
+                            if (node instanceof Element && ((Element)node).getTagName().equals(XML_NODE_BLOCK)) {
+                                Element xml_block = (Element)node;
+                                String id = xml_block.getAttribute(XML_ATTR_CTX);
+                                if (id != null) {
+                                    List<Element> list = blocks_memento.get(id);
+                                    if (list == null) {
+                                        list = new ArrayList<Element>();
+                                        blocks_memento.put(id, list);
+                                    }
+                                    list.add(xml_block);
                                 }
-                                list.add(xml_block);
                             }
+                            node = node.getNextSibling();
                         }
-                        node = node.getNextSibling();
                     }
                 }
-                inp.close();
+                finally {
+                    inp.close();
+                }
             }
         }
         catch (Exception x) {
@@ -911,9 +915,19 @@ class TCFMemoryBlock extends PlatformObject implements IMemoryBlockExtension, IM
                         document.appendChild(xml_memory);
                         IPath path = Activator.getDefault().getStateLocation();
                         File f = path.append(XML_FILE_NAME).toFile();
-                        BufferedWriter wr = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f), "UTF-8"));
-                        wr.write(DebugPlugin.serializeDocument(document));
-                        wr.close();
+                        FileOutputStream out = new FileOutputStream(f);
+                        try {
+                            BufferedWriter wr = new BufferedWriter(new OutputStreamWriter(out, "UTF-8"));
+                            try {
+                                wr.write(DebugPlugin.serializeDocument(document));
+                            }
+                            finally {
+                                wr.close();
+                            }
+                        }
+                        finally {
+                            out.close();
+                        }
                     }
                 }
                 catch (Exception x) {
