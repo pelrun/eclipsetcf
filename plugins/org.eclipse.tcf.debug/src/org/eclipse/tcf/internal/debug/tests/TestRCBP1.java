@@ -602,6 +602,7 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
         assert !bp_set_done;
         assert bp_list.isEmpty();
         Boolean bp_type_ok = (Boolean)bp_capabilities.get(IBreakpoints.CAPABILITY_BREAKPOINT_TYPE);
+        Boolean bp_ctx_ids = (Boolean)bp_capabilities.get(IBreakpoints.CAPABILITY_CONTEXT_IDS);
         Map<String,Object> m[] = new Map[10];
         for (int i = 0; i < m.length; i++) {
             m[i] = new HashMap<String,Object>();
@@ -610,11 +611,27 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
             switch (i) {
             case 0:
                 m[i].put(IBreakpoints.PROP_LOCATION, sym_list.get("tcf_test_func0").getValue().toString());
+                if (bp_ctx_ids != null && bp_ctx_ids) {
+                    // With position-independent executable and address space layout randomization,
+                    // address of "tcf_test_func0" is not same for different processes.
+                    // The breakpoint scope must be limited to the process.
+                    ArrayList<String> l = new ArrayList<String>();
+                    l.add(test_context.getProcessID());
+                    m[i].put(IBreakpoints.PROP_CONTEXT_IDS, l);
+                }
                 // Condition is always true
                 m[i].put(IBreakpoints.PROP_CONDITION, "$thread!=\"\"");
                 break;
             case 1:
                 m[i].put(IBreakpoints.PROP_LOCATION, sym_list.get("tcf_test_func0").getValue().toString());
+                if (bp_ctx_ids != null && bp_ctx_ids) {
+                    // With position-independent executable and address space layout randomization,
+                    // address of "tcf_test_func0" is not same for different processes.
+                    // The breakpoint scope must be limited to the process.
+                    ArrayList<String> l = new ArrayList<String>();
+                    l.add(test_context.getProcessID());
+                    m[i].put(IBreakpoints.PROP_CONTEXT_IDS, l);
+                }
                 // Condition is always false
                 m[i].put(IBreakpoints.PROP_CONDITION, "$thread==\"\"");
                 break;
@@ -1230,9 +1247,12 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
             main_thread_id = sc.id;
             if (temp_bp_id != null) {
                 final Map<String,Object> m = bp_list.get(temp_bp_id);
-                ArrayList<String> l = new ArrayList<String>();
-                l.add(main_thread_id);
-                m.put(IBreakpoints.PROP_CONTEXT_IDS, l);
+                Boolean ci = (Boolean)bp_capabilities.get(IBreakpoints.CAPABILITY_CONTEXT_IDS);
+                if (ci != null && ci) {
+                    ArrayList<String> l = new ArrayList<String>();
+                    l.add(main_thread_id);
+                    m.put(IBreakpoints.PROP_CONTEXT_IDS, l);
+                }
                 m.put(IBreakpoints.PROP_ENABLED, true);
                 bp_change_cmds.add(srv_breakpoints.change(m, new IBreakpoints.DoneCommand() {
                     public void doneCommand(IToken token, Exception error) {
