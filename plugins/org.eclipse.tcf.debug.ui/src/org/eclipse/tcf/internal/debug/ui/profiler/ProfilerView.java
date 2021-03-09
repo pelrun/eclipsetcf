@@ -105,7 +105,7 @@ public class ProfilerView extends ViewPart {
 
         boolean stopped;
         boolean unsupported;
-        Exception error;
+        Throwable error;
         int sample_count;
 
         // Samples by frame
@@ -174,12 +174,17 @@ public class ProfilerView extends ViewPart {
             ProfileData p = data.get(ctx);
             if (p == null) return;
             if (p.stopped) return;
-            for (Map<String,Object> props : arr) {
-                if (props == null) continue;
-                String format = (String)props.get(IProfiler.PROP_FORMAT);
-                if (format == null || !format.equals("StackTraces")) continue;
-                addSamples(p, props);
-                cnt++;
+            try {
+                for (Map<String,Object> props : arr) {
+                    if (props == null) continue;
+                    String format = (String)props.get(IProfiler.PROP_FORMAT);
+                    if (format == null || !format.equals("StackTraces")) continue;
+                    addSamples(p, props);
+                    cnt++;
+                }
+            }
+            catch (Throwable x) {
+                p.error = x;
             }
             if (p.unsupported != (cnt == 0)) {
                 p.unsupported = cnt == 0;
@@ -223,8 +228,7 @@ public class ProfilerView extends ViewPart {
             case 1:
                 break;
             case 2:
-                if (x.total > y.total) return -1;
-                if (x.total < y.total) return +1;
+                r = Float.compare(y.total, x.total);
                 break;
             case 3:
                 if (x.name == y.name) break;
@@ -249,9 +253,9 @@ public class ProfilerView extends ViewPart {
     private static class ProfileEntryRefComparator implements Comparator<ProfileEntryRef> {
         @Override
         public int compare(ProfileEntryRef x, ProfileEntryRef y) {
-            if (x.total > y.total) return -1;
-            if (x.total < y.total) return +1;
-            return x.pe.addr.compareTo(y.pe.addr);
+            int r = Float.compare(y.total, x.total);
+            if (r == 0) r = x.pe.addr.compareTo(y.pe.addr);
+            return r;
         }
     }
 
