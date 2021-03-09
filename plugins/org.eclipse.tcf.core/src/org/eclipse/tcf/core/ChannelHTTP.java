@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Xilinx, Inc. and others.
+ * Copyright (c) 2018-2021 Xilinx, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -43,7 +43,7 @@ public class ChannelHTTP extends AbstractChannel {
 
     private boolean stopped;
 
-    private byte[] wr_buf;
+    private byte[] wr_buf = new byte[0x1000];
     private int wr_cnt;
 
     public ChannelHTTP(IPeer remote_peer, String host, int port) {
@@ -113,7 +113,7 @@ public class ChannelHTTP extends AbstractChannel {
                 try {
                     int i = 0;
                     char type = (char)wr_buf[i++];
-                    while (i >= wr_cnt || wr_buf[i++] != 0) break;
+                    checkEndOfString(i++);
                     switch (type) {
                     case 'C':
                         sendCommand(i);
@@ -134,15 +134,28 @@ public class ChannelHTTP extends AbstractChannel {
             }
             return;
         }
-        if (wr_buf == null) {
-            wr_buf = new byte[0x1000];
-        }
-        else if (wr_cnt >= wr_buf.length) {
+        if (wr_cnt >= wr_buf.length) {
             byte[] t = new byte[wr_cnt * 2];
             System.arraycopy(wr_buf, 0, t, 0, wr_cnt);
             wr_buf = t;
         }
         wr_buf[wr_cnt++] = (byte)n;
+    }
+
+    @Override
+    protected final void write(byte[] buf) throws IOException {
+        write(buf, 0, buf.length);
+    }
+
+    @Override
+    protected final void write(byte[] buf, int pos, int len) throws IOException {
+        if (wr_cnt + len > wr_buf.length) {
+            byte[] t = new byte[(wr_cnt + len) * 2];
+            System.arraycopy(wr_buf, 0, t, 0, wr_cnt);
+            wr_buf = t;
+        }
+        System.arraycopy(buf, pos, wr_buf, wr_cnt, len);
+        wr_cnt += len;
     }
 
     @Override
@@ -167,6 +180,10 @@ public class ChannelHTTP extends AbstractChannel {
         return ' ';
     }
 
+    private void checkEndOfString(int i) throws Exception {
+        if (i >= wr_cnt || wr_buf[i] != 0) throw new IOException("Invalid message format");
+    }
+
     private String getArgs(int i) throws Exception {
         if (i >= wr_cnt) return null;
         StringBuffer args = new StringBuffer();
@@ -183,42 +200,42 @@ public class ChannelHTTP extends AbstractChannel {
                     args.append(ch);
                 }
             }
-            while (i < wr_buf.length && wr_buf[i] == 0) i++;
+            checkEndOfString(i++);
         }
         return args.toString();
     }
 
     private void sendCommand(int i) throws Exception {
         int p = i;
-        while (wr_buf[i] != 0) i++;
+        while (i < wr_cnt && wr_buf[i] != 0) i++;
         byte[] t = new byte[i - p];
         System.arraycopy(wr_buf, p, t, 0, t.length);
         Token token = new Token(t);
-        i++;
+        checkEndOfString(i++);
 
         p = i;
-        while (wr_buf[i] != 0) i++;
+        while (i < wr_cnt && wr_buf[i] != 0) i++;
         String service = new String(wr_buf, p, i - p, "UTF-8");
-        i++;
+        checkEndOfString(i++);
 
         p = i;
-        while (wr_buf[i] != 0) i++;
+        while (i < wr_cnt && wr_buf[i] != 0) i++;
         String command = new String(wr_buf, p, i - p, "UTF-8");
-        i++;
+        checkEndOfString(i++);
 
         sendRequest(token, service, command, getArgs(i));
     }
 
     private void sendEvent(int i) throws Exception {
         int p = i;
-        while (wr_buf[i] != 0) i++;
+        while (i < wr_cnt && wr_buf[i] != 0) i++;
         String service = new String(wr_buf, p, i - p, "UTF-8");
-        while (wr_buf[i] == 0) i++;
+        checkEndOfString(i++);
 
         p = i;
-        while (wr_buf[i] != 0) i++;
+        while (i < wr_cnt && wr_buf[i] != 0) i++;
         String command = new String(wr_buf, p, i - p, "UTF-8");
-        while (i < wr_buf.length && wr_buf[i] == 0) i++;
+        checkEndOfString(i++);
 
         sendRequest(null, service, command, getArgs(i));
     }
