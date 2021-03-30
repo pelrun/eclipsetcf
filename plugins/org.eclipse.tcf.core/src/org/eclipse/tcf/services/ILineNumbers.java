@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2015 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007-2021 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -44,6 +44,7 @@ public interface ILineNumbers extends IService {
         public final int end_column;
         public final Number start_address;
         public final Number end_address;
+        public final Number next_stmt_address;
         public final int isa;
         public final boolean is_statement;
         public final boolean basic_block;
@@ -62,6 +63,30 @@ public interface ILineNumbers extends IService {
             this.end_column = end_column;
             this.start_address = start_address;
             this.end_address = end_address;
+            this.next_stmt_address = null;
+            this.isa = isa;
+            this.is_statement = is_statement;
+            this.basic_block = basic_block;
+            this.prologue_end = prologue_end;
+            this.epilogue_begin = epilogue_begin;
+        }
+
+        /**
+         * @since 1.7
+         */
+        public CodeArea(String directory, String file, int start_line, int start_column,
+                int end_line, int end_column, Number start_address, Number end_address, Number next_stmt_address, int isa,
+                boolean is_statement, boolean basic_block,
+                boolean prologue_end, boolean epilogue_begin) {
+            this.directory = directory;
+            this.file = file;
+            this.start_line = start_line;
+            this.start_column = start_column;
+            this.end_line = end_line;
+            this.end_column = end_column;
+            this.start_address = start_address;
+            this.end_address = end_address;
+            this.next_stmt_address = next_stmt_address;
             this.isa = isa;
             this.is_statement = is_statement;
             this.basic_block = basic_block;
@@ -78,7 +103,7 @@ public interface ILineNumbers extends IService {
             getInteger(area, "SLine", 0), getInteger(area, "SCol", 0),
             getInteger(area, "ELine", 0), getInteger(area, "ECol", 0),
             (Number)area.get("SAddr"), (Number)area.get("EAddr"),
-            getInteger(area, "ISA", 0),
+            (Number)area.get("NStmtAddr"), getInteger(area, "ISA", 0),
             getBoolean(area, "IsStmt"), getBoolean(area, "BasicBlock"),
             getBoolean(area, "PrologueEnd"), getBoolean(area, "EpilogueBegin"));
         }
@@ -119,6 +144,8 @@ public interface ILineNumbers extends IService {
             if (start_address == null && a.start_address != null) return false;
             if (end_address != null && !end_address.equals(a.end_address)) return false;
             if (end_address == null && a.end_address != null) return false;
+            if (next_stmt_address != null && !next_stmt_address.equals(a.next_stmt_address)) return false;
+            if (next_stmt_address == null && a.next_stmt_address != null) return false;
             if (file != null && !file.equals(a.file)) return false;
             if (file == null && a.file != null) return false;
             if (directory != null && !directory.equals(a.directory)) return false;
@@ -171,6 +198,11 @@ public interface ILineNumbers extends IService {
             }
             else {
                 bf.append('0');
+            }
+            if (next_stmt_address != null) {
+                bf.append(",next stmt ");
+                bf.append("0x");
+                bf.append(JSON.toBigInteger(next_stmt_address).toString(16));
             }
             if (isa != 0) {
                 bf.append(",isa ");
