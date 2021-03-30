@@ -63,22 +63,22 @@ public class TCFSuspendResumeAdapter implements ISuspendResume, IRunToLine,
         IResumeAtAddress, IAdaptable {
 
     private static class Location {
-        String fFile;
-        int fLine;
-        Number fAddress;
+        String file;
+        int line;
+        Number address;
         Location(String file, int line) {
-            fFile = file;
-            fLine = line;
+            this.file = file;
+            this.line = line;
         }
         Location(Number address) {
-            fAddress = address;
+            this.address = address;
         }
     }
 
-    private final TCFNodeExecContext fExecCtx;
+    private final TCFNodeExecContext exec_ctx;
 
-    public TCFSuspendResumeAdapter(TCFNodeExecContext execCtx) {
-        fExecCtx = execCtx;
+    public TCFSuspendResumeAdapter(TCFNodeExecContext exec_ctx) {
+        this.exec_ctx = exec_ctx;
     }
 
     @SuppressWarnings("rawtypes")
@@ -101,11 +101,11 @@ public class TCFSuspendResumeAdapter implements ISuspendResume, IRunToLine,
         try {
             Boolean result = new TCFTask<Boolean>() {
                 public void run() {
-                    if (fExecCtx.isDisposed()) {
+                    if (exec_ctx.isDisposed()) {
                         done(Boolean.FALSE);
                         return;
                     }
-                    TCFDataCache<TCFContextState> state = fExecCtx.getState();
+                    TCFDataCache<TCFContextState> state = exec_ctx.getState();
                     if (!state.validate(this)) {
                         return;
                     }
@@ -127,12 +127,12 @@ public class TCFSuspendResumeAdapter implements ISuspendResume, IRunToLine,
     public void resume() throws DebugException {
         new TCFDebugTask<Object>() {
             public void run() {
-                if (fExecCtx.isDisposed()) {
+                if (exec_ctx.isDisposed()) {
                     // ignore silently
                     done(null);
                     return;
                 }
-                TCFDataCache<IRunControl.RunControlContext> cache = fExecCtx.getRunContext();
+                TCFDataCache<IRunControl.RunControlContext> cache = exec_ctx.getRunContext();
                 if (!cache.validate(this)) {
                     return;
                 }
@@ -154,12 +154,12 @@ public class TCFSuspendResumeAdapter implements ISuspendResume, IRunToLine,
     public void suspend() throws DebugException {
         new TCFDebugTask<Object>() {
             public void run() {
-                if (fExecCtx.isDisposed()) {
+                if (exec_ctx.isDisposed()) {
                     // ignore silently
                     done(null);
                     return;
                 }
-                TCFDataCache<IRunControl.RunControlContext> cache = fExecCtx.getRunContext();
+                TCFDataCache<IRunControl.RunControlContext> cache = exec_ctx.getRunContext();
                 if (!cache.validate(this)) {
                     return;
                 }
@@ -256,7 +256,7 @@ public class TCFSuspendResumeAdapter implements ISuspendResume, IRunToLine,
     }
 
     private String mapToDebuggerPath(String fileName) {
-        ISourceLocator locator = fExecCtx.getModel().getLaunch().getSourceLocator();
+        ISourceLocator locator = exec_ctx.getModel().getLaunch().getSourceLocator();
         if (locator instanceof CSourceLookupDirector) {
             IPath compilationPath = ((CSourceLookupDirector) locator).getCompilationPath(fileName);
             if (compilationPath != null) {
@@ -270,25 +270,25 @@ public class TCFSuspendResumeAdapter implements ISuspendResume, IRunToLine,
     private void runToLocation(final Location location, final boolean skipBreakpoints) throws DebugException {
         new TCFDebugTask<Object>() {
             public void run() {
-                if (fExecCtx.isDisposed()) {
+                if (exec_ctx.isDisposed()) {
                     // ignore silently
                     done(null);
                     return;
                 }
-                final IChannel channel = fExecCtx.getChannel();
+                final IChannel channel = exec_ctx.getChannel();
                 final IBreakpoints breakpoints = channel.getRemoteService(IBreakpoints.class);
                 if (breakpoints == null) {
                     error("Cannot set breakpoint.");
                     return;
                 }
-                final String contextId = fExecCtx.getID();
+                final String contextId = exec_ctx.getID();
                 Map<String, Object> properties = new HashMap<String, Object>();
-                if (location.fFile != null) {
-                    properties.put(IBreakpoints.PROP_FILE, location.fFile);
-                    properties.put(IBreakpoints.PROP_LINE, location.fLine);
+                if (location.file != null) {
+                    properties.put(IBreakpoints.PROP_FILE, location.file);
+                    properties.put(IBreakpoints.PROP_LINE, location.line);
                 }
                 else {
-                    properties.put(IBreakpoints.PROP_LOCATION, location.fAddress.toString());
+                    properties.put(IBreakpoints.PROP_LOCATION, location.address.toString());
                 }
 //                properties.put(IBreakpoints.PROP_CONTEXTIDS, new String[] { contextId });
                 properties.put(IBreakpoints.PROP_ENABLED, Boolean.TRUE);
@@ -318,7 +318,7 @@ public class TCFSuspendResumeAdapter implements ISuspendResume, IRunToLine,
                                     removeBreakpoint.run();
                                     return;
                                 }
-                                final TCFDataCache<IRunControl.RunControlContext> cache = fExecCtx.getRunContext();
+                                final TCFDataCache<IRunControl.RunControlContext> cache = exec_ctx.getRunContext();
                                 if (!cache.validate(this)) {
                                     return;
                                 }
@@ -388,17 +388,17 @@ public class TCFSuspendResumeAdapter implements ISuspendResume, IRunToLine,
 
     private void moveToLocation(final Location location, final boolean resume) throws DebugException {
         new TCFDebugTask<Object>() {
-            private RegistersContext fPCReg;
+            private RegistersContext pc_reg_ctx;
             public void run() {
-                if (fExecCtx.isDisposed()) {
+                if (exec_ctx.isDisposed()) {
                     // ignore silently
                     done(null);
                     return;
                 }
 
                 LinkedList<TCFChildren> queue = new LinkedList<TCFChildren>();
-                queue.add(fExecCtx.getRegisters());
-                while (fPCReg == null && !queue.isEmpty()) {
+                queue.add(exec_ctx.getRegisters());
+                while (pc_reg_ctx == null && !queue.isEmpty()) {
                     TCFChildren regNodesCache = queue.removeFirst();
                     if (!regNodesCache.validate(this)) return;
                     Map<String,TCFNode> regNodes = regNodesCache.getData();
@@ -414,26 +414,26 @@ public class TCFSuspendResumeAdapter implements ISuspendResume, IRunToLine,
                         if (!regCtxCache.validate(this)) return;
                         IRegisters.RegistersContext context = regCtxCache.getData();
                         if (context != null && IRegisters.ROLE_PC.equals(context.getRole())) {
-                            fPCReg = context;
+                            pc_reg_ctx = context;
                             break;
                         }
                         queue.add(regNode.getChildren());
                     }
                 }
 
-                if (fPCReg == null) {
+                if (pc_reg_ctx == null) {
                     error("Cannot determine PC register.");
                     return;
                 }
 
-                if (location.fAddress == null) {
-                    final IChannel channel = fExecCtx.getChannel();
+                if (location.address == null) {
+                    final IChannel channel = exec_ctx.getChannel();
                     final ILineNumbers lineNumbers = channel.getRemoteService(ILineNumbers.class);
                     if (lineNumbers == null) {
                         error("No line numbers service.");
                         return;
                     }
-                    TCFDataCache<TCFNodeExecContext> memNodeCache = fExecCtx.getMemoryNode();
+                    TCFDataCache<TCFNodeExecContext> memNodeCache = exec_ctx.getMemoryNode();
                     if (!memNodeCache.validate(this)) return;
                     TCFNodeExecContext memNode = memNodeCache.getData();
                     if (memNode == null) {
@@ -449,22 +449,46 @@ public class TCFSuspendResumeAdapter implements ISuspendResume, IRunToLine,
                         else error("Cannot determine memory context.");
                         return;
                     }
-                    lineNumbers.mapToMemory(memCtx.getID(), location.fFile, location.fLine, 0, new ILineNumbers.DoneMapToMemory() {
+                    lineNumbers.mapToMemory(memCtx.getID(), location.file, location.line, 0, new ILineNumbers.DoneMapToMemory() {
                         public void doneMapToMemory(IToken token, Exception error, CodeArea[] areas) {
                             if (error != null) {
                                 error(error);
                                 return;
                             }
-                            if (areas == null || areas.length == 0) {
+                            CodeArea area = null;
+                            if (areas != null) {
+                                for (CodeArea a : areas) {
+                                    if (area == null) {
+                                        area = a;
+                                        continue;
+                                    }
+                                    if (!area.is_statement && a.is_statement) {
+                                        area = a;
+                                        continue;
+                                    }
+                                    if (a.is_statement && a.start_line == location.line &&
+                                            (a.start_line != area.start_line || a.start_column < area.start_column)) {
+                                        area = a;
+                                        continue;
+                                    }
+                                }
+                            }
+                            if (area == null) {
                                 error("Cannot map source location to address.");
                                 return;
                             }
-                            doneGetLocationAddress(areas[0].start_address);
+                            if (area.start_address.equals(area.end_address) || area.start_line != location.line) {
+                                if (area.next_stmt_address != null) doneGetLocationAddress(area.next_stmt_address);
+                                else doneGetLocationAddress(area.end_address);
+                            }
+                            else {
+                                doneGetLocationAddress(area.start_address);
+                            }
                         }
                     });
                 }
                 else {
-                    doneGetLocationAddress(location.fAddress);
+                    doneGetLocationAddress(location.address);
                 }
             }
             private void doneGetLocationAddress(Number address) {
@@ -472,17 +496,17 @@ public class TCFSuspendResumeAdapter implements ISuspendResume, IRunToLine,
                     error("Cannot map source location to address.");
                     return;
                 }
-                byte[] value = addressToByteArray(address, fPCReg.getSize(), fPCReg.isBigEndian());
-                fPCReg.set(value, new IRegisters.DoneSet() {
+                byte[] value = addressToByteArray(address, pc_reg_ctx.getSize(), pc_reg_ctx.isBigEndian());
+                pc_reg_ctx.set(value, new IRegisters.DoneSet() {
                     public void doneSet(IToken token, Exception error) {
                         if (error != null) {
                             error(error);
                             return;
                         }
-                        fExecCtx.getModel().setDebugViewSelection(fExecCtx, "Move");
+                        exec_ctx.getModel().setDebugViewSelection(exec_ctx, "Move");
                         if (resume) {
-                            final TCFDataCache<IRunControl.RunControlContext> cache = fExecCtx.getRunContext();
-                            final IChannel channel = fExecCtx.getChannel();
+                            final TCFDataCache<IRunControl.RunControlContext> cache = exec_ctx.getRunContext();
+                            final IChannel channel = exec_ctx.getChannel();
                             Runnable resume = new Runnable() {
                                 public void run() {
                                     final IRunControl runControl = channel.getRemoteService(IRunControl.class);
