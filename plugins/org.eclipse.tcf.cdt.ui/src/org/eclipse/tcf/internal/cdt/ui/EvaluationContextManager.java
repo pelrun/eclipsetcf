@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2004, 2013 QNX Software Systems and others.
+ * Copyright (c) 2004-2021 QNX Software Systems and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -81,38 +81,22 @@ public class EvaluationContextManager implements IWindowListener, IDebugContextL
     }
 
 
-    /* (non-Javadoc)
-     * @see org.eclipse.ui.IWindowListener#windowActivated(org.eclipse.ui.IWorkbenchWindow)
-     */
     public void windowActivated(IWorkbenchWindow window) {
-            IDebugContextService service = DebugUITools.getDebugContextManager().getContextService(window);
-            service.addDebugContextListener(this);
-            selectionChanged( service.getActiveContext() );
+        IDebugContextService service = DebugUITools.getDebugContextManager().getContextService(window);
+        service.addDebugContextListener(this);
+        selectionChanged( service.getActiveContext() );
     }
 
-    /* (non-Javadoc)
-     * @see org.eclipse.ui.IWindowListener#windowDeactivated(org.eclipse.ui.IWorkbenchWindow)
-     */
     public void windowDeactivated(IWorkbenchWindow window) {
              DebugUITools.getDebugContextManager().getContextService(window).removeDebugContextListener(this);
     }
 
-    /* (non-Javadoc)
-     * @see org.eclipse.ui.IWindowListener#windowOpened(org.eclipse.ui.IWorkbenchWindow)
-     */
     public void windowOpened(IWorkbenchWindow window) {
     }
 
-    /* (non-Javadoc)
-     * @see org.eclipse.ui.IWindowListener#windowClosed(org.eclipse.ui.IWorkbenchWindow)
-     */
     public void windowClosed(IWorkbenchWindow window) {
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.eclipse.debug.ui.contexts.IDebugContextListener#debugContextChanged(org.eclipse.debug.ui.contexts.DebugContextEvent)
-     */
     public void debugContextChanged(DebugContextEvent event) {
         selectionChanged(event.getContext());
     }
@@ -146,16 +130,11 @@ public class EvaluationContextManager implements IWindowListener, IDebugContextL
 
     @SuppressWarnings("unchecked")
     private <T> T adapt(Object adaptable, Class<T> clazz) {
-        if (adaptable == null)
-            return null;
-        if (clazz.isInstance(adaptable))
-            return (T) adaptable;
+        if (adaptable == null) return null;
+        if (clazz.isInstance(adaptable)) return (T) adaptable;
         T adapter = null;
-        if (adaptable instanceof IAdaptable)
-            adapter = (T) ((IAdaptable) adaptable).getAdapter(clazz);
-        if (adapter == null)
-            adapter = (T) Platform.getAdapterManager().loadAdapter(adaptable, clazz.getName());
+        if (adaptable instanceof IAdaptable) adapter = (T) ((IAdaptable) adaptable).getAdapter(clazz);
+        if (adapter == null) adapter = (T) Platform.getAdapterManager().loadAdapter(adaptable, clazz.getName());
         return adapter;
     }
-
 }
