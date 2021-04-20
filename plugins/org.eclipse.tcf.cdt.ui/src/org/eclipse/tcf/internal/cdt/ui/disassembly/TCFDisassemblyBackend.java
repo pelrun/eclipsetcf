@@ -12,6 +12,7 @@ package org.eclipse.tcf.internal.cdt.ui.disassembly;
 
 import static org.eclipse.cdt.debug.internal.ui.disassembly.dsf.DisassemblyUtils.DEBUG;
 
+import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -793,21 +794,45 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
 
                 int offs = address.subtract(range.start).intValue();
                 if (code != null && offs >= 0 && offs + instrLength <= code.length) {
-                    BigInteger opcode = BigInteger.ZERO;
-                    for (int i = 0; i < instrLength; i++) {
-                        int j = big_endian ? i : instrLength - i - 1;
-                        opcode = opcode.shiftLeft(8).add(BigInteger.valueOf(code[offs + j] & 0xff));
+                    try {
+                        // Since CDT 8.4.200 the insert disassembly line takes a byte array for the opcode
+                        Method method = fCallback.getDocument().getClass().getMethod("insertDisassemblyLine", AddressRangePosition.class,  //$NON-NLS-1$
+                                BigInteger.class, int.class, String.class, Byte[].class, String.class, String.class, int.class);
+                        Byte[] opcode = new Byte[instrLength];
+                        for (int i = 0; i < instrLength; i++) {
+                            opcode[i] = code[offs + i];
+                        }
+                        method.invoke(fCallback.getDocument(), p,
+                                address, instrLength, functionOffset.toString(),
+                                opcode, instr, sourceFile, firstLine);
+                        insertedAnyAddress = true;
                     }
-                    p = fCallback.getDocument().insertDisassemblyLine(p,
-                            address, instrLength, functionOffset.toString(),
-                            opcode, instr, sourceFile, firstLine);
+                    catch (Exception e) {
+                        try {
+                            // Fallback to support previous versions of CDT
+                            Method method = fCallback.getDocument().getClass().getMethod("insertDisassemblyLine", AddressRangePosition.class,  //$NON-NLS-1$
+                                    BigInteger.class, int.class, String.class, BigInteger.class, String.class, String.class, int.class);
+                            BigInteger opcode = BigInteger.ZERO;
+                            for (int i = 0; i < instrLength; i++) {
+                                int j = big_endian ? i : instrLength - i - 1;
+                                opcode = opcode.shiftLeft(8).add(BigInteger.valueOf(code[offs + j] & 0xff));
+                            }
+                            method.invoke(fCallback.getDocument(), p,
+                                    address, instrLength, functionOffset.toString(),
+                                    opcode, instr, sourceFile, firstLine);
+                            insertedAnyAddress = true;
+                        }
+                        catch (Exception e1) {
+                            // Handled below on "insertedAnyAddress" check
+                        }
+                    }
                 }
                 else {
                     p = fCallback.getDocument().insertDisassemblyLine(p,
                             address, instrLength, functionOffset.toString(),
                             instr, sourceFile, firstLine);
+                    insertedAnyAddress = true;
                 }
-                insertedAnyAddress = true;
             }
             if (!insertedAnyAddress) {
                 // Insert error in case of incomplete disassembly
