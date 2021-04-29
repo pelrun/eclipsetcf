@@ -1181,7 +1181,6 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
     private String toNumberString(int radix, ISymbols.TypeClass t, byte[] data, int offs, int size,
             boolean big_endian, Number bin_scale, Number dec_scale) {
         if (size <= 0) return "";
-        if (size > (t == ISymbols.TypeClass.complex ? 32: 16)) return "";
         if (radix != 16) {
             switch (t) {
             case array:
@@ -1233,8 +1232,10 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                 }
                 return TCFNumberFormat.toBigInteger(data, offs, size, big_endian, sign_extend).toString();
             case real:
+                if (size > 16) return "";
                 return TCFNumberFormat.toFPString(data, offs, size, big_endian);
             case complex:
+                if (size > 32) return "";
                 return TCFNumberFormat.toComplexFPString(data, offs, size, big_endian);
             }
         }
