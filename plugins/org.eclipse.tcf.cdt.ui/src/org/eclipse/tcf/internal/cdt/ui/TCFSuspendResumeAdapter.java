@@ -290,7 +290,7 @@ public class TCFSuspendResumeAdapter implements ISuspendResume, IRunToLine,
                 else {
                     properties.put(IBreakpoints.PROP_LOCATION, location.address.toString());
                 }
-//                properties.put(IBreakpoints.PROP_CONTEXTIDS, new String[] { contextId });
+                properties.put(IBreakpoints.PROP_CONTEXT_IDS, new String[] { contextId });
                 properties.put(IBreakpoints.PROP_ENABLED, Boolean.TRUE);
                 properties.put(IBreakpoints.PROP_SERVICE, IRunControl.NAME);
                 final String breakpointId = TCFAction.STEP_BREAKPOINT_PREFIX + contextId;
