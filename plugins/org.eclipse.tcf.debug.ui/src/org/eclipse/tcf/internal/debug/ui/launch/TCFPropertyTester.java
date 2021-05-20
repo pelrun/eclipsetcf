@@ -68,18 +68,22 @@ public class TCFPropertyTester extends PropertyTester {
             while (!canReset && node != null) {
                 if (node instanceof TCFNodeExecContext) {
                     final TCFNodeExecContext exec = (TCFNodeExecContext)node;
-                    canReset = new TCFTask<Boolean>(exec.getChannel()) {
-                        @Override
-                        public void run() {
-                            TCFDataCache<Collection<Map<String, Object>>> cache = exec.getResetCapabilities();
-                            if (!cache.validate(this)) {
-                                return;
+                    try {
+                        canReset = new TCFTask<Boolean>(exec.getChannel()) {
+                            @Override
+                            public void run() {
+                                TCFDataCache<Collection<Map<String, Object>>> cache = exec.getResetCapabilities();
+                                if (!cache.validate(this)) {
+                                    return;
+                                }
+                                Collection<Map<String, Object>> caps = cache.getData();
+                                boolean ok = caps != null && !caps.isEmpty();
+                                done(ok);
                             }
-                            Collection<Map<String, Object>> caps = cache.getData();
-                            boolean ok = caps != null && !caps.isEmpty();
-                            done(ok);
-                        }
-                    }.getE();
+                        }.getE();
+                    } catch (Throwable x) {
+                        Activator.log(x);
+                    }
                 }
                 node = node.getParent();
             }
