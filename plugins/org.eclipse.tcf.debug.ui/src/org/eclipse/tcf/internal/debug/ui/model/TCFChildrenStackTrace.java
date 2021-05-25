@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2013 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007-2021 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -27,7 +27,6 @@ public class TCFChildrenStackTrace extends TCFChildren {
 
     private String top_frame_id;
     private int limit_factor = 1;
-    private boolean incremental_trace_not_supported;
 
     TCFChildrenStackTrace(TCFNodeExecContext node) {
         super(node, 16);
@@ -83,12 +82,13 @@ public class TCFChildrenStackTrace extends TCFChildren {
     }
 
     Boolean checkHasChildren(Runnable done) {
-        TCFDataCache<TCFContextState> state = node.getState();
+        TCFDataCache<TCFContextState> state = node.getMinState();
         if (!state.validate(done)) return null;
-        if (node.isNotActive()) return false;
         if (state.getError() != null) return false;
         TCFContextState state_data = state.getData();
-        if (state_data == null || !state_data.is_suspended) return false;
+        if (state_data == null) return false;
+        if (!state_data.is_suspended) return false;
+        if (state_data.isNotActive()) return false;
         return true;
     }
 
@@ -154,7 +154,7 @@ public class TCFChildrenStackTrace extends TCFChildren {
             public void doneGetChildren(IToken token, Exception error, String[] contexts) {
                 if (command == token) {
                     if (error instanceof IErrorReport && ((IErrorReport)error).getErrorCode() == IErrorReport.TCF_ERROR_INV_COMMAND) {
-                        incremental_trace_not_supported = true;
+                        node.model.no_incremental_trace = true;
                         runCompleteStackTrace(data);
                         return;
                     }
@@ -185,7 +185,9 @@ public class TCFChildrenStackTrace extends TCFChildren {
         final HashMap<String,TCFNode> data = new HashMap<String,TCFNode>();
         if (!has_children) {
             top_frame_id = null;
-            set(null, node.getState().getError(), data);
+            TCFDataCache<TCFContextState> state = node.getMinState();
+            if (!state.validate(this)) return false;
+            set(null, state.getError(), data);
             return true;
         }
         if (service == null) {
@@ -194,7 +196,7 @@ public class TCFChildrenStackTrace extends TCFChildren {
             return true;
         }
         assert command == null;
-        if (incremental_trace_not_supported || !node.model.getStackFramesLimitEnabled()) {
+        if (node.model.no_incremental_trace || !node.model.getStackFramesLimitEnabled()) {
             runCompleteStackTrace(data);
         }
         else {

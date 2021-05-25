@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007-2019 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007-2021 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -544,6 +544,15 @@ public interface IRunControl extends IService {
         IToken getState(DoneGetState done);
 
         /**
+         * Send a command to retrieve current state of a context.
+         * Similar to getState, but does not retrieve PC.
+         * With some targets, it can be substantially faster.
+         * @param done - command result call back object.
+         * @return pending command handle, can be used to cancel the command.
+         */
+        IToken getMinState(DoneGetMinState done);
+
+        /**
          * Send a command to suspend a context.
          * Also suspends children if context is a container.
          * @param done - command result call back object.
@@ -598,6 +607,19 @@ public interface IRunControl extends IService {
          * @param params - additional target specific data about context state, see STATE_*.
          */
         void doneGetState(IToken token, Exception error, boolean suspended, String pc,
+                String reason, Map<String,Object> params);
+    }
+
+    interface DoneGetMinState {
+        /**
+         * Called when getMinState command execution is complete.
+         * @param token - pending command handle.
+         * @param error - command execution error or null.
+         * @param suspended - true if the context is suspended
+         * @param reason - suspend reason (if suspended), see REASON_*.
+         * @param params - additional target specific data about context state, see STATE_*.
+         */
+        void doneGetMinState(IToken token, Exception error, boolean suspended,
                 String reason, Map<String,Object> params);
     }
 

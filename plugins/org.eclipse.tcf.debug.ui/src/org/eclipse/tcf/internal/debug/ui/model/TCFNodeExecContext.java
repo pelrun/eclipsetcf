@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007-2019 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007-2021 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -43,6 +43,7 @@ import org.eclipse.tcf.internal.debug.model.TCFSourceRef;
 import org.eclipse.tcf.internal.debug.model.TCFSymFileRef;
 import org.eclipse.tcf.internal.debug.ui.ColorCache;
 import org.eclipse.tcf.internal.debug.ui.ImageCache;
+import org.eclipse.tcf.protocol.IErrorReport;
 import org.eclipse.tcf.protocol.IToken;
 import org.eclipse.tcf.protocol.JSON;
 import org.eclipse.tcf.protocol.Protocol;
@@ -72,6 +73,7 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
     private final TCFData<MemoryRegion[]> memory_map;
     private final TCFData<IProcesses.ProcessContext> prs_context;
     private final TCFData<TCFContextState> state;
+    private final TCFData<TCFContextState> min_state;
     private final TCFData<BigInteger> address; // Current PC as BigInteger
     private final TCFData<Collection<Map<String,Object>>> signal_list;
     private final TCFData<SignalMask[]> signal_mask;
@@ -341,6 +343,48 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
                         s.suspend_reason = reason;
                         s.suspend_params = params;
                         set(token, error, s);
+                    }
+                });
+                return false;
+            }
+        };
+        min_state = new TCFData<TCFContextState>(channel) {
+            @Override
+            protected boolean startDataRetrieval() {
+                assert command == null;
+                if (!run_context.validate(this)) return false;
+                IRunControl.RunControlContext ctx = run_context.getData();
+                if (ctx == null || !ctx.hasState()) {
+                    set(null, null, null);
+                    return true;
+                }
+                if (model.no_min_state || state.isValid()) {
+                    if (!state.validate(this)) return false;
+                    Throwable e = state.getError();
+                    TCFContextState s = state.getData();
+                    TCFContextState m = null;
+                    if (s != null) {
+                        m = new TCFContextState();
+                        m.is_suspended = s.is_suspended;
+                        m.suspend_reason = s.suspend_reason;
+                        m.suspend_params = s.suspend_params;
+                    }
+                    set(null, e, m);
+                    return true;
+                }
+                command = ctx.getMinState(new IRunControl.DoneGetMinState() {
+                    public void doneGetMinState(IToken token, Exception error, boolean suspended, String reason, Map<String,Object> params) {
+                        if (error instanceof IErrorReport && ((IErrorReport)error).getErrorCode() == IErrorReport.TCF_ERROR_INV_COMMAND) {
+                            model.no_min_state = true;
+                            command = null;
+                            validate();
+                            return;
+                        }
+                        TCFContextState m = new TCFContextState();
+                        m.is_suspended = suspended;
+                        m.suspend_reason = reason;
+                        m.suspend_params = params;
+                        set(token, error, m);
                     }
                 });
                 return false;
@@ -822,6 +866,10 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
         return state;
     }
 
+    public TCFDataCache<TCFContextState> getMinState() {
+        return min_state;
+    }
+
     public TCFChildrenStackTrace getStackTrace() {
         return children_stack;
     }
@@ -905,8 +953,9 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
     private boolean okToHideStack() {
         TCFAction action = model.getActiveAction(id);
         if (action != null && action.showRunning()) return true;
-        TCFContextState state_data = state.getData();
+        TCFContextState state_data = min_state.getData();
         if (state_data == null) return true;
+        assert state_data.suspend_pc == null;
         if (!state_data.is_suspended) return true;
         if (state_data.isNotActive()) return true;
         return false;
@@ -924,7 +973,7 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
                     result.setChildCount(last_stack_trace.length);
                     return true;
                 }
-                if (!state.validate(done)) return false;
+                if (!min_state.validate(done)) return false;
                 if (okToHideStack()) {
                     last_stack_trace = empty_node_array;
                     result.setChildCount(0);
@@ -998,7 +1047,7 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
                     setResultChildren(result, last_stack_trace);
                     return true;
                 }
-                if (!state.validate(done)) return false;
+                if (!min_state.validate(done)) return false;
                 if (okToHideStack()) {
                     last_stack_trace = empty_node_array;
                     return true;
@@ -1062,7 +1111,7 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
                     result.setHasChilren(last_stack_trace.length > 0);
                     return true;
                 }
-                if (!state.validate(done)) return false;
+                if (!min_state.validate(done)) return false;
                 if (okToHideStack()) {
                     last_stack_trace = empty_node_array;
                     result.setHasChilren(false);
@@ -1192,8 +1241,8 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
                             image_name = ImageCache.IMG_THREAD_RUNNNIG;
                         }
                         else {
-                            if (!state.validate(done)) return false;
-                            TCFContextState state_data = state.getData();
+                            if (!min_state.validate(done)) return false;
+                            TCFContextState state_data = min_state.getData();
                             image_name = ImageCache.IMG_THREAD_UNKNOWN_STATE;
                             if (state_data != null) {
                                 if (!state_data.is_suspended) {
@@ -1216,9 +1265,9 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
                         return true;
                     }
                     else {
-                        if (!state.validate(done)) return false;
-                        TCFContextState state_data = state.getData();
-                        if (isNotActive()) {
+                        if (!min_state.validate(done)) return false;
+                        TCFContextState state_data = min_state.getData();
+                        if (state_data != null && state_data.isNotActive()) {
                             image_name = ImageCache.IMG_THREAD_NOT_ACTIVE;
                             label.append(" (Not active)");
                             if (state_data.suspend_reason != null && !state_data.suspend_reason.equals(IRunControl.REASON_USER_REQUEST)) {
@@ -1509,6 +1558,10 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
             TCFContextState s = state.getData();
             if (s == null || s.is_suspended) state.reset();
         }
+        if (min_state.isValid()) {
+            TCFContextState s = min_state.getData();
+            if (s == null || s.is_suspended) min_state.reset();
+        }
         children_stack.reset();
         children_stack.onSourceMappingChange();
         children_regs.reset();
@@ -1580,6 +1633,7 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
         else {
             state.reset();
         }
+        min_state.reset();
         address.reset();
         signal_mask.reset();
         children_stack.onSuspended(func_call);
@@ -1616,6 +1670,7 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
     void onContextResumed() {
         assert !isDisposed();
         state.reset();
+        min_state.reset();
         if (!resume_pending) {
             final int cnt = ++resumed_cnt;
             resume_pending = true;
@@ -1636,11 +1691,11 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
     void onContextStateChanged() {
         assert !isDisposed();
         state.reset();
+        min_state.reset();
         postStateChangedDelta();
     }
 
     void onContextActionDone() {
-        assert state.isValid();
         if (state.getData() == null || state.getData().is_suspended) {
             resumed_cnt++;
             resume_pending = false;
@@ -1692,6 +1747,10 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
         if (state.isValid()) {
             TCFContextState s = state.getData();
             if (s == null || s.is_suspended) state.reset();
+        }
+        if (min_state.isValid()) {
+            TCFContextState s = min_state.getData();
+            if (s == null || s.is_suspended) min_state.reset();
         }
         address.reset();
         children_stack.onRegisterValueChanged();
@@ -1759,14 +1818,14 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
             if (!e.run_context.validate(done)) return false;
             IRunControl.RunControlContext ctx = e.run_context.getData();
             if (ctx != null && ctx.hasState()) {
-                TCFDataCache<TCFContextState> state_cache = e.getState();
+                TCFDataCache<TCFContextState> state_cache = e.getMinState();
                 if (!state_cache.validate(done)) return false;
                 TCFContextState state_data = state_cache.getData();
                 if (state_data != null) {
                     if (!state_data.is_suspended) {
                         info.running = true;
                     }
-                    else if (e.isNotActive()) {
+                    else if (state_data.isNotActive()) {
                         info.not_active = true;
                     }
                     else {

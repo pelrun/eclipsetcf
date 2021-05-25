@@ -62,7 +62,7 @@ class TCFModelSelectionPolicy implements IModelSelectionPolicy {
                 TCFNode n = node;
                 while (n != null && !n.isDisposed()) {
                     if (n instanceof TCFNodeExecContext) {
-                        TCFDataCache<TCFContextState> cache = ((TCFNodeExecContext)n).getState();
+                        TCFDataCache<TCFContextState> cache = ((TCFNodeExecContext)n).getMinState();
                         if (!cache.validate(this)) return;
                         TCFContextState state = cache.getData();
                         if (state != null && state.is_suspended) {

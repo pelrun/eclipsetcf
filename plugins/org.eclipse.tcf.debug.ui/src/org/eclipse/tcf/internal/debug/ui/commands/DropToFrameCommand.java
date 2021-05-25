@@ -71,10 +71,8 @@ public class DropToFrameCommand implements IDropToFrameHandler {
                     done();
                     return;
                 }
-                TCFDataCache<TCFContextState> state_cache = exe_node.getState();
-                if (!state_cache.validate(this)) {
-                    return;
-                }
+                TCFDataCache<TCFContextState> state_cache = exe_node.getMinState();
+                if (!state_cache.validate(this)) return;
                 TCFContextState state_data = state_cache.getData();
                 request.setEnabled(state_data != null && state_data.is_suspended);
                 done();
@@ -110,7 +108,7 @@ public class DropToFrameCommand implements IDropToFrameHandler {
                 }
                 TCFDataCache<IRunControl.RunControlContext> ctx_cache = exe_node.getRunContext();
                 if (!ctx_cache.validate(this)) return;
-                TCFDataCache<TCFContextState> state_cache = exe_node.getState();
+                TCFDataCache<TCFContextState> state_cache = exe_node.getMinState();
                 if (!state_cache.validate(this)) return;
                 TCFContextState state_data = state_cache.getData();
                 if (state_data == null || !state_data.is_suspended) {

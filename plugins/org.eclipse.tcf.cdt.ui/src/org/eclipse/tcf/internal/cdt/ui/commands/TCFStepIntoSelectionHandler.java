@@ -60,7 +60,7 @@ public class TCFStepIntoSelectionHandler implements IDebugCommandHandler {
                     done(null, false);
                     return;
                 }
-                TCFDataCache<TCFContextState> cache = l.node.getState();
+                TCFDataCache<TCFContextState> cache = l.node.getMinState();
                 if (!cache.validate(this)) return;
                 if (cache.getError() != null) {
                     done(cache.getError(), false);

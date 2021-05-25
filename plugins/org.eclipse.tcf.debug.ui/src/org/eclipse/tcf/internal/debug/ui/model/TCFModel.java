@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007-2020 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007-2021 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -169,6 +169,9 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
         UPDATE_POLICY_AUTOMATIC  = 0,
         UPDATE_POLICY_MANUAL     = 1,
         UPDATE_POLICY_BREAKPOINT = 2;
+
+    boolean no_incremental_trace;
+    boolean no_min_state;
 
     /**
      * A dummy editor input to open the disassembly view as editor.
@@ -704,7 +707,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
                 else {
                     boolean node_selected = false;
                     for (TCFNodeExecContext n : nodes) {
-                        String reason = n.getState().getData().suspend_reason;
+                        String reason = n.getMinState().getData().suspend_reason;
                         node_selected |= setDebugViewSelectionForProxy(proxy, n, reason);
                     }
                     if (!node_selected) {
@@ -742,7 +745,7 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
             if (!run_context.validate(this)) return false;
             IRunControl.RunControlContext ctx = run_context.getData();
             if (ctx != null && ctx.hasState()) {
-                TCFDataCache<TCFContextState> state = n.getState();
+                TCFDataCache<TCFContextState> state = n.getMinState();
                 if (!state.validate(this)) return false;
                 TCFContextState s = state.getData();
                 if (s != null && s.is_suspended) nodes.add(n);
@@ -1951,15 +1954,13 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
                     if (element instanceof TCFNodeExecContext) {
                         TCFNodeExecContext exec_ctx = (TCFNodeExecContext)element;
                         if (!exec_ctx.isDisposed() && active_actions.get(exec_ctx.id) == null) {
-                            TCFDataCache<TCFContextState> state_cache = exec_ctx.getState();
+                            TCFDataCache<TCFContextState> state_cache = exec_ctx.getMinState();
                             if (!state_cache.validate(this)) return;
-                            if (!exec_ctx.isNotActive()) {
-                                TCFContextState state_data = state_cache.getData();
-                                if (state_data != null && state_data.is_suspended) {
-                                    TCFChildrenStackTrace stack_trace = exec_ctx.getStackTrace();
-                                    if (!stack_trace.validate(this)) return;
-                                    stack_frame = stack_trace.getTopFrame();
-                                }
+                            TCFContextState state_data = state_cache.getData();
+                            if (state_data != null && state_data.is_suspended && !state_data.isNotActive()) {
+                                TCFChildrenStackTrace stack_trace = exec_ctx.getStackTrace();
+                                if (!stack_trace.validate(this)) return;
+                                stack_frame = stack_trace.getTopFrame();
                             }
                         }
                     }
@@ -1967,16 +1968,14 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
                         TCFNodeStackFrame f = (TCFNodeStackFrame)element;
                         TCFNodeExecContext exec_ctx = (TCFNodeExecContext)f.parent;
                         if (!f.isDisposed() && !exec_ctx.isDisposed() && active_actions.get(exec_ctx.id) == null) {
-                            TCFDataCache<TCFContextState> state_cache = exec_ctx.getState();
+                            TCFDataCache<TCFContextState> state_cache = exec_ctx.getMinState();
                             if (!state_cache.validate(this)) return;
-                            if (!exec_ctx.isNotActive()) {
-                                TCFContextState state_data = state_cache.getData();
-                                if (state_data != null && state_data.is_suspended) {
-                                    // Validate stack trace to make sure stack_frame.getFrameNo() is valid
-                                    TCFChildrenStackTrace stack_trace = exec_ctx.getStackTrace();
-                                    if (!stack_trace.validate(this)) return;
-                                    stack_frame = f;
-                                }
+                            TCFContextState state_data = state_cache.getData();
+                            if (state_data != null && state_data.is_suspended && !state_data.isNotActive()) {
+                                // Validate stack trace to make sure stack_frame.getFrameNo() is valid
+                                TCFChildrenStackTrace stack_trace = exec_ctx.getStackTrace();
+                                if (!stack_trace.validate(this)) return;
+                                stack_frame = f;
                             }
                         }
                     }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2015 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007-2021 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -138,6 +138,26 @@ public class RunControlProxy implements IRunControl {
                         map = (Map<String,Object>)args[4];
                     }
                     done.doneGetState(token, error, susp, pc, reason, map);
+                }
+            }.token;
+        }
+
+        public IToken getMinState(final DoneGetMinState done) {
+            return new Command(channel, RunControlProxy.this, "getMinState", new Object[]{ getID() }) {
+                @SuppressWarnings("unchecked")
+                @Override
+                public void done(Exception error, Object[] args) {
+                    boolean susp = false;
+                    String reason = null;
+                    Map<String,Object> map = null;
+                    if (error == null) {
+                        assert args.length == 4;
+                        error = toError(args[0]);
+                        susp = ((Boolean)args[1]).booleanValue();
+                        reason = (String)args[2];
+                        map = (Map<String,Object>)args[3];
+                    }
+                    done.doneGetMinState(token, error, susp, reason, map);
                 }
             }.token;
         }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2015 Wind River Systems, Inc. and others.
+ * Copyright (c) 2011-2021 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -278,7 +278,7 @@ public class TCFNodePropertySource implements IPropertySource {
                             addDescriptor("State", "Suspended", state.is_suspended);
                             if (state.suspend_reason != null) addDescriptor("State", "Suspend reason", state.suspend_reason);
                             if (state.suspend_pc != null) addDescriptor("State", "PC", toHexAddrString(new BigInteger(state.suspend_pc)));
-                            addDescriptor("State", "Active", !exe_node.isNotActive());
+                            addDescriptor("State", "Active", !state.isNotActive());
                             if (state.suspend_params != null) {
                                 for (String key : state.suspend_params.keySet()) {
                                     Object value = state.suspend_params.get(key);
