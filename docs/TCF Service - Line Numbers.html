@@ -181,6 +181,7 @@ R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull; <i>&lt;a
         <font color=#7F0055>public final int</font> end_column;
         <font color=#7F0055>public final</font> Number start_address;
         <font color=#7F0055>public final</font> Number end_address;
+        <font color=#7F0055>public final</font> Number next_stmt_address;
         <font color=#7F0055>public final int</font> isa;
         <font color=#7F0055>public final</font> <font color=#7F0055>boolean</font> is_statement;
         <font color=#7F0055>public final</font> <font color=#7F0055>boolean</font> basic_block;
@@ -199,6 +200,30 @@ R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull; <i>&lt;a
             <font color=#7F0055>this</font>.end_column = end_column;
             <font color=#7F0055>this</font>.start_address = start_address;
             <font color=#7F0055>this</font>.end_address = end_address;
+            <font color=#7F0055>this</font>.next_stmt_address = null;
+            <font color=#7F0055>this</font>.isa = isa;
+            <font color=#7F0055>this</font>.is_statement = is_statement;
+            <font color=#7F0055>this</font>.basic_block = basic_block;
+            <font color=#7F0055>this</font>.prologue_end = prologue_end;
+            <font color=#7F0055>this</font>.epilogue_begin = epilogue_begin;
+        }
+
+        <font color=#3F5FBF>/**
+         * <font color=#7F9FBF>@since</font> 1.7
+         */</font>
+        <font color=#7F0055>public</font> CodeArea(String directory, String file, <font color=#7F0055>int</font> start_line, <font color=#7F0055>int</font> start_column,
+                <font color=#7F0055>int</font> end_line, <font color=#7F0055>int</font> end_column, Number start_address, Number end_address, Number next_stmt_address, <font color=#7F0055>int</font> isa,
+                <font color=#7F0055>boolean</font> is_statement, <font color=#7F0055>boolean</font> basic_block,
+                <font color=#7F0055>boolean</font> prologue_end, <font color=#7F0055>boolean</font> epilogue_begin) {
+            <font color=#7F0055>this</font>.directory = directory;
+            <font color=#7F0055>this</font>.file = file;
+            <font color=#7F0055>this</font>.start_line = start_line;
+            <font color=#7F0055>this</font>.start_column = start_column;
+            <font color=#7F0055>this</font>.end_line = end_line;
+            <font color=#7F0055>this</font>.end_column = end_column;
+            <font color=#7F0055>this</font>.start_address = start_address;
+            <font color=#7F0055>this</font>.end_address = end_address;
+            <font color=#7F0055>this</font>.next_stmt_address = next_stmt_address;
             <font color=#7F0055>this</font>.isa = isa;
             <font color=#7F0055>this</font>.is_statement = is_statement;
             <font color=#7F0055>this</font>.basic_block = basic_block;
@@ -215,7 +240,7 @@ R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull; <i>&lt;a
             getInteger(area, "SLine", 0), getInteger(area, "SCol", 0),
             getInteger(area, "ELine", 0), getInteger(area, "ECol", 0),
             (Number)area.get("SAddr"), (Number)area.get("EAddr"),
-            getInteger(area, "ISA", 0),
+            (Number)area.get("NStmtAddr"), getInteger(area, "ISA", 0),
             getBoolean(area, "IsStmt"), getBoolean(area, "BasicBlock"),
             getBoolean(area, "PrologueEnd"), getBoolean(area, "EpilogueBegin"));
         }
@@ -256,6 +281,8 @@ R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull; <i>&lt;a
             if (start_address == null && a.start_address != null) return false;
             if (end_address != null && !end_address.equals(a.end_address)) return false;
             if (end_address == null && a.end_address != null) return false;
+            if (next_stmt_address != null && !next_stmt_address.equals(a.next_stmt_address)) return false;
+            if (next_stmt_address == null && a.next_stmt_address != null) return false;
             if (file != null && !file.equals(a.file)) return false;
             if (file == null && a.file != null) return false;
             if (directory != null && !directory.equals(a.directory)) return false;
@@ -308,6 +335,11 @@ R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull; <i>&lt;a
             }
             else {
                 bf.append('0');
+            }
+            if (next_stmt_address != null) {
+                bf.append(",next stmt ");
+                bf.append("0x");
+                bf.append(JSON.toBigInteger(next_stmt_address).toString(16));
             }
             if (isa != 0) {
                 bf.append(",isa ");

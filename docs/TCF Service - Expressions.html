@@ -340,6 +340,12 @@ R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull;
         String getTypeID();
 
         <font color=#3F5FBF>/**
+         * Get expression type class.
+         * <font color=#7F9FBF>@return</font> type class.
+         */</font>
+        ISymbols.TypeClass getTypeClass();
+
+        <font color=#3F5FBF>/**
          * Check if the expression can be assigned a new value.
          * <font color=#7F9FBF>@return</font> true if can assign.
          */</font>
@@ -371,6 +377,7 @@ R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull;
         PROP_BITS = "Bits",
         PROP_SIZE = "Size",
         PROP_TYPE = "Type",
+        PROP_CLASS = "Class",
         PROP_CAN_ASSIGN = "CanAssign",
         PROP_HAS_FUNC_CALL = "HasFuncCall";
 

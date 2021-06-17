@@ -18,6 +18,7 @@
         <li><a href='#CmdSuspend'>Suspend</a>
         <li><a href='#CmdResume'>Resume</a>
         <li><a href='#CmdGetState'>Get State</a>
+        <li><a href='#CmdGetMinState'>Get Min State</a>
         <li><a href='#CmdTerminate'>Terminate</a>
         <li><a href='#CmdDetach'>Detach</a>
     </ul>
@@ -440,6 +441,29 @@ Definition of state properties depends on a target. Predefined properties are:</
          - name of current state if other than "Running", for example: "Sleeping", "Reset", "No Clock", "Zombie";
          human readable string to be used to decorate context presentation in UI
 </ul>
+
+<h3><a name='CmdGetMinState'>Get Min State</a></h3>
+
+<pre><b><font face="Courier New" size=2 color=#333399>
+C &bull; <i>&lt;token&gt;</i> &bull; RunControl &bull; getMinState &bull; <i>&lt;string: context ID&gt;</i> &bull;
+</font></b></pre>
+
+<p>This command is meant as a "minimal" alternative to the more costly
+<a href='#CmdGetState'>Get State</a> command. Get Min State can be faster, because it does not need to read program counter from the target.
+It can be used as an optimization by clients (e.g. Eclipse GUI) that
+need only minimal information about the run control state of a context,
+i.e. running/suspended and a reason for the latter</p>
+
+<p>Result message:</p>
+
+<pre><b><font face="Courier New" size=2 color=#333399>
+R &bull; <i>&lt;token&gt;</i> &bull; <i>&lt;error report&gt;</i> &bull; <i>&lt;boolean: suspended&gt;</i> &bull;
+    <i>&lt;string: last state change reason&gt;</i> &bull; <i>&lt;state data&gt;</i> &bull;
+
+<i>&lt;state data&gt;</i>
+    &rArr; null
+    &rArr; <i>&lt;object: context state properties&gt;</i>
+</font></b></pre>
 
 <h3><a name='CmdTerminate'>Terminate</a></h3>
 
@@ -1069,6 +1093,16 @@ E &bull; RunControl &bull; contextStateChanged &bull; <i>&lt;string: context IDs
         IToken getState(DoneGetState done);
 
         <font color=#3F5FBF>/**
+         * Send a command to retrieve current state of a context.
+         * Similar to getState, but does not retrieve PC.
+         * With some targets, it can be substantially faster.
+         * <font color=#7F9FBF>@param</font> done - command result call back object.
+         * <font color=#7F9FBF>@return</font> pending command handle, can be used to cancel the command.
+         * <font color=#7F9FBF>@since</font> 1.7
+         */</font>
+        IToken getMinState(DoneGetMinState done);
+
+        <font color=#3F5FBF>/**
          * Send a command to suspend a context.
          * Also suspends children if context is a container.
          * <font color=#7F9FBF>@param</font> done - command result call back object.
@@ -1123,6 +1157,20 @@ E &bull; RunControl &bull; contextStateChanged &bull; <i>&lt;string: context IDs
          * <font color=#7F9FBF>@param</font> params - additional target specific data about context state, see STATE_*.
          */</font>
         <font color=#7F0055>void</font> doneGetState(IToken token, Exception error, <font color=#7F0055>boolean</font> suspended, String pc,
+                String reason, Map&lt;String,Object&gt; params);
+    }
+
+    <font color=#3F5FBF>/** <font color=#7F9FBF>@since</font> 1.7 */</font>
+    <font color=#7F0055>interface</font> DoneGetMinState {
+        <font color=#3F5FBF>/**
+         * Called when getMinState command execution is complete.
+         * <font color=#7F9FBF>@param</font> token - pending command handle.
+         * <font color=#7F9FBF>@param</font> error - command execution error or null.
+         * <font color=#7F9FBF>@param</font> suspended - true if the context is suspended
+         * <font color=#7F9FBF>@param</font> reason - suspend reason (if suspended), see REASON_*.
+         * <font color=#7F9FBF>@param</font> params - additional target specific data about context state, see STATE_*.
+         */</font>
+        <font color=#7F0055>void</font> doneGetMinState(IToken token, Exception error, <font color=#7F0055>boolean</font> suspended,
                 String reason, Map&lt;String,Object&gt; params);
     }
 

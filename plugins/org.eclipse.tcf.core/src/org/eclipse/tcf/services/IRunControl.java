@@ -549,6 +549,7 @@ public interface IRunControl extends IService {
          * With some targets, it can be substantially faster.
          * @param done - command result call back object.
          * @return pending command handle, can be used to cancel the command.
+         * @since 1.7
          */
         IToken getMinState(DoneGetMinState done);
 
@@ -610,6 +611,7 @@ public interface IRunControl extends IService {
                 String reason, Map<String,Object> params);
     }
 
+    /** @since 1.7 */
     interface DoneGetMinState {
         /**
          * Called when getMinState command execution is complete.
