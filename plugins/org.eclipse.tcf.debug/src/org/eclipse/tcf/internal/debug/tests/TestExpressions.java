@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008-2020 Wind River Systems, Inc. and others.
+ * Copyright (c) 2008-2021 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -74,7 +74,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
     private String[] stack_range;
     private IStackTrace.StackTraceContext[] stack_frames;
     private String[] local_var_expr_ids;
-    private final Set<IToken> cmds = new HashSet<IToken>();
+    private final Map<IToken,String> cmds = new HashMap<IToken,String>();
     private final Map<String,String> global_var_ids = new HashMap<String,String>();
     private final Map<String,String> local_var_ids = new HashMap<String,String>();
     private final Map<String,SymbolLocation> global_var_location = new HashMap<String,SymbolLocation>();
@@ -265,7 +265,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                                     if (test_suite.cancel) {
                                         exit(null);
                                     }
-                                    else if (timer < 600) {
+                                    else if (timer < 1200) {
                                         if (test_done && !cancel_test_sent) {
                                             test_rc.cancel(test_ctx_id);
                                             cancel_test_sent = true;
@@ -275,8 +275,24 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                                     else if (test_ctx_id == null) {
                                         exit(new Error("Timeout waiting for reply of Diagnostics.runTest command"));
                                     }
+                                    else if (!run_to_bp_done) {
+                                        exit(new Error("Timeout waiting for breakpoint"));
+                                    }
+                                    else if (stack_trace == null || stack_range == null || stack_frames == null) {
+                                        exit(new Error("Timeout waiting for stack trace"));
+                                    }
+                                    else if (cmds.size() > 0) {
+                                        StringBuffer bf = new StringBuffer();
+                                        bf.append("Timeout waiting for commands:");
+                                        for (String s : cmds.values()) {
+                                            bf.append('\n');
+                                            bf.append("  ");
+                                            bf.append(s);
+                                        }
+                                        exit(new Error(bf.toString()));
+                                    }
                                     else {
-                                        exit(new Error("Missing 'contextRemoved' event for " + test_ctx_id));
+                                        exit(new Error("Timeout waiting for expressions test to finish"));
                                     }
                                 }
                             });
@@ -550,7 +566,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
         for (final String id : local_var_expr_ids) {
             if (expr_ctx.get(id) == null) {
                 testSymbolsFlushEvents();
-                cmds.add(srv_expr.getContext(id, new IExpressions.DoneGetContext() {
+                cmds.put(srv_expr.getContext(id, new IExpressions.DoneGetContext() {
                     public void doneGetContext(IToken token, Exception error, IExpressions.Expression ctx) {
                         cmds.remove(token);
                         if (error != null) {
@@ -562,7 +578,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                             runTest();
                         }
                     }
-                }));
+                }), "Expressions getContext ...");
                 if (rnd.nextInt(16) == 0) return;
             }
         }
@@ -570,7 +586,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
             for (final String nm : global_var_names) {
                 if (!global_var_ids.containsKey(nm)) {
                     boolean tls = nm.startsWith("tcf_test_tls");
-                    cmds.add(srv_syms.find(tls ? thread_id : process_id,
+                    cmds.put(srv_syms.find(tls ? thread_id : process_id,
                             stack_frames[stack_frames.length - 2].getInstructionAddress(), nm,
                             new ISymbols.DoneFind() {
                         public void doneFind(IToken token, Exception error, String symbol_id) {
@@ -595,7 +611,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                                 runTest();
                             }
                         }
-                    }));
+                    }), "Symbols find ... " + nm);
                     if (rnd.nextInt(16) == 0) return;
                 }
             }
@@ -603,7 +619,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
         if (srv_syms != null) {
             for (final String id : global_var_ids.values()) {
                 if (id != null && global_var_location.get(id) == null) {
-                    cmds.add(srv_syms.getLocationInfo(id, new ISymbols.DoneGetLocationInfo() {
+                    cmds.put(srv_syms.getLocationInfo(id, new ISymbols.DoneGetLocationInfo() {
                         public void doneGetLocationInfo(IToken token, Exception error, Map<String, Object> props) {
                             cmds.remove(token);
                             SymbolLocation l = new SymbolLocation();
@@ -631,13 +647,13 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                                 }
                             }
                         }
-                    }));
+                    }), "Symbols getLocationInfo ...");
                     if (rnd.nextInt(16) == 0) return;
                 }
             }
             for (final String id : local_var_ids.values()) {
                 if (id != null && local_var_location.get(id) == null) {
-                    cmds.add(srv_syms.getLocationInfo(id, new ISymbols.DoneGetLocationInfo() {
+                    cmds.put(srv_syms.getLocationInfo(id, new ISymbols.DoneGetLocationInfo() {
                         public void doneGetLocationInfo(IToken token, Exception error, Map<String, Object> props) {
                             cmds.remove(token);
                             SymbolLocation l = new SymbolLocation();
@@ -661,7 +677,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                                 runTest();
                             }
                         }
-                    }));
+                    }), "Symbols getLocationInfo ...");
                     if (rnd.nextInt(16) == 0) return;
                 }
             }
@@ -691,7 +707,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                     Map<String,Object> scope = new HashMap<String,Object>();
                     scope.put(IExpressions.SCOPE_CONTEXT_ID, stack_trace[stack_trace.length - 2]);
                     if (rnd.nextBoolean()) scope.put(IExpressions.SCOPE_ADDRESS, sym_func3.getValue());
-                    cmds.add(srv_expr.createInScope(scope, txt, new IExpressions.DoneCreate() {
+                    cmds.put(srv_expr.createInScope(scope, txt, new IExpressions.DoneCreate() {
                         public void doneCreate(IToken token, Exception error, IExpressions.Expression ctx) {
                             cmds.remove(token);
                             if (error instanceof IErrorReport && ((IErrorReport)error).getErrorCode() == IErrorReport.TCF_ERROR_INV_COMMAND) {
@@ -707,10 +723,10 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                                 runTest();
                             }
                         }
-                    }));
+                    }), "Expression createInScope ... \"" + txt + "\"");
                 }
                 else {
-                    cmds.add(srv_expr.create(stack_trace[stack_trace.length - 2], null, txt, new IExpressions.DoneCreate() {
+                    cmds.put(srv_expr.create(stack_trace[stack_trace.length - 2], null, txt, new IExpressions.DoneCreate() {
                         public void doneCreate(IToken token, Exception error, IExpressions.Expression ctx) {
                             cmds.remove(token);
                             if (error != null) {
@@ -722,7 +738,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                                 runTest();
                             }
                         }
-                    }));
+                    }), "Expressions create ... \"" + txt + "\"");
                 }
                 if (rnd.nextInt(16) == 0) return;
             }
@@ -730,7 +746,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
         for (final String id : local_var_expr_ids) {
             if (expr_val.get(id) == null) {
                 testSymbolsFlushEvents();
-                cmds.add(srv_expr.evaluate(id, new IExpressions.DoneEvaluate() {
+                cmds.put(srv_expr.evaluate(id, new IExpressions.DoneEvaluate() {
                     public void doneEvaluate(IToken token, Exception error, IExpressions.Value ctx) {
                         cmds.remove(token);
                         if (error != null) {
@@ -741,14 +757,14 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                             runTest();
                         }
                     }
-                }));
+                }), "Expressions evaluate ...");
                 if (rnd.nextInt(16) == 0) return;
             }
         }
         for (final String id : expr_ctx.keySet()) {
             if (expr_val.get(id) == null) {
                 testSymbolsFlushEvents();
-                cmds.add(srv_expr.evaluate(expr_ctx.get(id).getID(), new IExpressions.DoneEvaluate() {
+                cmds.put(srv_expr.evaluate(expr_ctx.get(id).getID(), new IExpressions.DoneEvaluate() {
                     public void doneEvaluate(IToken token, Exception error, IExpressions.Value ctx) {
                         cmds.remove(token);
                         if (error != null) {
@@ -767,7 +783,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                             runTest();
                         }
                     }
-                }));
+                }), "Expressions evaluate ...");
                 if (rnd.nextInt(16) == 0) return;
             }
         }
@@ -778,7 +794,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                     String type_id = v.getTypeID();
                     if (type_id != null) {
                         testSymbolsFlushEvents();
-                        cmds.add(srv_syms.getContext(type_id, new ISymbols.DoneGetContext() {
+                        cmds.put(srv_syms.getContext(type_id, new ISymbols.DoneGetContext() {
                             public void doneGetContext(IToken token, Exception error, ISymbols.Symbol ctx) {
                                 cmds.remove(token);
                                 if (error != null) {
@@ -792,7 +808,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                                     runTest();
                                 }
                             }
-                        }));
+                        }), "Symbols getContext ...");
                         if (rnd.nextInt(16) == 0) return;
                     }
                 }
@@ -801,7 +817,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                 if (expr_chld.get(id) == null) {
                     testSymbolsFlushEvents();
                     ISymbols.Symbol sym = expr_sym.get(id);
-                    cmds.add(srv_syms.getChildren(sym.getID(), new ISymbols.DoneGetChildren() {
+                    cmds.put(srv_syms.getChildren(sym.getID(), new ISymbols.DoneGetChildren() {
                         public void doneGetChildren(IToken token, Exception error, String[] context_ids) {
                             cmds.remove(token);
                             if (error != null) {
@@ -813,14 +829,14 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                                 runTest();
                             }
                         }
-                    }));
+                    }), "Symbols getChildren ...");
                     if (rnd.nextInt(16) == 0) return;
                 }
             }
         }
         if (cmds.size() > 0) return;
         if (srv_dprintf != null && !dprintf_done && local_var_expr_ids.length > 0) {
-            cmds.add(srv_dprintf.open(null, new IDPrintf.DoneCommandOpen() {
+            cmds.put(srv_dprintf.open(null, new IDPrintf.DoneCommandOpen() {
                 int test_cnt;
                 int char_cnt;
                 @Override
@@ -830,7 +846,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                         exit(error);
                         return;
                     }
-                    cmds.add(srv_streams.connect(id, new IStreams.DoneConnect() {
+                    cmds.put(srv_streams.connect(id, new IStreams.DoneConnect() {
                         @Override
                         public void doneConnect(IToken token, Exception error) {
                             cmds.remove(token);
@@ -839,8 +855,8 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                                 return;
                             }
                         }
-                    }));
-                    cmds.add(srv_streams.read(id, 256, new IStreams.DoneRead() {
+                    }), "Streams connect ...");
+                    cmds.put(srv_streams.read(id, 256, new IStreams.DoneRead() {
                         @Override
                         public void doneRead(IToken token, Exception error, int lost_size, byte[] data, boolean eos) {
                             cmds.remove(token);
@@ -865,7 +881,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                                 }
                             }
                             if (test_cnt >= test_dprintfs.length / 2) {
-                                cmds.add(srv_streams.disconnect(id, new IStreams.DoneDisconnect() {
+                                cmds.put(srv_streams.disconnect(id, new IStreams.DoneDisconnect() {
                                     @Override
                                     public void doneDisconnect(IToken token, Exception error) {
                                         cmds.remove(token);
@@ -875,18 +891,18 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                                         }
                                         runTest();
                                     }
-                                }));
+                                }), "Streams disconnect ...");
                             }
                             else {
-                                cmds.add(srv_streams.read(id, 256, this));
+                                cmds.put(srv_streams.read(id, 256, this), "Streams read ...");
                             }
                         }
-                    }));
+                    }), "Streams read ...");
                     for (int n = 0; n < test_dprintfs.length; n += 2) {
                         final String txt = test_dprintfs[n];
                         final String res = test_dprintfs[n + 1];
                         testSymbolsFlushEvents();
-                        cmds.add(srv_expr.create(stack_trace[stack_trace.length - 2], null, txt, new IExpressions.DoneCreate() {
+                        cmds.put(srv_expr.create(stack_trace[stack_trace.length - 2], null, txt, new IExpressions.DoneCreate() {
                             public void doneCreate(IToken token, Exception error, IExpressions.Expression ctx) {
                                 cmds.remove(token);
                                 if (error != null) {
@@ -896,7 +912,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                                     if (res == null) exit(new Exception("Expressions service was expected to return error: " + txt));
                                     testSymbolsFlushEvents();
                                     expr_to_dispose.add(ctx.getID());
-                                    cmds.add(srv_expr.evaluate(ctx.getID(), new IExpressions.DoneEvaluate() {
+                                    cmds.put(srv_expr.evaluate(ctx.getID(), new IExpressions.DoneEvaluate() {
                                         @Override
                                         public void doneEvaluate(IToken token, Exception error, Value value) {
                                             cmds.remove(token);
@@ -905,18 +921,18 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                                                 return;
                                             }
                                         }
-                                    }));
+                                    }), "Expressions evaluate ...");
                                 }
                             }
-                        }));
+                        }), "Expressions create ... \"" + txt + "\"");
                     }
                 }
-            }));
+            }), "DPrintf open");
             dprintf_done = true;
             return;
         }
         for (final String id : expr_to_dispose) {
-            cmds.add(srv_expr.dispose(id, new IExpressions.DoneDispose() {
+            cmds.put(srv_expr.dispose(id, new IExpressions.DoneDispose() {
                 public void doneDispose(IToken token, Exception error) {
                     cmds.remove(token);
                     if (error != null) {
@@ -927,7 +943,7 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                         runTest();
                     }
                 }
-            }));
+            }), "Expressions dispose ...");
         }
         if (cmds.size() > 0) return;
         test_done = true;
