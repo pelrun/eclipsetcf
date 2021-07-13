@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008-2019 Wind River Systems, Inc. and others.
+ * Copyright (c) 2008-2021 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -59,6 +59,7 @@ import org.eclipse.tcf.services.ILineNumbers;
 import org.eclipse.tcf.services.IRunControl;
 import org.eclipse.tcf.services.IStackTrace;
 import org.eclipse.tcf.util.TCFDataCache;
+import org.eclipse.tcf.util.TCFTask;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
@@ -232,17 +233,23 @@ public class TCFAnnotationManager {
 
         @Override
         public void selectionChanged(IWorkbenchPart part, ISelection selection) {
-            updateAnnotations(part.getSite().getWorkbenchWindow(), (TCFLaunch)null);
             if (selection instanceof IStructuredSelection) {
-                final Object obj = ((IStructuredSelection)selection).getFirstElement();
-                if (obj instanceof TCFNodeStackFrame && ((TCFNodeStackFrame)obj).isTraceLimit()) {
-                    Protocol.invokeLater(new Runnable() {
-                        public void run() {
-                            ((TCFNodeStackFrame)obj).riseTraceLimit();
-                        }
-                    });
+                Object obj = ((IStructuredSelection)selection).getFirstElement();
+                if (obj instanceof TCFNodeStackFrame) {
+                    final TCFNodeStackFrame frame = (TCFNodeStackFrame)obj;
+                    if (frame.isTraceLimit()) {
+                        new TCFTask<Integer>() {
+                            public void run() {
+                                ((TCFNodeExecContext)frame.parent).riseTraceLimit();
+                                done(0);
+                            }
+                        }.getE();
+                    }
                 }
             }
+            // To avoid double refresh of the views,
+            // update annotations only after changing stack limit
+            updateAnnotations(part.getSite().getWorkbenchWindow(), (TCFLaunch)null);
         }
     };
 

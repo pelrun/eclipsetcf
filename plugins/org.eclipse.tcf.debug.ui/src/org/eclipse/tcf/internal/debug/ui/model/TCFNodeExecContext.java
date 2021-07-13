@@ -1409,11 +1409,6 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
             model.onMemoryChanged(id, false, false, false);
         }
         else {
-            last_children_list = null;
-            last_children_state_info = null;
-            last_stack_trace = null;
-            last_label = null;
-            last_image = null;
             super.refresh(part);
         }
     }

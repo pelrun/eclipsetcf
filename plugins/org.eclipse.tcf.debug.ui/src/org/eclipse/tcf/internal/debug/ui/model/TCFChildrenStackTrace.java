@@ -72,9 +72,21 @@ public class TCFChildrenStackTrace extends TCFChildren {
         reset();
     }
 
+    int getTraceLimit() {
+        int limit_value = 0x7fffffff;
+        boolean limit_enabled = node.model.getStackFramesLimitEnabled();
+        if (limit_enabled) {
+            assert limit_factor > 0;
+            limit_value = node.model.getStackFramesLimitValue() * limit_factor;
+            if (limit_value <= 0) limit_value = limit_factor;
+        }
+        return limit_value;
+    }
+
     void riseTraceLimit() {
         limit_factor++;
-        reset();
+        // Command arguments changed - cancel pending command
+        cancel();
     }
 
     void postAllChangedDelta() {
@@ -110,7 +122,6 @@ public class TCFChildrenStackTrace extends TCFChildren {
         TCFNodeStackFrame n = (TCFNodeStackFrame)node.model.getNode(top_frame_id);
         if (n == null) n = new TCFNodeStackFrame(node, top_frame_id, true);
         n.setFrameNo(0);
-        n.setTraceLimit(false);
         data.put(n.id, n);
     }
 
@@ -119,21 +130,15 @@ public class TCFChildrenStackTrace extends TCFChildren {
             public void doneGetChildren(IToken token, Exception error, String[] contexts) {
                 if (command == token) {
                     if (error == null && contexts != null) {
-                        int limit_value = 0;
-                        boolean limit_enabled = node.model.getStackFramesLimitEnabled();
-                        if (limit_enabled) {
-                            limit_value = node.model.getStackFramesLimitValue() * limit_factor;
-                            if (limit_value <= 0) limit_value = limit_factor;
-                        }
+                        int limit_value = getTraceLimit();
                         int cnt = contexts.length;
                         for (String id : contexts) {
                             cnt--;
-                            if (!limit_enabled || cnt <= limit_value) {
+                            if (cnt <= limit_value) {
                                 TCFNodeStackFrame n = (TCFNodeStackFrame)node.model.getNode(id);
                                 if (n == null) n = new TCFNodeStackFrame(node, id, false);
                                 assert n.parent == node;
                                 n.setFrameNo(cnt);
-                                n.setTraceLimit(limit_enabled && cnt == limit_value);
                                 data.put(id, n);
                                 if (cnt == 0) top_frame_id = id;
                             }
@@ -147,9 +152,7 @@ public class TCFChildrenStackTrace extends TCFChildren {
     }
 
     private void runIncrementalStackTrace(final HashMap<String,TCFNode> data) {
-        int n = node.model.getStackFramesLimitValue() * limit_factor;
-        if (n <= 0) n = limit_factor;
-        final int limit_value = n;
+        final int limit_value = getTraceLimit();
         command = service.getChildrenRange(node.id, 0, limit_value, new IStackTrace.DoneGetChildren() {
             public void doneGetChildren(IToken token, Exception error, String[] contexts) {
                 if (command == token) {
@@ -165,7 +168,6 @@ public class TCFChildrenStackTrace extends TCFChildren {
                             if (n == null) n = new TCFNodeStackFrame(node, id, false);
                             assert n.parent == node;
                             n.setFrameNo(cnt);
-                            n.setTraceLimit(cnt == limit_value);
                             data.put(id, n);
                             if (cnt == 0) top_frame_id = id;
                             cnt++;

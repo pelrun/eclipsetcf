@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2015 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007-2021 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -39,7 +39,7 @@ import org.eclipse.tcf.util.TCFDataCache;
 public class TCFNodeStackFrame extends TCFNode implements ITCFStackFrame {
 
     private int frame_no;
-    private boolean trace_limit;
+    private boolean trace_limit_label;
     private final boolean emulated;
     private final TCFChildrenRegisters children_regs;
     private final TCFChildrenLocalVariables children_vars;
@@ -242,10 +242,6 @@ public class TCFNodeStackFrame extends TCFNode implements ITCFStackFrame {
         this.frame_no = frame_no;
     }
 
-    void setTraceLimit(boolean trace_limit) {
-        this.trace_limit = trace_limit;
-    }
-
     TCFChildren getHoverExpressionCache(String expression) {
         children_hover_exps.setExpression(expression);
         return children_hover_exps;
@@ -279,12 +275,8 @@ public class TCFNodeStackFrame extends TCFNode implements ITCFStackFrame {
         return emulated;
     }
 
-    boolean isTraceLimit() {
-        return trace_limit && ((TCFNodeExecContext)parent).getViewBottomFrame() == this;
-    }
-
-    void riseTraceLimit() {
-        ((TCFNodeExecContext)parent).riseTraceLimit();
+    public boolean isTraceLimit() {
+        return trace_limit_label;
     }
 
     private TCFChildren getChildren(IPresentationContext ctx) {
@@ -331,19 +323,22 @@ public class TCFNodeStackFrame extends TCFNode implements ITCFStackFrame {
 
     @Override
     protected boolean getData(ILabelUpdate result, Runnable done) {
-        TCFChildrenStackTrace stack_trace_cache = ((TCFNodeExecContext)parent).getStackTrace();
+        TCFNodeExecContext exe = (TCFNodeExecContext)parent;
+        TCFChildrenStackTrace stack_trace_cache = exe.getStackTrace();
         if (!stack_trace_cache.validate(done)) return false;
         if (stack_trace_cache.getData().get(id) == null) {
             result.setLabel("", 0);
+            trace_limit_label = false;
         }
-        else if (isTraceLimit()) {
+        else if (exe.getViewBottomFrame() == this && frame_no >= exe.getStackTrace().getTraceLimit()) {
             result.setLabel("<select to see more frames>", 0);
+            trace_limit_label = true;
         }
         else {
             boolean show_arg_names = model.getShowFunctionArgNames();
             boolean show_arg_values = model.getShowFunctionArgValues();
-            TCFDataCache<TCFContextState> state_cache = ((TCFNodeExecContext)parent).getState();
-            TCFDataCache<TCFNodeExecContext> mem_cache = ((TCFNodeExecContext)parent).getMemoryNode();
+            TCFDataCache<TCFContextState> state_cache = exe.getState();
+            TCFDataCache<TCFNodeExecContext> mem_cache = exe.getMemoryNode();
             TCFDataCache<?> pending = null;
             if (!state_cache.validate()) pending = state_cache;
             if (!mem_cache.validate()) pending = mem_cache;
@@ -384,7 +379,7 @@ public class TCFNodeStackFrame extends TCFNode implements ITCFStackFrame {
                     TCFNodeExecContext.MemoryRegion[] map = map_dc.getData();
                     if (map != null) {
                         BigInteger n = addr;
-                        assert ((TCFNodeExecContext)parent).getStackTrace().isValid();
+                        assert exe.getStackTrace().isValid();
                         if (frame_no > 0) n = n.subtract(BigInteger.valueOf(1));
                         for (TCFNodeExecContext.MemoryRegion r : map) {
                             String fnm = r.region.getFileName();
@@ -470,9 +465,6 @@ public class TCFNodeStackFrame extends TCFNode implements ITCFStackFrame {
                     if (bf.length() > 0) bf.append(": ");
                     bf.append(TCFModel.getErrorMessage(error, false));
                 }
-                else {
-                    result.setLabel("...", 0);
-                }
             }
             if (bf.length() == 0) bf.append("...");
             result.setLabel(bf.toString(), 0);
@@ -482,6 +474,7 @@ public class TCFNodeStackFrame extends TCFNode implements ITCFStackFrame {
             else if (state.isReversing()) image_name = ImageCache.IMG_STACK_FRAME_REVERSING;
             else image_name = ImageCache.IMG_STACK_FRAME_RUNNING;
             result.setImageDescriptor(ImageCache.getImageDescriptor(image_name), 0);
+            trace_limit_label = false;
         }
         return true;
     }
