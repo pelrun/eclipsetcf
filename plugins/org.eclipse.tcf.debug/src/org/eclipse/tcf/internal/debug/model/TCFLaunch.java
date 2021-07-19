@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007-2020 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007-2021 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -1616,50 +1616,64 @@ public class TCFLaunch extends Launch {
         this.mode = mode;
         this.launch_task = task;
         this.launch_monitor = monitor;
-        try {
-            if (id == null || id.length() == 0) throw new IOException("Invalid peer ID");
-            redirection_path.clear();
-            for (;;) {
-                int i = id.indexOf('/');
-                if (i <= 0) {
-                    redirection_path.add(id);
-                    break;
-                }
-                redirection_path.add(id.substring(0, i));
-                id = id.substring(i + 1);
+        redirection_path.clear();
+        if (id == null || id.length() == 0) {
+            onDisconnected(new IOException("Invalid peer ID"));
+            return;
+        }
+        for (;;) {
+            int i = id.indexOf('/');
+            if (i <= 0) {
+                redirection_path.add(id);
+                break;
             }
-            String id0 = redirection_path.removeFirst();
-            IPeer peer = Protocol.getLocator().getPeers().get(id0);
-            if (peer == null) throw new Exception("Cannot locate peer " + id0);
-            peer_name = getPeerName(peer);
-            channel = peer.openChannel();
-            channel.addChannelListener(new IChannel.IChannelListener() {
-
-                public void onChannelOpened() {
-                    try {
-                        peer_name = getPeerName(getPeer());
-                        onConnected();
-                    }
-                    catch (Throwable x) {
-                        channel.terminate(x);
-                    }
-                }
-
-                public void congestionLevel(int level) {
-                }
-
-                public void onChannelClosed(Throwable error) {
-                    channel.removeChannelListener(this);
-                    onDisconnected(error);
-                }
-            });
-            assert channel.getState() == IChannel.STATE_OPENING;
-            if (launch_monitor != null) launch_monitor.subTask("Connecting to " + peer_name);
-            connecting = true;
+            redirection_path.add(id.substring(0, i));
+            id = id.substring(i + 1);
         }
-        catch (Throwable e) {
-            onDisconnected(e);
-        }
+        Protocol.invokeLater(new Runnable() {
+            final String id0 = redirection_path.removeFirst();
+            int retry_cnt = 0;
+            @Override
+            public void run() {
+                IPeer peer = Protocol.getLocator().getPeers().get(id0);
+                if (peer == null) {
+                    if (retry_cnt < 30) {
+                        Protocol.invokeLater(1000, this);
+                        retry_cnt++;
+                    }
+                    else {
+                        onDisconnected(new Exception("Cannot locate peer " + id0));
+                    }
+                    return;
+                }
+                peer_name = getPeerName(peer);
+                if (launch_monitor != null) launch_monitor.subTask("Connecting to " + peer_name);
+                channel = peer.openChannel();
+                channel.addChannelListener(new IChannel.IChannelListener() {
+
+                    public void onChannelOpened() {
+                        try {
+                            peer_name = getPeerName(getPeer());
+                            onConnected();
+                        }
+                        catch (Throwable x) {
+                            channel.terminate(x);
+                        }
+                    }
+
+                    public void congestionLevel(int level) {
+                    }
+
+                    public void onChannelClosed(Throwable error) {
+                        channel.removeChannelListener(this);
+                        onDisconnected(error);
+                    }
+                });
+                assert channel.getState() == IChannel.STATE_OPENING;
+            }
+        });
+        if (launch_monitor != null) launch_monitor.subTask("Searching for peers");
+        connecting = true;
     }
 
     /**
