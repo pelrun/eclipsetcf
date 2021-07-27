@@ -947,7 +947,8 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
     }
 
     private boolean okToShowLastStack() {
-        return resume_pending && last_stack_trace != null;
+        if (last_stack_trace == null) return false;
+        return resume_pending || (launch.getContextActionsCount(id) > 0 && model.getDelayStackUpdateUtilLastStep());
     }
 
     private boolean okToHideStack() {
@@ -1388,6 +1389,7 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
         result.setInputElement(this);
         String view_id = result.getPresentationContext().getId();
         if (IDebugUIConstants.ID_VARIABLE_VIEW.equals(view_id)) {
+            if (launch.getContextActionsCount(id) > 0 && model.getDelayStackUpdateUtilLastStep()) return true;
             if (!children_stack.validate(done)) return false;
             TCFNodeStackFrame frame = children_stack.getTopFrame();
             if (frame != null) result.setInputElement(frame);

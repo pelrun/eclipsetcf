@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008-2020 Wind River Systems, Inc. and others.
+ * Copyright (c) 2008-2021 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -940,7 +940,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
         if (p instanceof TCFNodeStackFrame) {
             TCFNodeExecContext exe = (TCFNodeExecContext)p.parent;
             TCFAction action = model.getActiveAction(exe.id);
-            if (action != null && action.showRunning()) return true;
+            if (action != null && (action.showRunning() || model.getDelayStackUpdateUtilLastStep())) return true;
             TCFDataCache<TCFContextState> state_cache = exe.getState();
             if (!state_cache.validate(done)) return null;
             TCFContextState state = state_cache.getData();
@@ -952,7 +952,7 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
         else if (p instanceof TCFNodeExecContext) {
             TCFNodeExecContext exe = (TCFNodeExecContext)p;
             TCFAction action = model.getActiveAction(exe.id);
-            if (action != null && action.showRunning()) return true;
+            if (action != null && (action.showRunning() || model.getDelayStackUpdateUtilLastStep())) return true;
             TCFDataCache<TCFContextState> state_cache = exe.getState();
             if (!state_cache.validate(done)) return null;
             TCFContextState state = state_cache.getData();

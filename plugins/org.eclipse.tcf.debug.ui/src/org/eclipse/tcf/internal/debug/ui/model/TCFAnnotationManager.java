@@ -651,6 +651,7 @@ public class TCFAnnotationManager {
                 TCFNodeExecContext memory = null;
                 TCFNodeStackFrame frame = null;
                 TCFNodeStackFrame last_top_frame = null;
+                TCFContextState state_data = null;
                 String bp_group = null;
                 boolean suspended = false;
                 if (node instanceof TCFNodeStackFrame) {
@@ -662,10 +663,6 @@ public class TCFAnnotationManager {
                 }
                 else if (node instanceof TCFNodeExecContext) {
                     thread = (TCFNodeExecContext)node;
-                    // Make sure frame.getTopFrame() is valid
-                    TCFChildrenStackTrace trace = thread.getStackTrace();
-                    if (!trace.validate(this)) return;
-                    frame = trace.getTopFrame();
                 }
                 if (thread != null) {
                     TCFAction action = thread.model.getActiveAction(thread.id);
@@ -681,7 +678,8 @@ public class TCFAnnotationManager {
                         last_top_frame = thread.getLastTopFrame();
                         TCFDataCache<TCFContextState> state_cache = thread.getState();
                         if (!state_cache.validate(this)) return;
-                        suspended = state_cache.getData() != null && state_cache.getData().is_suspended;
+                        state_data = state_cache.getData();
+                        suspended = state_data != null && state_data.is_suspended;
                     }
                 }
                 Set<TCFAnnotation> set = new LinkedHashSet<TCFAnnotation>();
@@ -789,16 +787,33 @@ public class TCFAnnotationManager {
                         set.add(a);
                     }
                 }
-                if (!suspended && last_top_frame != null) {
-                    TCFDataCache<TCFSourceRef> line_cache = last_top_frame.getLineInfo();
+                else if (suspended && state_data != null && state_data.suspend_pc != null) {
+                    BigInteger addr_data = new BigInteger(state_data.suspend_pc);
+                    TCFDataCache<TCFSourceRef> line_cache = thread.getLineInfo(addr_data);
                     if (!line_cache.validate(this)) return;
                     TCFSourceRef line_data = line_cache.getData();
                     if (line_data != null && line_data.area != null) {
+                        String addr_str = "";
+                        addr_str += ", IP: 0x" + addr_data.toString(16);
+                        addr_str += ", line: " + line_data.area.start_line;
                         TCFAnnotation a = new TCFAnnotation(line_data.context_id, null, null, line_data.area,
-                                ImageCache.IMG_INSTRUCTION_POINTER,
-                                "Last Instruction Pointer position",
-                                TYPE_STACK_FRAME);
+                                ImageCache.IMG_INSTRUCTION_POINTER_TOP,
+                                "Current Instruction Pointer" + addr_str,
+                                TYPE_TOP_FRAME);
                         set.add(a);
+                    }
+                }
+                if (!suspended && last_top_frame != null) {
+                    TCFDataCache<TCFSourceRef> line_cache = last_top_frame.getLineInfo();
+                    if (line_cache.isValid()) {
+                        TCFSourceRef line_data = line_cache.getData();
+                        if (line_data != null && line_data.area != null) {
+                            TCFAnnotation a = new TCFAnnotation(line_data.context_id, null, null, line_data.area,
+                                    ImageCache.IMG_INSTRUCTION_POINTER,
+                                    "Last Instruction Pointer position",
+                                    TYPE_STACK_FRAME);
+                            set.add(a);
+                        }
                     }
                 }
                 done(set);

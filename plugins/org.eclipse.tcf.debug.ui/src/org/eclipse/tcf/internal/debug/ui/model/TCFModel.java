@@ -10,6 +10,7 @@
  *******************************************************************************/
 package org.eclipse.tcf.internal.debug.ui.model;
 
+import java.math.BigInteger;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -1949,18 +1950,22 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
         Protocol.invokeLater(25, new Runnable() {
             public void run() {
                 if (!displaySourceCheck(page, generation)) return;
-                TCFNodeStackFrame stack_frame = null;
+                String ctx_id = null;
+                boolean top_frame = false;
+                TCFDataCache<TCFSourceRef> line_info = null;
                 if (!disposed && channel.getState() == IChannel.STATE_OPEN) {
                     if (element instanceof TCFNodeExecContext) {
                         TCFNodeExecContext exec_ctx = (TCFNodeExecContext)element;
                         if (!exec_ctx.isDisposed() && active_actions.get(exec_ctx.id) == null) {
-                            TCFDataCache<TCFContextState> state_cache = exec_ctx.getMinState();
+                            TCFDataCache<TCFContextState> state_cache = exec_ctx.getState();
                             if (!state_cache.validate(this)) return;
                             TCFContextState state_data = state_cache.getData();
-                            if (state_data != null && state_data.is_suspended && !state_data.isNotActive()) {
-                                TCFChildrenStackTrace stack_trace = exec_ctx.getStackTrace();
-                                if (!stack_trace.validate(this)) return;
-                                stack_frame = stack_trace.getTopFrame();
+                            if (state_data != null && state_data.is_suspended &&
+                                    state_data.suspend_pc != null && !state_data.isNotActive()) {
+                                BigInteger addr = new BigInteger(state_data.suspend_pc);
+                                line_info = exec_ctx.getLineInfo(addr);
+                                top_frame = true;
+                                ctx_id = exec_ctx.id;
                             }
                         }
                     }
@@ -1975,17 +1980,16 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
                                 // Validate stack trace to make sure stack_frame.getFrameNo() is valid
                                 TCFChildrenStackTrace stack_trace = exec_ctx.getStackTrace();
                                 if (!stack_trace.validate(this)) return;
-                                stack_frame = f;
+                                line_info = f.getLineInfo();
+                                top_frame = f.getFrameNo() == 0;
+                                ctx_id = f.parent.id;
                             }
                         }
                     }
                 }
-                String ctx_id = null;
                 String mem_id = null;
-                boolean top_frame = false;
                 ILineNumbers.CodeArea area = null;
-                if (stack_frame != null) {
-                    TCFDataCache<TCFSourceRef> line_info = stack_frame.getLineInfo();
+                if (line_info != null) {
                     if (!line_info.validate(this)) return;
                     Throwable error = line_info.getError();
                     TCFSourceRef src_ref = line_info.getData();
@@ -1995,8 +1999,6 @@ public class TCFModel implements ITCFModel, IElementContentProvider, IElementLab
                         mem_id = src_ref.context_id;
                         area = src_ref.area;
                     }
-                    top_frame = stack_frame.getFrameNo() == 0;
-                    ctx_id = stack_frame.parent.id;
                 }
                 displaySource(generation, page, element, ctx_id, mem_id, top_frame, area, event);
             }
