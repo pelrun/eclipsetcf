@@ -36,6 +36,7 @@ import org.eclipse.ui.IWorkbenchPart;
 @SuppressWarnings("restriction")
 public class TCFPinViewCommand implements IPinProvider {
 
+    public static final String ID_MEMORY_BROWSER_VIEW = "org.eclipse.cdt.debug.ui.memory.memorybrowser.MemoryBrowser"; //$NON-NLS-1$
     private final TCFModel model;
     private final ArrayList<PinnedView> list = new ArrayList<PinnedView>();
 
@@ -206,6 +207,7 @@ public class TCFPinViewCommand implements IPinProvider {
                     public void run() {
                         boolean mem = false;
                         boolean vars = false;
+                        boolean memBrowser = false;
                         if (obj instanceof TCFNodeExecContext) {
                             TCFNodeExecContext node = (TCFNodeExecContext)obj;
                             TCFDataCache<IRunControl.RunControlContext> ctx_cache = node.getRunContext();
@@ -214,15 +216,18 @@ public class TCFPinViewCommand implements IPinProvider {
                             if (ctx_data != null) {
                                 vars = ctx_data.hasState();
                                 mem = vars || ctx_data.getProcessID() != null;
+                                memBrowser = mem;
                             }
                         }
                         if (obj instanceof TCFNodeStackFrame) {
                             vars = true;
                             mem = true;
+                            memBrowser = false;
                         }
                         if (IDebugUIConstants.ID_REGISTER_VIEW.equals(id)) done(mem);
                         else if (IDebugUIConstants.ID_VARIABLE_VIEW.equals(id)) done(vars);
                         else if (IDebugUIConstants.ID_EXPRESSION_VIEW.equals(id)) done(mem);
+                        else if (ID_MEMORY_BROWSER_VIEW.equals(id)) done(memBrowser);
                         else done(false);
                     }
                 }.getE();
