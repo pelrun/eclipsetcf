@@ -471,16 +471,36 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
         }
         assert test_done || !canResume(thread_id);
         if (stack_trace == null) {
-            srv_stk.getChildren(thread_id, new IStackTrace.DoneGetChildren() {
+            srv_stk.getChildrenRange(thread_id, 0, 5, new IStackTrace.DoneGetChildren() {
                 public void doneGetChildren(IToken token, Exception error, String[] context_ids) {
-                    if (error != null) {
+                    if (error instanceof IErrorReport && ((IErrorReport)error).getErrorCode() == IErrorReport.TCF_ERROR_INV_COMMAND) {
+                        /* Older agent, the command not available */
+                        srv_stk.getChildren(thread_id, new IStackTrace.DoneGetChildren() {
+                            public void doneGetChildren(IToken token, Exception error, String[] context_ids) {
+                                if (error != null) {
+                                    exit(error);
+                                }
+                                else if (context_ids == null || context_ids.length < 2) {
+                                    exit(new Exception("Invalid stack trace"));
+                                }
+                                else {
+                                    stack_trace = context_ids;
+                                    runTest();
+                                }
+                            }
+                        });
+                    }
+                    else if (error != null) {
                         exit(error);
                     }
                     else if (context_ids == null || context_ids.length < 2) {
                         exit(new Exception("Invalid stack trace"));
                     }
                     else {
-                        stack_trace = context_ids;
+                        stack_trace = new String[context_ids.length];
+                        for (int i = 0; i < context_ids.length; i++) {
+                            stack_trace[context_ids.length - i - 1] = context_ids[i];
+                        }
                         runTest();
                     }
                 }
@@ -506,18 +526,18 @@ class TestExpressions implements ITCFTest, RunControl.DiagnosticTestDone,
                             int j = stack_trace.length - i - 2;
                             if (i >= context_ids.length) {
                                 if (j >= 0) {
-                                    exit(new Exception("Invalid result of doneGetChildren command: too short"));
+                                    exit(new Exception("Invalid result of getChildrenRange command: too short"));
                                 }
                             }
                             else {
                                 if (j < 0) {
-                                    exit(new Exception("Invalid result of doneGetChildren command: too long"));
+                                    exit(new Exception("Invalid result of getChildrenRange command: too long"));
                                 }
                                 if (context_ids[i]== null) {
-                                    exit(new Exception("Invalid result of doneGetChildren command: ID is null"));
+                                    exit(new Exception("Invalid result of getChildrenRange command: ID is null"));
                                 }
                                 if (!context_ids[i].equals(stack_trace[j])) {
-                                    exit(new Exception("Invalid result of doneGetChildren command: wrong ID"));
+                                    exit(new Exception("Invalid result of getChildrenRange command: wrong ID"));
                                 }
                             }
                         }

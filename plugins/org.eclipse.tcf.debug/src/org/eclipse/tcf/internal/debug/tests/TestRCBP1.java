@@ -1475,7 +1475,9 @@ class TestRCBP1 implements ITCFTest, RunControl.DiagnosticTestDone, IRunControl.
             if (isMyBreakpoint(sc)) {
                 rm = rnd.nextInt(6);
                 if (!ctx.canResume(rm)) rm = IRunControl.RM_RESUME;
+                /* TODO: a better way to test step counter
                 if (rm != IRunControl.RM_RESUME) cnt = rnd.nextInt(5) + 1;
+                */
             }
             test_rc.resume(id, rm, cnt);
         }

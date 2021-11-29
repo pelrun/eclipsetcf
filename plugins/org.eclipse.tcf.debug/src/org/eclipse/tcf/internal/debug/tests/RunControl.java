@@ -79,7 +79,7 @@ class RunControl {
         }
 
         public void contextSuspended(final String id, String pc, String reason, Map<String,Object> params) {
-            if (enable_trace) System.out.println("" + channel_id + " suspended " + id);
+            if (enable_trace) System.out.println("" + channel_id + " suspended " + id + ": " + pc + " " + reason);
             suspended_ctx_ids.add(id);
             Protocol.invokeLater(new Runnable() {
                 public void run() {
