@@ -32,7 +32,7 @@
 
     <organization>
         <name>Eclipse Foundation</name>
-        <url>http://www.eclipse.org/</url>
+        <url>https://www.eclipse.org/</url>
     </organization>
 
     <properties>
@@ -61,17 +61,13 @@
 
         <!-- P2 repository URL's -->
         <!-- Default: Eclipse 3.8.x (Juno), CDT 8.3.0 (Kepler SR2), TM 4.0 + Remote 2.0 (Mars) -->
-        <platform-site>http://download.eclipse.org/eclipse/updates/3.8</platform-site>
-        <license-site>http://download.eclipse.org/cbi/updates/license</license-site>
-        <cdt-site>http://download.eclipse.org/tools/cdt/releases/kepler</cdt-site>
-        <tm-site>http://download.eclipse.org/tm/updates/4.0</tm-site>
-        <terminal-site>http://download.eclipse.org/tm/terminal/updates/4.0</terminal-site>
+        <platform-site>https://download.eclipse.org/eclipse/updates/3.8</platform-site>
+        <license-site>https://download.eclipse.org/cbi/updates/license</license-site>
+        <cdt-site>https://archive.eclipse.org/tools/cdt/releases/kepler</cdt-site>
+        <tm-site>https://download.eclipse.org/tm/updates/4.0</tm-site>
+        <terminal-site>https://download.eclipse.org/tm/terminal/updates/4.0</terminal-site>
         <!-- TCF needs gson-2.2.4 which was added to Orbit in Luna SR2 -->
-        <orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20150124073747/repository/</orbit-site>
-        <!-- SWTBot-2.4 and later require an e4-based Eclipse eg Juno or later: -->
-        <!-- See http://wiki.eclipse.org/SWTBot/Releases -->
-        <!-- Also, newer SWTBot needs JUnit 4.12 which is only in Orbit Mars and newer -->
-        <swtbot-site>http://download.eclipse.org/technology/swtbot/releases/2.2.1/</swtbot-site>
+        <orbit-site>https://download.eclipse.org/tools/orbit/downloads/drops/R20150124073747/repository/</orbit-site>
     </properties>
 
     <repositories>
@@ -103,11 +99,6 @@
         <repository>
             <id>tm</id>
             <url>${tm-site}</url>
-            <layout>p2</layout>
-        </repository>
-        <repository>
-            <id>swtbot</id>
-            <url>${swtbot-site}</url>
             <layout>p2</layout>
         </repository>
     </repositories>
@@ -148,7 +139,7 @@
             <id>kepler</id>
 
             <properties>
-                <platform-site>http://download.eclipse.org/eclipse/updates/4.3</platform-site>
+                <platform-site>https://download.eclipse.org/eclipse/updates/4.3</platform-site>
             </properties>
         </profile>
 
@@ -157,8 +148,8 @@
             <id>luna</id>
 
             <properties>
-                <platform-site>http://download.eclipse.org/eclipse/updates/4.4</platform-site>
-                <cdt-site>http://download.eclipse.org/tools/cdt/releases/8.6</cdt-site>
+                <platform-site>https://download.eclipse.org/eclipse/updates/4.4</platform-site>
+                <cdt-site>https://archive.eclipse.org/tools/cdt/releases/8.6</cdt-site>
             </properties>
         </profile>
 
@@ -167,10 +158,9 @@
             <id>mars</id>
 
             <properties>
-                <platform-site>http://download.eclipse.org/eclipse/updates/4.5</platform-site>
-                <orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20160221192158/repository</orbit-site>
-                <cdt-site>http://download.eclipse.org/tools/cdt/releases/8.8.1</cdt-site>
-                <swtbot-site>http://download.eclipse.org/technology/swtbot/releases/2.5.0</swtbot-site>
+                <platform-site>https://download.eclipse.org/eclipse/updates/4.5</platform-site>
+                <orbit-site>https://download.eclipse.org/tools/orbit/downloads/drops/R20160221192158/repository</orbit-site>
+                <cdt-site>https://archive.eclipse.org/tools/cdt/releases/8.8.1</cdt-site>
             </properties>
         </profile>
 
@@ -179,12 +169,11 @@
             <id>neon</id>
 
             <properties>
-                <platform-site>http://download.eclipse.org/eclipse/updates/4.6</platform-site>
-                <orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20170307180635/repository</orbit-site>
-                <cdt-site>http://download.eclipse.org/tools/cdt/releases/9.2</cdt-site>
-                <terminal-site>http://download.eclipse.org/tm/terminal/updates/4.2</terminal-site>
-                <tm-site>http://download.eclipse.org/tm/updates/4.2</tm-site>
-                <swtbot-site>http://download.eclipse.org/technology/swtbot/releases/2.5.0</swtbot-site>
+                <platform-site>https://download.eclipse.org/eclipse/updates/4.6</platform-site>
+                <orbit-site>https://download.eclipse.org/tools/orbit/downloads/drops/R20170307180635/repository</orbit-site>
+                <cdt-site>https://archive.eclipse.org/tools/cdt/releases/9.2</cdt-site>
+                <terminal-site>https://download.eclipse.org/tm/terminal/updates/4.2</terminal-site>
+                <tm-site>https://download.eclipse.org/tm/updates/4.2</tm-site>
             </properties>
 
             <!-- Workaround for CDT release problem:
@@ -194,24 +183,35 @@
             <repositories>
                 <repository>
                     <id>cdt-launchbar</id>
-                    <url>http://download.eclipse.org/tools/cdt/launchbar/neon.2</url>
+                    <url>https://download.eclipse.org/tools/cdt/launchbar/neon.2</url>
                     <layout>p2</layout>
                 </repository>
             </repositories>
         </profile>
 
         <profile>
-            <!-- Eclipse 4.7.1 (Oxygen), CDT 9.3 -->
+            <!-- Eclipse 4.7 (Oxygen), CDT 9.3 -->
             <id>oxygen</id>
 
             <properties>
-                <platform-site>http://download.eclipse.org/eclipse/updates/4.7</platform-site>
-                <orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20170516192513/repository</orbit-site>
-                <cdt-site>http://download.eclipse.org/tools/cdt/releases/9.3</cdt-site>
-                <terminal-site>http://download.eclipse.org/tm/terminal/updates/4.3</terminal-site>
-                <tm-site>http://download.eclipse.org/tm/updates/4.3milestones</tm-site>
-                <swtbot-site>http://download.eclipse.org/technology/swtbot/releases/2.6.0/</swtbot-site>
+                <platform-site>https://download.eclipse.org/eclipse/updates/4.7</platform-site>
+                <orbit-site>https://download.eclipse.org/tools/orbit/downloads/drops/R20170516192513/repository</orbit-site>
+                <cdt-site>https://archive.eclipse.org/tools/cdt/releases/9.3/cdt9.3.3</cdt-site>
+                <terminal-site>https://download.eclipse.org/tm/terminal/updates/4.3</terminal-site>
+                <tm-site>https://download.eclipse.org/tm/updates/4.3milestones</tm-site>
             </properties>
+
+            <!-- Workaround for CDT release problem:
+                Missing requirement: org.eclipse.cdt.debug.core 8.2.0.201710130142 requires
+                'bundle org.eclipse.launchbar.core 2.0.0' but it could not be found
+            -->
+            <repositories>
+                <repository>
+                    <id>cdt-launchbar</id>
+                    <url>https://download.eclipse.org/tools/cdt/launchbar/neon.2</url>
+                    <layout>p2</layout>
+                </repository>
+            </repositories>
         </profile>
 
         <profile>
@@ -219,13 +219,24 @@
             <id>photon</id>
 
             <properties>
-                <platform-site>http://download.eclipse.org/eclipse/updates/4.8</platform-site>
-                <orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20180606145124/repository</orbit-site>
-                <cdt-site>http://download.eclipse.org/tools/cdt/releases/9.4</cdt-site>
-                <terminal-site>http://download.eclipse.org/tm/terminal/updates/4.4milestones</terminal-site>
-                <tm-site>http://download.eclipse.org/tm/updates/4.3milestones</tm-site>
-                <swtbot-site>http://download.eclipse.org/technology/swtbot/releases/2.7.0</swtbot-site>
+                <platform-site>https://download.eclipse.org/eclipse/updates/4.8</platform-site>
+                <orbit-site>https://download.eclipse.org/tools/orbit/downloads/drops/R20180606145124/repository</orbit-site>
+                <cdt-site>https://archive.eclipse.org/tools/cdt/releases/9.4/cdt-9.4.3</cdt-site>
+                <terminal-site>https://download.eclipse.org/tm/terminal/updates/4.4milestones</terminal-site>
+                <tm-site>https://download.eclipse.org/tm/updates/4.3milestones</tm-site>
             </properties>
+
+            <!-- Workaround for CDT release problem:
+                Missing requirement: org.eclipse.cdt.debug.core 8.3.0.201802261533 requires
+                'bundle org.eclipse.launchbar.core 2.0.0' but it could not be found
+            -->
+            <repositories>
+                <repository>
+                    <id>cdt-launchbar</id>
+                    <url>https://download.eclipse.org/tools/cdt/launchbar/neon.2</url>
+                    <layout>p2</layout>
+                </repository>
+            </repositories>
         </profile>
 
         <profile>
@@ -233,12 +244,35 @@
             <id>2018-09</id>
 
             <properties>
-                <platform-site>http://download.eclipse.org/releases/2018-09</platform-site>
-                <orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20180606145124/repository</orbit-site>
-                <cdt-site>http://download.eclipse.org/tools/cdt/releases/9.5</cdt-site>
-                <terminal-site>http://download.eclipse.org/tm/terminal/updates/4.4milestones</terminal-site>
-                <tm-site>http://download.eclipse.org/tm/updates/4.5.0-SNAPSHOT/repository</tm-site>
-                <swtbot-site>http://download.eclipse.org/technology/swtbot/releases/2.7.0</swtbot-site>
+                <platform-site>https://download.eclipse.org/releases/2018-09</platform-site>
+                <orbit-site>https://download.eclipse.org/tools/orbit/downloads/drops/R20180606145124/repository</orbit-site>
+                <cdt-site>https://archive.eclipse.org/tools/cdt/releases/9.5/cdt-9.5.5</cdt-site>
+                <terminal-site>https://download.eclipse.org/tm/terminal/updates/4.4milestones</terminal-site>
+                <tm-site>https://download.eclipse.org/tm/updates/4.5.0-SNAPSHOT/repository</tm-site>
+            </properties>
+
+            <repositories>
+                <!-- Terminal is merged with TM -->
+                <repository>
+                    <id>terminal</id>
+                    <snapshots><enabled>false</enabled></snapshots>
+                    <releases><enabled>false</enabled></releases>
+                    <url>${terminal-site}</url>
+                    <layout>p2</layout>
+                </repository>
+            </repositories>
+        </profile>
+
+        <profile>
+            <!-- Eclipse 2021-12 (4.22.0), CDT 10.5 -->
+            <id>2021-12</id>
+
+            <properties>
+                <platform-site>https://download.eclipse.org/releases/2021-12</platform-site>
+                <orbit-site>https://download.eclipse.org/tools/orbit/downloads/drops/R20211213173813/repository</orbit-site>
+                <cdt-site>https://download.eclipse.org/tools/cdt/releases/10.5</cdt-site>
+                <terminal-site>https://download.eclipse.org/tm/terminal/updates/4.4milestones</terminal-site>
+                <tm-site>https://download.eclipse.org/tm/updates/4.5.300-SNAPSHOT/repository</tm-site>
             </properties>
 
             <repositories>
@@ -487,7 +521,7 @@
                     <configuration>
                         <baselineRepositories>
                             <repository>
-                                <url>http://download.eclipse.org/tools/tcf/builds/${tcf-stream}/nightly</url>
+                                <url>https://download.eclipse.org/tools/tcf/builds/${tcf-stream}/nightly</url>
                             </repository>
                         </baselineRepositories>
                     </configuration>
