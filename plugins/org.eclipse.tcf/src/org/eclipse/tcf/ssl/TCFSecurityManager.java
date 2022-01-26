@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009-2018 Wind River Systems, Inc. and others.
+ * Copyright (c) 2009-2022 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -215,22 +215,25 @@ public class TCFSecurityManager {
 
                 public X509Certificate[] getAcceptedIssuers() {
                     ArrayList<X509Certificate> list = new ArrayList<X509Certificate>();
-                    for (String fnm : usr_certs.list()) {
-                        if (!fnm.endsWith(".cert")) continue; //$NON-NLS-1$
-                        InputStream inp = null;
-                        try {
-                            inp = new BufferedInputStream(new FileInputStream(new File(usr_certs, fnm)));
-                            X509Certificate cert = (X509Certificate)cf.generateCertificate(inp);
-                            inp.close();
-                            list.add(cert);
-                        }
-                        catch (Throwable x) {
-                            Protocol.log("Cannot load certificate: " + fnm, x); //$NON-NLS-1$
+                    String[] usr_list = usr_certs.list();
+                    if (usr_list != null) {
+                        for (String fnm : usr_list) {
+                            if (!fnm.endsWith(".cert")) continue; //$NON-NLS-1$
+                            InputStream inp = null;
                             try {
-                                if (inp != null) inp.close();
+                                inp = new BufferedInputStream(new FileInputStream(new File(usr_certs, fnm)));
+                                X509Certificate cert = (X509Certificate)cf.generateCertificate(inp);
+                                inp.close();
+                                list.add(cert);
                             }
-                            catch (IOException e) {
-                                Protocol.log("Cannot close certificate file: " + fnm, x); //$NON-NLS-1$
+                            catch (Throwable x) {
+                                Protocol.log("Cannot load certificate: " + fnm, x); //$NON-NLS-1$
+                                try {
+                                    if (inp != null) inp.close();
+                                }
+                                catch (IOException e) {
+                                    Protocol.log("Cannot close certificate file: " + fnm, x); //$NON-NLS-1$
+                                }
                             }
                         }
                     }
