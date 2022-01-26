@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011-2020 Wind River Systems, Inc. and others.
+ * Copyright (c) 2011-2022 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -67,9 +67,9 @@ public class PeerListControl implements ISelectionProvider {
     public static class PeerInfo {
         public String id;
         public IPeer peer;
+        public Map<String,String> attrs;
 
         PeerInfo parent;
-        Map<String,String> attrs;
         PeerInfo[] children;
         boolean children_pending;
         Throwable children_error;
