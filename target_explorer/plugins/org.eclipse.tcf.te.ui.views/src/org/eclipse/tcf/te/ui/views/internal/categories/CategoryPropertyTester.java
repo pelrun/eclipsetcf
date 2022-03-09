@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2013 Wind River Systems, Inc. and others. All rights reserved.
+ * Copyright (c) 2011-2022 Wind River Systems, Inc. and others. All rights reserved.
  * This program and the accompanying materials are made available under the terms
  * of the Eclipse Public License 2.0 which accompanies this distribution, and is
  * available at https://www.eclipse.org/legal/epl-2.0/
@@ -14,7 +14,6 @@ import org.eclipse.core.expressions.EvaluationResult;
 import org.eclipse.core.expressions.ICountable;
 import org.eclipse.core.expressions.IEvaluationContext;
 import org.eclipse.core.expressions.PropertyTester;
-import org.eclipse.core.internal.expressions.CountExpression;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
@@ -38,7 +37,6 @@ import org.eclipse.ui.navigator.INavigatorContentService;
 /**
  * Category property tester.
  */
-@SuppressWarnings("restriction")
 public class CategoryPropertyTester extends PropertyTester {
 
 	/* (non-Javadoc)
