@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2012 Wind River Systems, Inc. and others.
+ * Copyright (c) 2009-2022 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -60,9 +60,7 @@ public class TCFLocalAgent {
         String arch = System.getProperty("os.arch");
         if (arch.equals("x86")) arch = "i386";
         if (arch.equals("i686")) arch = "i386";
-        if (os.startsWith("Windows")) {
-            os = "Windows";
-        }
+        if (os.startsWith("Windows")) os = "Windows";
         if (os.equals("Linux")) os = "GNU/Linux";
         return os + "/" + arch;
     }

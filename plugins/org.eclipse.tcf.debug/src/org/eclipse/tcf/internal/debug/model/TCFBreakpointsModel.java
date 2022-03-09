@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2016 Wind River Systems, Inc. and others.
+ * Copyright (c) 2007-2022 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -107,6 +107,7 @@ public class TCFBreakpointsModel {
         protected final String marker_id;
         private final String marker_file;
         private final String marker_type;
+        private boolean exec_done;
 
         IBreakpoints service;
         IBreakpoints.DoneCommand done;
@@ -124,15 +125,25 @@ public class TCFBreakpointsModel {
         }
 
         synchronized void exec() throws InterruptedException {
+            assert !exec_done;
             assert !Protocol.isDispatchThread();
             if (marker_id != null) {
                 Protocol.invokeLater(this);
-                wait();
+                while (!exec_done) wait();
             }
         }
 
+        private synchronized void exec_done() {
+            exec_done = true;
+            BreakpointUpdate.this.notify();
+        }
+
+        @Override
         public void run() {
-            if (disposed) return;
+            if (disposed) {
+                exec_done();
+                return;
+            }
             if (removed) id2bp.remove(marker_id);
             else id2bp.put(marker_id, breakpoint);
             if (is_local) {
@@ -150,9 +161,7 @@ public class TCFBreakpointsModel {
             }
             Protocol.sync(new Runnable() {
                 public void run() {
-                    synchronized (BreakpointUpdate.this) {
-                        BreakpointUpdate.this.notify();
-                    }
+                    exec_done();
                 }
             });
         };
@@ -265,7 +274,13 @@ public class TCFBreakpointsModel {
                 if (map.isEmpty()) return;
                 Runnable r = new Runnable() {
                     public void run() {
-                        if (disposed) return;
+                        if (disposed) {
+                            synchronized (map) {
+                                map.clear();
+                                map.notify();
+                                return;
+                            }
+                        }
                         for (final IChannel channel : channels.keySet()) {
                             IBreakpoints service = channel.getRemoteService(IBreakpoints.class);
                             Set<String> ids = new HashSet<String>();
@@ -288,6 +303,7 @@ public class TCFBreakpointsModel {
                         Protocol.sync(new Runnable() {
                             public void run() {
                                 synchronized (map) {
+                                    map.clear();
                                     map.notify();
                                 }
                             }
@@ -297,7 +313,7 @@ public class TCFBreakpointsModel {
                 synchronized (map) {
                     assert !Protocol.isDispatchThread();
                     Protocol.invokeLater(r);
-                    map.wait();
+                    while (!map.isEmpty()) map.wait();
                 }
             }
             catch (Throwable x) {
