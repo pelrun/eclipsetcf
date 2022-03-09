@@ -5,6 +5,7 @@
 # .
 workspace
 debug-workspace
+m2
 
 # Ignored throughout the whole tree
 bin/

@@ -62,25 +62,24 @@
         </profile>
 
         <profile>
-            <id>findbugs</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>findbugs-maven-plugin</artifactId>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-
-        <profile>
             <id>static-checks</id>
             <build>
                 <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>findbugs-maven-plugin</artifactId>
-                    </plugin>
+			        <plugin>
+			            <groupId>com.github.spotbugs</groupId>
+			            <artifactId>spotbugs-maven-plugin</artifactId>
+			            <version>4.5.3.0</version>
+			            <configuration>
+			                <excludeFilterFile>${adminDir}/findbugs-exclude.xml</excludeFilterFile>
+			                <plugins>
+			                    <plugin>
+			                        <groupId>com.h3xstream.findsecbugs</groupId>
+			                        <artifactId>findsecbugs-plugin</artifactId>
+			                        <version>1.10.1</version>
+			                    </plugin>
+			                </plugins>
+			            </configuration>
+			        </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-pmd-plugin</artifactId>
