@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2021 Wind River Systems, Inc. and others.
+ * Copyright (c) 2010-2022 Wind River Systems, Inc. and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -203,15 +203,13 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
 
         @Override
         public void changed(String context_id) {
-            if (fMemoryContext == null)
-                return;
-            if (!fMemoryContext.getID().equals(context_id))
-                return;
-            if (fCallback == null)
-                return;
+            if (fMemoryContext == null) return;
+            if (!fMemoryContext.getID().equals(context_id)) return;
+            if (fCallback == null) return;
             try {
                 fCallback.getClass().getMethod("refresh").invoke(fCallback);
-            } catch (Exception e) {
+            }
+            catch (Exception e) {
             }
         }
     }
@@ -232,15 +230,13 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
 
         @Override
         public void memoryChanged(String context_id, Number[] addr, long[] size) {
-            if (fMemoryContext == null)
-                return;
-            if (!fMemoryContext.getID().equals(context_id))
-                return;
-            if (fCallback == null)
-                return;
+            if (fMemoryContext == null) return;
+            if (!fMemoryContext.getID().equals(context_id)) return;
+            if (fCallback == null) return;
             try {
                 fCallback.getClass().getMethod("refresh").invoke(fCallback);
-            } catch (Exception e) {
+            }
+            catch (Exception e) {
             }
         }
     }
@@ -654,7 +650,9 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
 
                 if (!done_disassembly) {
                     Map<String, Object> params = new HashMap<String, Object>();
-                    disass.disassemble(mem.getID(), startAddress, accessSize, params, new DoneDisassemble() {
+                    /* Use thread, not memory context, to allow disassembler to check CPU mode. */
+                    /* It can improve disassembler accuracy, at least around current PC. */
+                    disass.disassemble(request.ctx.getID(), startAddress, accessSize, params, new DoneDisassemble() {
                         @Override
                         public void doneDisassemble(IToken token, final Throwable error, IDisassemblyLine[] res) {
                             if (error != null) {
