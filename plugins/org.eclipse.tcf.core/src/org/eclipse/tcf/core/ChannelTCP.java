@@ -37,10 +37,23 @@ public class ChannelTCP extends StreamChannel {
     private boolean started;
     private boolean closed;
 
+    private static boolean use_proxy_settings = true;
+
     private static SSLContext ssl_context;
 
     public static void setSSLContext(SSLContext ssl_context) {
         ChannelTCP.ssl_context = ssl_context;
+    }
+
+    /**
+     * Globally configures the usage of proxy settings
+     *
+     * @param use_proxy {@code false} to force no usage of proxy settings by setting the
+     *            java.net.Proxy.NO_PROXY flag while socket creation, {@code true} to use
+     *            the default behavior (use proxy settings when available)
+     */
+    public static void setUseProxySettings(boolean use_proxy) {
+        ChannelTCP.use_proxy_settings = use_proxy;
     }
 
     /**
@@ -52,7 +65,7 @@ public class ChannelTCP extends StreamChannel {
      */
     public ChannelTCP(IPeer remote_peer, final String host, final int port, final boolean ssl) {
         super(remote_peer);
-        socket = new Socket();
+        socket = use_proxy_settings ? new Socket() : new Socket(java.net.Proxy.NO_PROXY);
         Protocol.invokeLater(new Runnable() {
             public void run() {
                 Thread thread = new Thread() {
