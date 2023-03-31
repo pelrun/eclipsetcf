@@ -33,23 +33,21 @@ The TCF host side code is organized into several Eclipse plug-in projects,
 below are steps to create and populate an Eclipse workspace with TCF projects:</p>
 
 <ul>
-   <li>Install <b>JDK 1.7.0</b> or later, recommended 1.8.0</li>
-   <li>Install <b>Eclipse SDK 3.8.2</b> or later, last tested with 4.7, recommended 4.7<br>
-       <a href='http://download.eclipse.org/eclipse/downloads/'>http://download.eclipse.org/eclipse/downloads/</a></li>
+   <li>Install <b>JDK 1.8.0</b> or later</li>
+   <li>Install <b>Eclipse SDK 3.8.2</b> or later<br>
+       <a href='https://download.eclipse.org/eclipse/downloads/'>https://download.eclipse.org/eclipse/downloads/</a></li>
    <li>Run Eclipse:
       <pre>eclipse.exe -vm &lt;JDK path&gt;/bin/javaw.exe -data &lt;Workspace path&gt; -vmargs -Xmx1024M</pre>
    <li>Open the "Java" perspective.
    <li>In "Package Explorer" view: do right click and then select "Import...".<ul>
      <li>If EGit is installed, choose "Git", otherwise choose "General/Existing Projects into Workspace" and click "Next".</li>
-     <li>Clone TCF Java code from <a href='http://git.eclipse.org/c/tcf/org.eclipse.tcf.git'>Eclipse GIT repository</a>.
+     <li>Clone TCF Java code from <a href='https://git.eclipse.org/c/tcf/org.eclipse.tcf.git'>Eclipse GIT repository</a>.
    If you intend contributing, best get an account from <a href="">Eclipse Gerrit</a>, sign the CLA, and use the
    https: URL with your username below. Alternatively, anonymous access is possible as well from any of the below:
-       <pre>
-git clone https://&lt;user&gt;@git.eclipse.org/r/a/tcf/org.eclipse.tcf
-git clone ssh://&lt;user&gt;@git.eclipse.org:29418/tcf/org.eclipse.tcf
-git clone https://git.eclipse.org/r/tcf/org.eclipse.tcf
-git clone git://git.eclipse.org/gitroot/tcf/org.eclipse.tcf
-       </pre></ul></li>
+<pre>
+git clone https://git.eclipse.org/r/tcf/org.eclipse.tcf.git
+git clone ssh://&lt;user&gt;@git.eclipse.org:29418/tcf/org.eclipse.tcf.git
+</pre></ul></li>
    <li>Setting the Target Platform:<ul>
      <li>For import, select root directory: &lt;TCF Root&gt;/admin, and click "Next".
      <li>From the (admin project)/target-defs/*.target , choose the intended Target Platform and "Open With" &gt; "Target Editor"</li>
@@ -57,10 +55,10 @@ git clone git://git.eclipse.org/gitroot/tcf/org.eclipse.tcf
        <li><b>Optional</b> dependencies for TCF/CDT and TCF/RSE integration: these are not required by
        TCF itself or TCF based debugger.
        <ul>
-       <li><b>CDT (C/C++ Development Tools) SDK 8.1</b> or later, last tested with 8.3, recommended 9.3<br>
-       <a href='http://www.eclipse.org/cdt/downloads.php'>http://www.eclipse.org/cdt/downloads.php</a>
-       <li><b>RSE (Remote System Explorer) SDK 3.4</b> or later, last tested with 3.7, recommended 3.7.3<br>
-       <a href='http://download.eclipse.org/tm/downloads/'>http://download.eclipse.org/tm/downloads/</a>
+       <li><b>CDT (C/C++ Development Tools) SDK 8.3.0</b> or later<br>
+       <a href='https://www.eclipse.org/cdt/downloads.php'>https://www.eclipse.org/cdt/downloads.php</a>
+       <li><b>RSE (Remote System Explorer) SDK 3.4</b> or later<br>
+       <a href='https://download.eclipse.org/tm/downloads/'>https://download.eclipse.org/tm/downloads/</a>
        </ul>
      </li></ul></li></ul></li>
    <li>In "Package Explorer" view: do right click and then select "Import...".
@@ -119,23 +117,24 @@ Examples source code is stored in <code>&lt;TCF Root&gt;/examples</code> directo
 
 <p>Pre-built TCF plugins are available at Eclipse Update site/p2 repositories. The repositories can be accessed from Eclipse using Help/Install New Software command.
 <ul>
-    <li>TCF 1.0 maintenance build, requires Eclipse 3.8 or 4.2: http://download.eclipse.org/tools/tcf/builds/1.0/nightly
-    <li>TCF 1.1 maintenance build, requires Eclipse 3.8 or 4.2: http://download.eclipse.org/tools/tcf/builds/1.1/nightly
-    <li>TCF latest development build: http://download.eclipse.org/tools/tcf/builds/development/nightly
+    <li>TCF 1.7 maintenance build, requires Eclipse 3.8 or later: https://download.eclipse.org/tools/tcf/builds/1.7/nightly
+    <li>TCF latest development build: https://download.eclipse.org/tools/tcf/builds/development/nightly
 </ul>
 
 <h2><a name='TE_Plugins'>Target Explorer Plugins</a></h2>
 
 <p>Target Explorer plugins source code is stored in the <code>&lt;TCF Root&gt;/target_explorer/plugins</code> directory.
-<p>Target Explorer 1.1 nightly build: http://download.eclipse.org/tools/tcf/builds/development/nightly
+<ul>
+    <li>Target Explorer 1.7 maintenance build, requires Eclipse 3.8 or later: https://download.eclipse.org/tools/tcf/builds/1.7/nightly
+    <li>Target Explorer latest development build: https://download.eclipse.org/tools/tcf/builds/development/nightly
+</ul>
 
 <h2><a name='Agent'>Building TCF Agent</a></h2>
 
-Clone TCF C code from <a href='http://git.eclipse.org/c/tcf/org.eclipse.tcf.agent.git'>Eclipse GIT repository</a>, using one of the following commands:
+Clone TCF C code from <a href='https://git.eclipse.org/c/tcf/org.eclipse.tcf.agent.git'>Eclipse GIT repository</a>, using one of the following commands:
 <pre>
-git clone git://git.eclipse.org/gitroot/tcf/org.eclipse.tcf.agent.git
-git clone ssh://&lt;user&gt;@git.eclipse.org/gitroot/tcf/org.eclipse.tcf.agent.git
-git clone http://git.eclipse.org/gitroot/tcf/org.eclipse.tcf.agent.git
+git clone https://git.eclipse.org/r/tcf/org.eclipse.tcf.agent.git
+git clone ssh://&lt;user&gt;@git.eclipse.org:29418/tcf/org.eclipse.tcf.agent.git
 </pre>
 
 <p><b>CDT</b> can be used to build TCF agent.
@@ -149,33 +148,18 @@ CDT .project file is located in <code>&lt;TCF Root&gt;/agent</code> directory.
        Use other -l option values to increase agent log details level.
 </ul>
 
-<p><b>Windows</b>: For building the agent, there are two possibilities:<ul>
+<p><b>Windows</b>: For building the agent, there are two possibilities:
+<ul>
 <li>Building with gcc (freely available from <a href="http://wascana.sourceforge.net/">Wascana</a>,
 <a href="http://www.cygwin.com">Cygwin</a> or the
 <a href="http://www.mingw.org/">MinGW32 project</a>): run
 <pre>make</pre> or <pre>make OPSYS=Msys</pre>
 in the agent directory.</li>
-
 <li>Building with Microsoft Visual C++:
-open workspace file <code>&lt;TCF Root&gt;/agent/agent.sln</code>
-and then build and run the agent using Development Studio commands. If getting an error about
-<tt>IPHlpApi.h</tt> missing, you'll need to install the latest
-<a href="http://www.microsoft.com/downloads/details.aspx?FamilyId=0BAF2B35-C656-4969-ACE8-E4C0C0716ADB&displaylang=en">MS Platform SDK</a>.
-For the free <a href="http://www.microsoft.com/express/vc/">Visual C++ Express Edition</a>, the
-following changes in settings may be necessary:<ul>
-  <li>Project &gt; Properties &gt; C/C++ &gt; Preprocessor &gt; Preprocessor Definitions:
-       add <tt>_CRT_SECURE_NO_DEPRECATE</tt></li>
-  <li>Project &gt; Properties &gt; Linker &gt; Input &gt; Additional Dependencies :
-       add <tt>shell32.lib</tt></li>
-</ul></li>
-</ul></p>
-
-<p>On <b>VxWorks</b>, the SysMonitor service (needed for RSE Processes Demo) is not yet implemented.<br/>
-To build the agent: Use Wind River Workbench 3.0 or 3.1, and VxWorks 6.6 or 6.7 to create a Kernel Module
-project out of source code in <code>&lt;TCF Root&gt;/agent</code> directory. Use Workbench
-commands to build and run the agent. To run the agent on VxWorks Simulator
-you will need to setup a simulated network - see Networking with the VxWorks Simulator chapter
-in Wind River VxWorks Simulator user's guide for details.</p>
+open workspace file <code>&lt;TCF Root&gt;/agent/msvc/agent-vc2015.sln</code>
+and then build and run the agent using Development Studio commands. If getting an error about</li>
+</ul>
+</p>
 
 <h2><a name='TcfPython'>TCF Integration with Python</a></h2>
 
