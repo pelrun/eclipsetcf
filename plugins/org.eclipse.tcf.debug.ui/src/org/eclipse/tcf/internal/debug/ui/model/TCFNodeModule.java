@@ -32,6 +32,8 @@ public class TCFNodeModule extends TCFNode implements IDetailsProvider {
 
     private final TCFData<MemoryRegion> region;
     private int sort_pos;
+    // default_sort_pos: assign false, if custom order is needed; else, assign true
+    private boolean default_sort_pos = true;
 
     protected TCFNodeModule(final TCFNodeExecContext parent, String id, final int index) {
         super(parent, id);
@@ -54,8 +56,25 @@ public class TCFNodeModule extends TCFNode implements IDetailsProvider {
         return region;
     }
 
-    void setSortPosition(int sort_pos) {
+    /**
+     * The assigned sort position of the node might be overwritten at 
+     * data retrieval. First, set the default sort position flag to 
+     * false to prevent it from changing.*/
+    public void setSortPosition(int sort_pos) {
         this.sort_pos = sort_pos;
+    }
+    
+    /**
+     * Before assigning a value to the sort position, set the flag to 
+     * false to prevent it from being overwritten at data retrieval.*/
+    public void setDefaultSortPositionFlag(boolean useDefault) {
+        this.default_sort_pos = useDefault;
+    }
+    
+    /**
+     * Check state of the flag.*/
+    public boolean getDefaultSortPositionFlag() {
+        return this.default_sort_pos;
     }
 
     void onMemoryMapChanged() {

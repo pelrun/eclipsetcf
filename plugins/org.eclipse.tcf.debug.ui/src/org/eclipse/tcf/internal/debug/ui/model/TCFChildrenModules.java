@@ -43,7 +43,9 @@ public class TCFChildrenModules extends TCFChildren {
                 String id = exe.id + ".Module-" + index;
                 TCFNodeModule module = (TCFNodeModule)node.model.getNode(id);
                 if (module == null) module = new TCFNodeModule(exe, id, index);
-                module.setSortPosition(cnt++);
+                // Check if the node can be assigned the default sort position
+                if (module.getDefaultSortPositionFlag())
+                    module.setSortPosition(cnt++);
                 data.put(id, module);
             }
         }
