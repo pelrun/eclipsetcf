@@ -654,6 +654,16 @@ public class TCFNodeExpression extends TCFNode implements IElementEditor, ICastT
                     return false;
                 }
                 StyledStringBuffer bf = new StyledStringBuffer();
+
+                // If it's a pointer, add it as value
+                ISymbols.Symbol type_data = type != null ? type.getData() : null;
+                ISymbols.TypeClass typeClass = type_data != null ? type_data.getTypeClass() : null;
+                if (ISymbols.TypeClass.pointer.equals(typeClass)) {
+                    // Add invisible unicode joiner so that the cell is still not editable and parsed as hex
+                    bf.append("\u200B0x", StyledStringBuffer.MONOSPACED);
+                    bf.append(addr.toString(16), StyledStringBuffer.MONOSPACED);
+                    bf.append(" ");
+                }
                 bf.append('{');
                 if (!appendCompositeValueText(bf, 1, base_type_data, null, TCFNodeExpression.this, true,
                         buf, 0, size, base_type_data.isBigEndian(), this)) return false;
