@@ -780,7 +780,11 @@ public class TCFDisassemblyBackend extends AbstractDisassemblyBackend {
 
     protected final void insertDisassembly(Request request, BigInteger startAddress, byte[] code, AddressRange range, boolean big_endian,
             IDisassemblyLine[] instructions, ISymbols.Symbol[] symbols, CodeArea[] codeAreas) {
-        if (!request.check()) return;
+        if (!request.check()) {
+            // We are done receiving the data but there might be still pending tasks in the viewer
+            fCallback.doPending();
+            return;
+        }
         if (DEBUG) System.out.println("insertDisassembly "+ DisassemblyUtils.getAddressText(startAddress)); //$NON-NLS-1$
         boolean insertedAnyAddress = false;
         try {
