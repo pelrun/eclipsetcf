@@ -57,20 +57,20 @@ public class TCFNodeModule extends TCFNode implements IDetailsProvider {
     }
 
     /**
-     * The assigned sort position of the node might be overwritten at 
-     * data retrieval. First, set the default sort position flag to 
+     * The assigned sort position of the node might be overwritten at
+     * data retrieval. First, set the default sort position flag to
      * false to prevent it from changing.*/
     public void setSortPosition(int sort_pos) {
         this.sort_pos = sort_pos;
     }
-    
+
     /**
-     * Before assigning a value to the sort position, set the flag to 
+     * Before assigning a value to the sort position, set the flag to
      * false to prevent it from being overwritten at data retrieval.*/
     public void setDefaultSortPositionFlag(boolean useDefault) {
         this.default_sort_pos = useDefault;
     }
-    
+
     /**
      * Check state of the flag.*/
     public boolean getDefaultSortPositionFlag() {

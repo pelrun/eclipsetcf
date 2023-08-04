@@ -7,11 +7,11 @@
   <parent>
     <groupId>org.eclipse.tcf</groupId>
     <artifactId>org.eclipse.tcf.maven-build</artifactId>
-    <version>1.7.0-SNAPSHOT</version>
+    <version>1.8.0-SNAPSHOT</version>
     <relativePath>../../../admin/pom-build.xml</relativePath>
   </parent>
 
-  <version>1.7.0-SNAPSHOT</version>
+  <version>1.8.0-SNAPSHOT</version>
   <artifactId>org.eclipse.tcf.te.core.cdt</artifactId>
   <packaging>eclipse-plugin</packaging>
 </project>
