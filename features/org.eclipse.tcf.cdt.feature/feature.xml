@@ -40,8 +40,8 @@
       <import plugin="org.eclipse.cdt.ui" version="5.5.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.cdt.debug.core" version="7.2.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.cdt.debug.ui" version="7.2.0" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.tcf.core" version="1.7.0" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.tcf.debug" version="1.7.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.core" version="1.8.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.debug" version="1.8.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.jface.text" version="3.8.1" match="greaterOrEqual"/>
       <import plugin="org.eclipse.core.expressions" version="3.4.400" match="greaterOrEqual"/>
       <import plugin="org.eclipse.cdt.launch" version="7.1.0" match="greaterOrEqual"/>
@@ -49,8 +49,8 @@
       <import plugin="org.eclipse.ui.editors"/>
       <import plugin="org.eclipse.ui.workbench"/>
       <import feature="org.eclipse.cdt" version="8.1.1" match="greaterOrEqual"/>
-      <import feature="org.eclipse.tcf.feature" version="1.7.0" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.tcf.debug.ui" version="1.7.0" match="greaterOrEqual"/>
+      <import feature="org.eclipse.tcf.feature" version="1.8.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.tcf.debug.ui" version="1.8.0" match="greaterOrEqual"/>
    </requires>
 
    <plugin

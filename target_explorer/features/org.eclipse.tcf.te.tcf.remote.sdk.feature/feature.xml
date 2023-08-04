@@ -2,7 +2,7 @@
 <feature
       id="org.eclipse.tcf.te.tcf.remote.sdk.feature"
       label="%featureName"
-      version="1.7.0.qualifier"
+      version="1.8.0.qualifier"
       provider-name="%providerName"
       license-feature="org.eclipse.license"
       license-feature-version="1.0.1.qualifier">
@@ -25,8 +25,8 @@
 
    <requires>
       <import feature="org.eclipse.remote.source" version="2.0.0" match="greaterOrEqual"/>
-      <import feature="org.eclipse.tcf.te.tcf.core.sdk.feature" version="1.7.0" match="greaterOrEqual"/>
-      <import feature="org.eclipse.tcf.te.tcf.remote.feature" version="1.7.0" match="greaterOrEqual"/>
+      <import feature="org.eclipse.tcf.te.tcf.core.sdk.feature" version="1.8.0" match="greaterOrEqual"/>
+      <import feature="org.eclipse.tcf.te.tcf.remote.feature" version="1.8.0" match="greaterOrEqual"/>
    </requires>
 
    <plugin
