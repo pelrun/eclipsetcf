@@ -1322,7 +1322,7 @@ public class TCFNodeExecContext extends TCFNode implements ISymbolOwner, ITCFExe
                                             }
                                         }
                                     }
-                                    if (suspend_reason == null) suspend_reason = "Suspended";
+                                    if (suspend_reason == null) suspend_reason = IRunControl.REASON_USER_REQUEST;
                                     suspended_by_bp = IRunControl.REASON_BREAKPOINT.equals(suspend_reason) || bp_names != null;
                                     label.append(" (");
                                     label.append(suspend_reason);
