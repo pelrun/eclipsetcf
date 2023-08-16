@@ -43,6 +43,10 @@
         <td>2015-05-20
         <td>Fixed description of getChildrenRange.
         New properties: CodeArea and FuncID.
+    <tr>
+        <td>1.8
+        <td>2023-08-15
+        <td>Fixed description of CodeArea and FuncID.
 </table>
 
 <h2><a name='Overview'>Overview</a></h2>
@@ -139,10 +143,10 @@ Cached context data should by flushed when parent thread is resumed.</p>
     <li><code><b><font face="Courier New" size=2 color=#333399>"ArgsAddr" : <i>&lt;number&gt;</i></font></b></code>
     - memory address of function arguments
 
-    <li><code><b><font face="Courier New" size=2 color=#333399>"CodeArea" : <i>&lt;number&gt;</i></font></b></code>
-    - source code location of the frame
+    <li><code><b><font face="Courier New" size=2 color=#333399>"CodeArea" : <i>&lt;object: code area&gt;</i></font></b></code>
+    - source code location of the frame. See <a href='TCF Service - Line Numbers.html'>Line Numbers Service</a> for the code area definition.
 
-    <li><code><b><font face="Courier New" size=2 color=#333399>"FuncID" : <i>&lt;number&gt;</i></font></b></code>
+    <li><code><b><font face="Courier New" size=2 color=#333399>"FuncID" : <i>&lt;string&gt;</i></font></b></code>
     - function symbol ID.
 </ul>
 
