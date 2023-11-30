@@ -11,7 +11,7 @@
 
 import threading
 import types
-from .. import protocol
+from .. import protocol,channel
 from ..channel.Command import Command
 
 
@@ -113,6 +113,9 @@ class CommandControl(object):
                     elif service == "Diagnostics":
                         if command.startswith("echo"):
                             resultArgs = (args[0],)
+                    elif service == "Memory" and command.startswith("get"):
+                            error = self.toError(args[1])
+                            resultArgs = (channel.toByteArray(args[0]),args[2:])
                     else:
                         error = self.toError(args[0])
                         resultArgs = args[1:]
