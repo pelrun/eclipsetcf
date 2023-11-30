@@ -117,4 +117,5 @@ def interact():
     shell.interact("TCF Shell")
 
 if __name__ == "__main__":
+    print(__doc__)
     interact()
